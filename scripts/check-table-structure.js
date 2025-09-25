@@ -1,33 +1,34 @@
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./data/billing.db');
+const path = require('path');
 
-console.log('🔍 Memeriksa struktur tabel technicians...');
-
-db.serialize(() => {
-    // Cek struktur tabel
-    db.all("PRAGMA table_info(technicians)", (err, rows) => {
-        if (err) {
-            console.error('❌ Error:', err);
-            return;
-        }
-
-        console.log('📋 Struktur Tabel technicians:');
-        rows.forEach(row => {
-            console.log(`   - ${row.name}: ${row.type} ${row.dflt_value ? '(default: ' + row.dflt_value + ')' : ''} ${row.notnull ? '(NOT NULL)' : ''} ${row.pk ? '(PRIMARY KEY)' : ''}`);
-        });
-
-        // Cek data yang ada
-        db.all("SELECT * FROM technicians", (err, techRows) => {
+function checkTableStructure() {
+    const dbPath = path.join(__dirname, '../data/billing.db');
+    const db = new sqlite3.Database(dbPath);
+    
+    console.log('🔍 Checking table structures...\n');
+    
+    const tables = ['packages', 'collectors', 'customers', 'invoices', 'payments'];
+    
+    tables.forEach(table => {
+        console.log(`📋 Table: ${table}`);
+        db.all(`PRAGMA table_info(${table})`, (err, rows) => {
             if (err) {
-                console.error('❌ Error getting technicians:', err);
-            } else {
-                console.log(`\n📊 Data teknisi (${techRows.length} total):`);
-                techRows.forEach(row => {
-                    console.log(`   ID: ${row.id} | Nama: ${row.name} | Phone: ${row.phone} | Role: ${row.role} | Status: ${row.is_active ? 'Aktif' : 'Tidak Aktif'}`);
+                console.log(`   ❌ Error: ${err.message}`);
+            } else if (rows && rows.length > 0) {
+                console.log('   Columns:');
+                rows.forEach(row => {
+                    console.log(`     - ${row.name} (${row.type})`);
                 });
+            } else {
+                console.log('   ⚠️  Table not found or empty');
             }
-
-            db.close();
+            console.log('');
         });
     });
-});
+    
+    setTimeout(() => {
+        db.close();
+    }, 2000);
+}
+
+checkTableStructure();
