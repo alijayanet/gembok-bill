@@ -142,7 +142,7 @@
                         </div>
                         <div class="mb-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="enable_tax" name="enable_tax" checked>
+                                <input class="form-check-input" type="checkbox" id="enable_tax" name="enable_tax">
                                 <label class="form-check-label" for="enable_tax">
                                     Aktifkan PPN
                                 </label>
@@ -315,6 +315,10 @@
         
         // Set default tax rate from settings if available
         setDefaultTaxRate();
+        
+        // Hide tax rate group by default (checkbox unchecked)
+        $('#tax_rate_group').hide();
+        $('#tax_rate_group input').prop('disabled', true);
         });
 
         // PPN Calculation Functions

@@ -5,126 +5,310 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <style>
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+        .stat-card.income {
+            border-left-color: #28a745;
+        }
+        .stat-card.expense {
+            border-left-color: #dc3545;
+        }
+        .stat-card.profit {
+            border-left-color: #ffc107;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        .transaction-type-income {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .transaction-type-expense {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .filter-section {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
-<% 
-  var filters = (typeof filters !== 'undefined') ? filters : { from: (typeof startDate !== 'undefined' ? startDate : ''), to: (typeof endDate !== 'undefined' ? endDate : ''), collector_id: '' };
-  var summary = (typeof summary !== 'undefined') ? summary : { total_amount: 0, remittance_count: 0 };
-  var perCollector = (typeof perCollector !== 'undefined') ? perCollector : [];
-  var recent = (typeof recent !== 'undefined') ? recent : [];
-%>
 <div class="container-fluid">
     <div class="row">
         <%- include('../../partials/billing-sidebar') %>
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content py-4">
-    <h3 class="mb-3">Laporan Keuangan - Setoran Kolektor</h3>
+                
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="bx bx-line-chart"></i> Laporan Keuangan</h2>
+                        <p class="text-muted mb-0">Analisis pemasukan, pengeluaran, dan laba bersih</p>
+                    </div>
+                </div>
 
-    <form class="row g-2 align-items-end mb-3">
-        <div class="col-auto">
-            <label class="form-label">Dari</label>
-            <input type="date" class="form-control" name="from" value="<%= filters.from %>">
+                <!-- Filter Section -->
+                <div class="filter-section">
+                    <form method="GET" class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">Tanggal Mulai</label>
+                            <input type="date" class="form-control" name="start_date" value="<%= startDate %>" required>
         </div>
-        <div class="col-auto">
-            <label class="form-label">Sampai</label>
-            <input type="date" class="form-control" name="to" value="<%= filters.to %>">
+                        <div class="col-md-3">
+                            <label class="form-label">Tanggal Selesai</label>
+                            <input type="date" class="form-control" name="end_date" value="<%= endDate %>" required>
         </div>
-        <div class="col-auto">
-            <label class="form-label">Kolektor</label>
-            <select class="form-select" name="collector_id">
-                <option value="">Semua</option>
-                <% (perCollector||[]).forEach(function(r){ %>
-                    <option value="<%= r.collector_id %>" <%= String(filters.collector_id)===String(r.collector_id)?'selected':'' %>><%= r.collector_name %></option>
-                <% }) %>
+                        <div class="col-md-3">
+                            <label class="form-label">Tipe Laporan</label>
+                            <select class="form-select" name="type">
+                                <option value="all" <%= type === 'all' ? 'selected' : '' %>>Semua Transaksi</option>
+                                <option value="income" <%= type === 'income' ? 'selected' : '' %>>Hanya Pemasukan</option>
+                                <option value="expense" <%= type === 'expense' ? 'selected' : '' %>>Hanya Pengeluaran</option>
             </select>
         </div>
-        <div class="col-auto">
-            <button class="btn btn-primary">Terapkan</button>
-            <button class="btn btn-outline-secondary" type="button" id="exportSummary">Export CSV</button>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-search"></i> Terapkan Filter
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2" onclick="exportToCSV()">
+                                <i class="bx bx-download"></i> Export CSV
+                            </button>
         </div>
     </form>
+                </div>
 
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="text-muted">Total Setoran</div>
-                    <div class="h4">Rp <%= Number(summary.total_amount||0).toLocaleString('id-ID') %></div>
+                <!-- Summary Cards -->
+                <% if (financialData && financialData.summary) { %>
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card income">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="bx bx-trending-up" style="font-size: 2rem; color: #28a745;"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-value" style="color: #28a745;">
+                                        Rp <%= Number(financialData.summary.totalIncome || 0).toLocaleString('id-ID') %>
+                                    </div>
+                                    <div class="stat-label">Total Pemasukan</div>
+                                    <small class="text-muted"><%= financialData.summary.incomeCount || 0 %> transaksi</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card expense">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="bx bx-trending-down" style="font-size: 2rem; color: #dc3545;"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-value" style="color: #dc3545;">
+                                        Rp <%= Number(financialData.summary.totalExpense || 0).toLocaleString('id-ID') %>
+                                    </div>
+                                    <div class="stat-label">Total Pengeluaran</div>
+                                    <small class="text-muted"><%= financialData.summary.expenseCount || 0 %> transaksi</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-left-color: #6f42c1;">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="bx bx-user-check" style="font-size: 2rem; color: #6f42c1;"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-value" style="color: #6f42c1;">
+                                        Rp <%= Number(financialData.summary.totalCommission || 0).toLocaleString('id-ID') %>
+                                    </div>
+                                    <div class="stat-label">Total Komisi Kolektor</div>
+                                    <small class="text-muted">Biaya operasional</small>
+                                </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="text-muted">Jumlah Transaksi</div>
-                    <div class="h4"><%= Number(summary.remittance_count||0) %></div>
+                    <div class="col-md-3">
+                        <div class="stat-card profit">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="bx bx-money" style="font-size: 2rem; color: #ffc107;"></i>
+                                </div>
+                                <div>
+                                    <div class="stat-value" style="color: <%= (financialData.summary.netProfit || 0) >= 0 ? '#28a745' : '#dc3545' %>;">
+                                        Rp <%= Number(financialData.summary.netProfit || 0).toLocaleString('id-ID') %>
+                                    </div>
+                                    <div class="stat-label">Laba Bersih</div>
+                                    <small class="text-muted">Pemasukan - Pengeluaran</small>
+                                </div>
                 </div>
             </div>
         </div>
     </div>
+                <% } %>
 
-    <h5>Ringkasan per Kolektor</h5>
-    <div class="table-responsive mb-4">
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>Kolektor</th>
-                <th>Jumlah Setoran</th>
-                <th>Transaksi</th>
-            </tr>
-            </thead>
-            <tbody>
-            <% (perCollector||[]).forEach(function(r){ %>
-                <tr>
-                    <td><%= r.collector_name %></td>
-                    <td>Rp <%= Number(r.total_amount||0).toLocaleString('id-ID') %></td>
-                    <td><%= r.remittance_count %></td>
-                </tr>
-            <% }) %>
-            </tbody>
-        </table>
+                <!-- Transaction List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bx bx-list-ul"></i> Daftar Transaksi
+                            <span class="badge bg-secondary ms-2"><%= financialData && financialData.transactions ? financialData.transactions.length : 0 %> transaksi</span>
+                        </h5>
     </div>
-
-    <h5>Setoran Terakhir</h5>
+                    <div class="card-body p-0">
+                        <% if (financialData && financialData.transactions && financialData.transactions.length > 0) { %>
     <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
             <tr>
                 <th>Tanggal</th>
+                                        <th>Tipe</th>
+                                        <th>Jumlah</th>
+                                        <th>Metode</th>
                 <th>Kolektor</th>
-                <th>Metode</th>
-                <th>Jumlah</th>
-                <th>Catatan</th>
+                                        <th>Komisi</th>
+                                        <th>Keterangan</th>
+                                        <th>Invoice/Pelanggan</th>
             </tr>
             </thead>
             <tbody>
-            <% (recent||[]).forEach(function(r){ %>
-                <tr>
-                    <td><%= r.received_at %></td>
-                    <td><%= r.collector_name %></td>
-                    <td><%= r.payment_method %></td>
-                    <td>Rp <%= Number(r.amount||0).toLocaleString('id-ID') %></td>
-                    <td><%= r.notes || '' %></td>
+                                    <% financialData.transactions.forEach(function(transaction) { %>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <span><%= new Date(transaction.date).toLocaleDateString('id-ID') %></span>
+                                                <small class="text-muted"><%= new Date(transaction.date).toLocaleTimeString('id-ID') %></small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <% if (transaction.type === 'income') { %>
+                                                <span class="transaction-type-income">
+                                                    <i class="bx bx-trending-up"></i> Pemasukan
+                                                </span>
+                                            <% } else { %>
+                                                <span class="transaction-type-expense">
+                                                    <i class="bx bx-trending-down"></i> Pengeluaran
+                                                </span>
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <strong style="color: <%= transaction.type === 'income' ? '#28a745' : '#dc3545' %>;">
+                                                <%= transaction.type === 'income' ? '+' : '-' %>Rp <%= Number(transaction.amount || 0).toLocaleString('id-ID') %>
+                                            </strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary"><%= transaction.payment_method || '-' %></span>
+                                            <% if (transaction.gateway_name && transaction.gateway_name !== 'Manual Payment') { %>
+                                                <br><small class="text-muted"><%= transaction.gateway_name %></small>
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <% if (transaction.collector_name) { %>
+                                                <span class="badge bg-info"><%= transaction.collector_name %></span>
+                                            <% } else { %>
+                                                -
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <% if (transaction.commission_amount && transaction.commission_amount > 0) { %>
+                                                <span class="text-warning fw-bold">
+                                                    Rp <%= Number(transaction.commission_amount).toLocaleString('id-ID') %>
+                                                </span>
+                                            <% } else { %>
+                                                -
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <%= transaction.description || transaction.notes || '-' %>
+                                        </td>
+                                        <td>
+                                            <% if (transaction.invoice_number) { %>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold"><%= transaction.invoice_number %></span>
+                                                    <% if (transaction.customer_name) { %>
+                                                        <small class="text-muted"><%= transaction.customer_name %></small>
+                                                    <% } %>
+                                                </div>
+                                            <% } else { %>
+                                                -
+                                            <% } %>
+                                        </td>
                 </tr>
-            <% }) %>
+                                    <% }); %>
             </tbody>
         </table>
     </div>
+                        <% } else { %>
+                        <div class="text-center py-5">
+                            <i class="bx bx-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
+                            <h5 class="mt-3 text-muted">Tidak ada transaksi ditemukan</h5>
+                            <p class="text-muted">Coba ubah filter tanggal atau tipe laporan</p>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+
         </main>
     </div>
 </div>
 
 <script>
-document.getElementById('exportSummary').addEventListener('click', function(){
-    const rows = [['Collector','Total Amount','Count']].concat((<%- JSON.stringify(perCollector||[]) %>).map(r=>[
-        r.collector_name,
-        r.total_amount,
-        r.remittance_count
-    ]));
-    const csv = rows.map(r=>r.map(x=>`"${String(x ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        function exportToCSV() {
+            <% if (financialData && financialData.transactions && financialData.transactions.length > 0) { %>
+            const transactions = <%- JSON.stringify(financialData.transactions) %>;
+            const csvHeaders = ['Tanggal', 'Tipe', 'Jumlah', 'Metode Pembayaran', 'Gateway', 'Kolektor', 'Komisi', 'Keterangan', 'Invoice', 'Pelanggan'];
+            
+            const csvRows = [csvHeaders.join(',')];
+            
+            transactions.forEach(transaction => {
+                const row = [
+                    `"${new Date(transaction.date).toLocaleDateString('id-ID')}"`,
+                    `"${transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}"`,
+                    `"${transaction.amount}"`,
+                    `"${transaction.payment_method || ''}"`,
+                    `"${transaction.gateway_name || ''}"`,
+                    `"${transaction.collector_name || ''}"`,
+                    `"${transaction.commission_amount || 0}"`,
+                    `"${(transaction.description || transaction.notes || '').replace(/"/g, '""')}"`,
+                    `"${transaction.invoice_number || ''}"`,
+                    `"${transaction.customer_name || ''}"`
+                ];
+                csvRows.push(row.join(','));
+            });
+            
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'collector-remittance-summary.csv'; a.click();
+            a.href = url;
+            a.download = `laporan-keuangan-${document.querySelector('input[name="start_date"]').value}-${document.querySelector('input[name="end_date"]').value}.csv`;
+            a.click();
     URL.revokeObjectURL(url);
-});
+            <% } else { %>
+            alert('Tidak ada data untuk di-export');
+            <% } %>
+        }
 </script>
+</body>
+</html>

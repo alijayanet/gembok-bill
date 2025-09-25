@@ -9,7 +9,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Boxicons -->
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -25,43 +28,13 @@
         .map-container {
             position: relative;
             width: 100%;
-            height: calc(100vh - 60px);
+            height: calc(100vh - 200px);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
         }
         
-        .header-nav {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-            z-index: 1001;
-        }
-        
-        .header-nav h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        
-        .back-button {
-            background: linear-gradient(45deg, #3498db, #2980b9);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-flex;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .back-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            color: white;
-        }
+        /* Header styles removed - now using sidebar structure */
         
         /* Custom Marker Styling */
         .custom-odp-icon {
@@ -1175,16 +1148,20 @@
     </style>
 </head>
 <body>
-    <!-- Header Navigation -->
-    <div class="header-nav">
-        <h1><i class="fas fa-map-marked-alt"></i> Network Mapping</h1>
-        <a href="/admin/dashboard" class="back-button">
-            <i class="fas fa-arrow-left"></i>
-            Kembali ke Dashboard
-        </a>
-            </div>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Include Billing Sidebar -->
+            <%- include('../../partials/billing-sidebar') %>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="bx bx-map"></i> Network Mapping
+                    </h1>
+                </div>
     
-    <div class="map-container">
+                <div class="map-container">
         <!-- Loading Indicator -->
         <div id="loading" class="loading">
             <div class="text-center">
@@ -1296,6 +1273,9 @@
                     <span>Cable Disconnected</span>
                 </div>
             </div>
+        </div>
+                </div>
+            </main>
         </div>
     </div>
 

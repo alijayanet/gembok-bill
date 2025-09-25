@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - <%= appSettings.companyHeader %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .table thead th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem;
+        }
+        
+        .table tbody td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .pagination .page-link {
+            border-radius: 8px;
+            margin: 0 2px;
+            border: 1px solid #dee2e6;
+            color: #667eea;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Include Billing Sidebar -->
+            <%- include('../../partials/billing-sidebar') %>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="bx bx-receipt"></i> Semua Invoice
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a href="/admin/billing/invoices" class="btn btn-sm btn-outline-primary">
+                                <i class="bx bx-plus"></i> Buat Invoice Baru
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card border-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="bx bx-receipt text-primary" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div class="h4 text-primary">
+                                            <%= pagination.totalCount %>
+                                        </div>
+                                        <div class="text-muted">Total Invoice</div>
+                                        <small class="text-muted">Semua jenis invoice</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-success">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="bx bx-check-circle text-success" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div class="h4 text-success">
+                                            <%= invoices.filter(inv => inv.status === 'paid').length %>
+                                        </div>
+                                        <div class="text-muted">Lunas</div>
+                                        <small class="text-muted">Invoice yang sudah dibayar</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-warning">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="bx bx-time text-warning" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div class="h4 text-warning">
+                                            <%= invoices.filter(inv => inv.status === 'pending').length %>
+                                        </div>
+                                        <div class="text-muted">Pending</div>
+                                        <small class="text-muted">Menunggu pembayaran</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="bx bx-x-circle text-danger" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div class="h4 text-danger">
+                                            <%= invoices.filter(inv => inv.status === 'overdue').length %>
+                                        </div>
+                                        <div class="text-muted">Jatuh Tempo</div>
+                                        <small class="text-muted">Invoice yang terlambat</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bx bx-filter"></i> Filter & Pencarian
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="GET" action="/admin/billing/invoice-list" class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select name="status" class="form-control">
+                                    <option value="">Semua Status</option>
+                                    <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                                    <option value="paid" <%= filters.status === 'paid' ? 'selected' : '' %>>Lunas</option>
+                                    <option value="overdue" <%= filters.status === 'overdue' ? 'selected' : '' %>>Jatuh Tempo</option>
+                                    <option value="cancelled" <%= filters.status === 'cancelled' ? 'selected' : '' %>>Dibatalkan</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tipe Invoice</label>
+                                <select name="type" class="form-control">
+                                    <option value="">Semua Tipe</option>
+                                    <option value="monthly" <%= filters.type === 'monthly' ? 'selected' : '' %>>Bulanan</option>
+                                    <option value="voucher" <%= filters.type === 'voucher' ? 'selected' : '' %>>Voucher</option>
+                                    <option value="manual" <%= filters.type === 'manual' ? 'selected' : '' %>>Manual</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Username Pelanggan</label>
+                                <input type="text" name="customer_username" class="form-control" 
+                                       placeholder="Masukkan username pelanggan" 
+                                       value="<%= filters.customer_username %>">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bx bx-search"></i> Cari
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Invoice Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bx bx-list-ul"></i> Daftar Invoice
+                            <span class="badge bg-light text-dark ms-2">
+                                Halaman <%= pagination.currentPage %> dari <%= pagination.totalPages %>
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <% if (invoices && invoices.length > 0) { %>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Invoice #</th>
+                                            <th>Pelanggan</th>
+                                            <th>Paket</th>
+                                            <th>Jumlah</th>
+                                            <th>Status</th>
+                                            <th>Tipe</th>
+                                            <th>Tanggal Dibuat</th>
+                                            <th>Jatuh Tempo</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% invoices.forEach(invoice => { %>
+                                            <tr>
+                                                <td>
+                                                    <strong>#<%= invoice.invoice_number %></strong>
+                                                </td>
+                                                <td>
+                                                    <div>
+                                                        <strong><%= invoice.customer_name %></strong><br>
+                                                        <small class="text-muted">@<%= invoice.username %></small>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info">
+                                                        <%= invoice.package_name %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <strong>Rp <%= invoice.amount.toLocaleString('id-ID') %></strong>
+                                                </td>
+                                                <td>
+                                                    <% if (invoice.status === 'paid') { %>
+                                                        <span class="badge bg-success">Lunas</span>
+                                                    <% } else if (invoice.status === 'overdue') { %>
+                                                        <span class="badge bg-danger">Jatuh Tempo</span>
+                                                    <% } else if (invoice.status === 'pending') { %>
+                                                        <span class="badge bg-warning">Pending</span>
+                                                    <% } else { %>
+                                                        <span class="badge bg-secondary"><%= invoice.status %></span>
+                                                    <% } %>
+                                                </td>
+                                                <td>
+                                                    <% if (invoice.invoice_type === 'monthly') { %>
+                                                        <span class="badge bg-primary">Bulanan</span>
+                                                    <% } else if (invoice.invoice_type === 'voucher') { %>
+                                                        <span class="badge bg-success">Voucher</span>
+                                                    <% } else { %>
+                                                        <span class="badge bg-secondary">Manual</span>
+                                                    <% } %>
+                                                </td>
+                                                <td>
+                                                    <%= new Date(invoice.created_at).toLocaleDateString('id-ID') %>
+                                                </td>
+                                                <td>
+                                                    <%= new Date(invoice.due_date).toLocaleDateString('id-ID') %>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="/admin/billing/invoices/<%= invoice.id %>" 
+                                                           class="btn btn-outline-primary" title="Lihat Detail">
+                                                            <i class="bx bx-show"></i>
+                                                        </a>
+                                                        <a href="/admin/billing/invoices/<%= invoice.id %>/edit" 
+                                                           class="btn btn-outline-warning" title="Edit">
+                                                            <i class="bx bx-edit"></i>
+                                                        </a>
+                                                        <a href="/admin/billing/invoices/<%= invoice.id %>/print" 
+                                                           class="btn btn-outline-info" title="Print" target="_blank">
+                                                            <i class="bx bx-printer"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <% if (pagination.totalPages > 1) { %>
+                                <nav aria-label="Invoice pagination">
+                                    <ul class="pagination justify-content-center">
+                                        <% if (pagination.currentPage > 1) { %>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page=<%= pagination.currentPage - 1 %>&status=<%= filters.status %>&type=<%= filters.type %>&customer_username=<%= filters.customer_username %>">
+                                                    <i class="bx bx-chevron-left"></i>
+                                                </a>
+                                            </li>
+                                        <% } %>
+                                        
+                                        <% for (let i = Math.max(1, pagination.currentPage - 2); i <= Math.min(pagination.totalPages, pagination.currentPage + 2); i++) { %>
+                                            <li class="page-item <%= i === pagination.currentPage ? 'active' : '' %>">
+                                                <a class="page-link" href="?page=<%= i %>&status=<%= filters.status %>&type=<%= filters.type %>&customer_username=<%= filters.customer_username %>">
+                                                    <%= i %>
+                                                </a>
+                                            </li>
+                                        <% } %>
+                                        
+                                        <% if (pagination.currentPage < pagination.totalPages) { %>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page=<%= pagination.currentPage + 1 %>&status=<%= filters.status %>&type=<%= filters.type %>&customer_username=<%= filters.customer_username %>">
+                                                    <i class="bx bx-chevron-right"></i>
+                                                </a>
+                                            </li>
+                                        <% } %>
+                                    </ul>
+                                </nav>
+                            <% } %>
+                        <% } else { %>
+                            <div class="text-center py-5">
+                                <i class="bx bx-receipt fs-1 text-muted"></i>
+                                <h5 class="mt-3">Tidak ada invoice ditemukan</h5>
+                                <p class="text-muted">Belum ada invoice yang sesuai dengan filter yang dipilih.</p>
+                                <a href="/admin/billing/invoices" class="btn btn-primary">
+                                    <i class="bx bx-plus"></i> Buat Invoice Baru
+                                </a>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-submit form on filter change
+        document.querySelectorAll('select[name="status"], select[name="type"]').forEach(select => {
+            select.addEventListener('change', function() {
+                this.form.submit();
+            });
+        });
+    </script>
+</body>
+</html>

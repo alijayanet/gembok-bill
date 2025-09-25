@@ -78,8 +78,8 @@
                     <td>Rp <%= Number(p.payment_amount||p.amount||0).toLocaleString('id-ID') %></td>
                     <td>Rp <%= Number(p.commission_amount||0).toLocaleString('id-ID') %></td>
                     <td><%= p.payment_method %></td>
-                    <td><span class="badge bg-<%= p.status==='completed'?'success':'secondary' %>"><%= p.status %></span></td>
-                    <td><span class="badge bg-<%= p.remittance_status==='received'?'primary':'warning' %>"><%= p.remittance_status || 'pending' %></span></td>
+                    <td><span class="badge bg-<%= p.status==='completed'?'success':'secondary' %>"><%= p.status || 'completed' %></span></td>
+                    <td><span class="badge bg-<%= (p.remittance_status==='received' || !p.collector_id)?'primary':'warning' %>"><%= (p.remittance_status && p.collector_id) ? p.remittance_status : (!p.collector_id ? 'N/A (Admin)' : 'pending') %></span></td>
                     <td><%= p.notes || '' %></td>
                 </tr>
             <% }) %>
