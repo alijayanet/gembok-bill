@@ -1487,7 +1487,7 @@ class BillingManager {
         });
     }
 
-    async getInvoices(customerUsername = null) {
+    async getInvoices(customerUsername = null, limit = null, offset = null) {
         return new Promise((resolve, reject) => {
             let sql = `
                 SELECT i.*, c.username, c.name as customer_name, c.phone as customer_phone,
@@ -1505,11 +1505,41 @@ class BillingManager {
             
             sql += ` ORDER BY i.created_at DESC`;
             
+            if (limit) {
+                sql += ` LIMIT ?`;
+                params.push(limit);
+                
+                if (offset) {
+                    sql += ` OFFSET ?`;
+                    params.push(offset);
+                }
+            }
+            
             this.db.all(sql, params, (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
                     resolve(rows);
+                }
+            });
+        });
+    }
+
+    async getInvoicesCount(customerUsername = null) {
+        return new Promise((resolve, reject) => {
+            let sql = 'SELECT COUNT(*) as count FROM invoices i';
+            const params = [];
+            
+            if (customerUsername) {
+                sql += ' JOIN customers c ON i.customer_id = c.id WHERE c.username = ?';
+                params.push(customerUsername);
+            }
+            
+            this.db.get(sql, params, (err, row) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(row ? row.count : 0);
                 }
             });
         });
@@ -1685,13 +1715,116 @@ class BillingManager {
         });
     }
 
+    async recordCollectorPayment(paymentData) {
+        return new Promise((resolve, reject) => {
+            const { invoice_id, amount, payment_method, reference_number, notes, collector_id, commission_amount } = paymentData;
+            
+            // Mulai transaction untuk operasi kompleks
+            this.db.run('BEGIN TRANSACTION', (err) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                
+                // Insert payment
+                const sql = `INSERT INTO payments (
+                    invoice_id, amount, payment_method, reference_number, notes, 
+                    collector_id, commission_amount, payment_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'collector')`;
+                
+                this.db.run(sql, [
+                    invoice_id, amount, payment_method, reference_number, notes,
+                    collector_id, commission_amount || 0
+                ], function(err) {
+                    if (err) {
+                        this.db.run('ROLLBACK');
+                        reject(err);
+                        return;
+                    }
+                    
+                    const paymentId = this.lastID;
+                    
+                    // Jika ada komisi, catat sebagai expense
+                    if (commission_amount && commission_amount > 0) {
+                        // Get collector name untuk deskripsi
+                        this.db.get('SELECT name FROM collectors WHERE id = ?', [collector_id], (err, collector) => {
+                            if (err) {
+                                this.db.run('ROLLBACK');
+                                reject(err);
+                                return;
+                            }
+                            
+                            const collectorName = collector ? collector.name : 'Unknown Collector';
+                            
+                            // Insert commission as expense
+                            const expenseSql = `INSERT INTO expenses (
+                                description, amount, category, expense_date, 
+                                payment_method, notes
+                            ) VALUES (?, ?, ?, DATE('now'), ?, ?)`;
+                            
+                            this.db.run(expenseSql, [
+                                `Komisi Kolektor - ${collectorName}`,
+                                commission_amount,
+                                'Operasional',
+                                'Transfer Bank', // Default payment method for commission
+                                `Komisi ${commission_amount}% dari pembayaran invoice ${invoice_id} via kolektor ${collectorName}`
+                            ], function(err) {
+                                if (err) {
+                                    this.db.run('ROLLBACK');
+                                    reject(err);
+                                    return;
+                                }
+                                
+                                // Commit transaction
+                                this.db.run('COMMIT', (err) => {
+                                    if (err) {
+                                        reject(err);
+                                    } else {
+                                        resolve({ 
+                                            success: true, 
+                                            id: paymentId, 
+                                            expenseId: this.lastID,
+                                            commissionRecorded: true,
+                                            ...paymentData 
+                                        });
+                                    }
+                                });
+                            });
+                        });
+                    } else {
+                        // Commit transaction tanpa expense
+                        this.db.run('COMMIT', (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve({ 
+                                    success: true, 
+                                    id: paymentId, 
+                                    commissionRecorded: false,
+                                    ...paymentData 
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    }
+
     async getPayments(invoiceId = null) {
         return new Promise((resolve, reject) => {
             let sql = `
-                SELECT p.*, i.invoice_number, c.username, c.name as customer_name
+                SELECT 
+                    p.*, 
+                    i.invoice_number, 
+                    c.username, 
+                    c.name as customer_name,
+                    col.name as collector_name,
+                    col.phone as collector_phone
                 FROM payments p
                 JOIN invoices i ON p.invoice_id = i.id
                 JOIN customers c ON i.customer_id = c.id
+                LEFT JOIN collectors col ON p.collector_id = col.id
             `;
             
             const params = [];
@@ -1712,13 +1845,55 @@ class BillingManager {
         });
     }
 
-    async getPaymentById(id) {
+    async getCollectorPayments(invoiceId = null) {
         return new Promise((resolve, reject) => {
-            const sql = `
-                SELECT p.*, i.invoice_number, c.username, c.name as customer_name
+            let sql = `
+                SELECT 
+                    p.*, 
+                    i.invoice_number, 
+                    c.username, 
+                    c.name as customer_name,
+                    col.name as collector_name,
+                    col.phone as collector_phone
                 FROM payments p
                 JOIN invoices i ON p.invoice_id = i.id
                 JOIN customers c ON i.customer_id = c.id
+                LEFT JOIN collectors col ON p.collector_id = col.id
+                WHERE p.collector_id IS NOT NULL AND col.id IS NOT NULL
+            `;
+            
+            const params = [];
+            if (invoiceId) {
+                sql += ` AND p.invoice_id = ?`;
+                params.push(invoiceId);
+            }
+            
+            sql += ` ORDER BY p.payment_date DESC`;
+            
+            this.db.all(sql, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
+    async getPaymentById(id) {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT 
+                    p.*, 
+                    i.invoice_number, 
+                    c.username, 
+                    c.name as customer_name,
+                    col.name as collector_name,
+                    col.phone as collector_phone
+                FROM payments p
+                JOIN invoices i ON p.invoice_id = i.id
+                JOIN customers c ON i.customer_id = c.id
+                LEFT JOIN collectors col ON p.collector_id = col.id
                 WHERE p.id = ?
             `;
             
@@ -2598,7 +2773,7 @@ async handlePaymentWebhook(payload, gateway) {
                 const params = [];
                 
                 if (type === 'income') {
-                    // Laporan pemasukan dari pembayaran online dan manual
+                    // Laporan pemasukan dari pembayaran online, manual, dan kolektor
                     sql = `
                         SELECT 
                             'income' as type,
@@ -2610,7 +2785,9 @@ async handlePaymentWebhook(payload, gateway) {
                             c.name as customer_name,
                             c.phone as customer_phone,
                             '' as description,
-                            '' as notes
+                            '' as notes,
+                            '' as collector_name,
+                            0 as commission_amount
                         FROM payment_gateway_transactions pgt
                         JOIN invoices i ON pgt.invoice_id = i.id
                         JOIN customers c ON i.customer_id = c.id
@@ -2624,16 +2801,28 @@ async handlePaymentWebhook(payload, gateway) {
                             p.payment_date as date,
                             p.amount as amount,
                             p.payment_method,
-                            'Manual Payment' as gateway_name,
+                            CASE 
+                                WHEN p.payment_type = 'collector' THEN CONCAT('Kolektor - ', COALESCE(col.name, 'Unknown'))
+                                WHEN p.payment_type = 'online' THEN 'Online Payment'
+                                WHEN p.payment_type = 'manual' THEN 'Manual Payment'
+                                ELSE 'Direct Payment'
+                            END as gateway_name,
                             i.invoice_number as invoice_number,
                             c.name as customer_name,
                             c.phone as customer_phone,
-                            '' as description,
-                            p.notes
+                            CASE 
+                                WHEN p.payment_type = 'collector' THEN CONCAT('Pembayaran via kolektor ', COALESCE(col.name, 'Unknown'))
+                                ELSE ''
+                            END as description,
+                            p.notes,
+                            COALESCE(col.name, '') as collector_name,
+                            COALESCE(p.commission_amount, 0) as commission_amount
                         FROM payments p
                         JOIN invoices i ON p.invoice_id = i.id
                         JOIN customers c ON i.customer_id = c.id
+                        LEFT JOIN collectors col ON p.collector_id = col.id
                         WHERE DATE(p.payment_date) BETWEEN ? AND ?
+                        AND p.payment_type IN ('direct', 'collector', 'online', 'manual')
                         
                         ORDER BY date DESC
                     `;
@@ -2651,7 +2840,9 @@ async handlePaymentWebhook(payload, gateway) {
                             e.notes as notes,
                             '' as invoice_number,
                             '' as customer_name,
-                            '' as customer_phone
+                            '' as customer_phone,
+                            '' as collector_name,
+                            0 as commission_amount
                         FROM expenses e
                         WHERE DATE(e.expense_date) BETWEEN ? AND ?
                         ORDER BY e.expense_date DESC
@@ -2670,7 +2861,9 @@ async handlePaymentWebhook(payload, gateway) {
                             c.name as customer_name,
                             c.phone as customer_phone,
                             '' as description,
-                            '' as notes
+                            '' as notes,
+                            '' as collector_name,
+                            0 as commission_amount
                         FROM payment_gateway_transactions pgt
                         JOIN invoices i ON pgt.invoice_id = i.id
                         JOIN customers c ON i.customer_id = c.id
@@ -2684,16 +2877,28 @@ async handlePaymentWebhook(payload, gateway) {
                             p.payment_date as date,
                             p.amount as amount,
                             p.payment_method,
-                            'Manual Payment' as gateway_name,
+                            CASE 
+                                WHEN p.payment_type = 'collector' THEN CONCAT('Kolektor - ', COALESCE(col.name, 'Unknown'))
+                                WHEN p.payment_type = 'online' THEN 'Online Payment'
+                                WHEN p.payment_type = 'manual' THEN 'Manual Payment'
+                                ELSE 'Direct Payment'
+                            END as gateway_name,
                             i.invoice_number as invoice_number,
                             c.name as customer_name,
                             c.phone as customer_phone,
-                            '' as description,
-                            p.notes
+                            CASE 
+                                WHEN p.payment_type = 'collector' THEN CONCAT('Pembayaran via kolektor ', COALESCE(col.name, 'Unknown'))
+                                ELSE ''
+                            END as description,
+                            p.notes,
+                            COALESCE(col.name, '') as collector_name,
+                            COALESCE(p.commission_amount, 0) as commission_amount
                         FROM payments p
                         JOIN invoices i ON p.invoice_id = i.id
                         JOIN customers c ON i.customer_id = c.id
+                        LEFT JOIN collectors col ON p.collector_id = col.id
                         WHERE DATE(p.payment_date) BETWEEN ? AND ?
+                        AND p.payment_type IN ('direct', 'collector', 'online', 'manual')
                         
                         UNION ALL
                         
@@ -2707,7 +2912,9 @@ async handlePaymentWebhook(payload, gateway) {
                             e.notes as notes,
                             '' as invoice_number,
                             '' as customer_name,
-                            '' as customer_phone
+                            '' as customer_phone,
+                            '' as collector_name,
+                            0 as commission_amount
                         FROM expenses e
                         WHERE DATE(e.expense_date) BETWEEN ? AND ?
                         
@@ -2725,17 +2932,34 @@ async handlePaymentWebhook(payload, gateway) {
                             .reduce((sum, r) => sum + (r.amount || 0), 0);
                         const totalExpense = rows.filter(r => r.type === 'expense')
                             .reduce((sum, r) => sum + (r.amount || 0), 0);
+                        const totalCommission = rows.filter(r => r.type === 'income')
+                            .reduce((sum, r) => sum + (r.commission_amount || 0), 0);
                         const netProfit = totalIncome - totalExpense;
+                        
+                        // Statistik per tipe pembayaran
+                        const incomeByType = rows.filter(r => r.type === 'income')
+                            .reduce((acc, r) => {
+                                const gateway = r.gateway_name || 'Unknown';
+                                if (!acc[gateway]) {
+                                    acc[gateway] = { count: 0, amount: 0, commission: 0 };
+                                }
+                                acc[gateway].count++;
+                                acc[gateway].amount += (r.amount || 0);
+                                acc[gateway].commission += (r.commission_amount || 0);
+                                return acc;
+                            }, {});
                         
                         const result = {
                             transactions: rows,
                             summary: {
                                 totalIncome,
                                 totalExpense,
+                                totalCommission,
                                 netProfit,
                                 transactionCount: rows.length,
                                 incomeCount: rows.filter(r => r.type === 'income').length,
-                                expenseCount: rows.filter(r => r.type === 'expense').length
+                                expenseCount: rows.filter(r => r.type === 'expense').length,
+                                incomeByType
                             },
                             dateRange: { startDate, endDate }
                         };
@@ -2814,6 +3038,186 @@ async handlePaymentWebhook(payload, gateway) {
                 } else {
                     resolve({ id, deleted: true });
                 }
+            });
+        });
+    }
+
+    // Method untuk mendapatkan statistik komisi kolektor
+    async getCommissionStats(startDate = null, endDate = null) {
+        return new Promise((resolve, reject) => {
+            let sql = `
+                SELECT 
+                    c.id as collector_id,
+                    c.name as collector_name,
+                    COUNT(p.id) as payment_count,
+                    SUM(p.amount) as total_collected,
+                    SUM(p.commission_amount) as total_commission,
+                    AVG(p.commission_amount) as avg_commission,
+                    MAX(p.payment_date) as last_payment_date
+                FROM collectors c
+                LEFT JOIN payments p ON c.id = p.collector_id AND p.payment_type = 'collector'
+            `;
+            
+            const params = [];
+            if (startDate && endDate) {
+                sql += ' WHERE DATE(p.payment_date) BETWEEN ? AND ?';
+                params.push(startDate, endDate);
+            }
+            
+            sql += ' GROUP BY c.id, c.name ORDER BY total_commission DESC';
+            
+            this.db.all(sql, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    // Hitung total komisi dari expenses
+                    const expenseSql = `
+                        SELECT SUM(amount) as total_commission_expenses
+                        FROM expenses 
+                        WHERE category = 'Operasional' AND description LIKE 'Komisi Kolektor%'
+                    `;
+                    
+                    if (startDate && endDate) {
+                        expenseSql += ' AND DATE(expense_date) BETWEEN ? AND ?';
+                        params.push(startDate, endDate);
+                    }
+                    
+                    this.db.get(expenseSql, params.slice(params.length - 2), (err, expenseRow) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve({
+                                collectors: rows,
+                                totalCommissionExpenses: expenseRow ? expenseRow.total_commission_expenses || 0 : 0,
+                                totalCommissionFromPayments: rows.reduce((sum, row) => sum + (row.total_commission || 0), 0)
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    // Method untuk mendapatkan kolektor dengan pending amounts (untuk remittance)
+    async getCollectorsWithPendingAmounts() {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT 
+                    c.id,
+                    c.name,
+                    c.phone,
+                    c.commission_rate,
+                    COALESCE(SUM(p.amount - p.commission_amount), 0) as pending_amount,
+                    COUNT(p.id) as pending_payments_count
+                FROM collectors c
+                LEFT JOIN payments p ON c.id = p.collector_id 
+                    AND p.payment_type = 'collector'
+                    AND p.remittance_status IS NULL
+                WHERE c.status = 'active'
+                GROUP BY c.id, c.name, c.phone, c.commission_rate
+                ORDER BY c.name
+            `;
+            
+            this.db.all(sql, [], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows || []);
+                }
+            });
+        });
+    }
+
+    // Method untuk mendapatkan riwayat komisi (expenses) sebagai remittances
+    async getCommissionExpenses() {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT 
+                    e.id,
+                    e.description,
+                    e.amount,
+                    e.expense_date as received_at,
+                    e.payment_method,
+                    e.notes,
+                    SUBSTR(e.description, 18) as collector_name
+                FROM expenses e
+                WHERE e.category = 'Operasional' 
+                AND e.description LIKE 'Komisi Kolektor%'
+                ORDER BY e.expense_date DESC
+                LIMIT 20
+            `;
+            
+            this.db.all(sql, [], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows || []);
+                }
+            });
+        });
+    }
+
+    // Method untuk mencatat remittance (update status di payments)
+    async recordCollectorRemittance(remittanceData) {
+        return new Promise((resolve, reject) => {
+            const { collector_id, amount, payment_method, notes, remittance_date } = remittanceData;
+            
+            // Mulai transaction
+            this.db.run('BEGIN TRANSACTION', (err) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                
+                // Update payments dengan remittance_status = 'remitted'
+                const updateSql = `
+                    UPDATE payments 
+                    SET remittance_status = 'remitted', 
+                        remittance_date = ?,
+                        remittance_notes = ?
+                    WHERE collector_id = ? 
+                    AND payment_type = 'collector'
+                    AND remittance_status IS NULL
+                    LIMIT ?
+                `;
+                
+                // Hitung berapa payment yang perlu di-update berdasarkan amount
+                this.db.get(`
+                    SELECT COUNT(*) as count
+                    FROM payments 
+                    WHERE collector_id = ? 
+                    AND payment_type = 'collector'
+                    AND remittance_status IS NULL
+                `, [collector_id], (err, row) => {
+                    if (err) {
+                        this.db.run('ROLLBACK');
+                        reject(err);
+                        return;
+                    }
+                    
+                    const paymentCount = Math.min(row.count, Math.ceil(amount / 100000)); // Estimasi
+                    
+                    this.db.run(updateSql, [remittance_date, notes, collector_id, paymentCount], function(err) {
+                        if (err) {
+                            this.db.run('ROLLBACK');
+                            reject(err);
+                            return;
+                        }
+                        
+                        // Commit transaction
+                        this.db.run('COMMIT', (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve({ 
+                                    success: true, 
+                                    updatedPayments: this.changes,
+                                    ...remittanceData 
+                                });
+                            }
+                        });
+                    });
+                });
             });
         });
     }
