@@ -567,15 +567,17 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
             for (const invoiceId of parsedInvoiceIds) {
                 // tandai lunas dengan mencatat metode dan tanggal pembayaran
                 await billingManager.updateInvoiceStatus(invoiceId, 'paid', payment_method);
-                // catat entri payment sesuai nilai invoice
+                // catat entri payment sesuai nilai invoice dengan collector info
                 const inv = await billingManager.getInvoiceById(invoiceId);
                 const invAmount = parseFloat(inv?.amount || 0) || 0;
-                const newPayment = await billingManager.recordPayment({
+                const newPayment = await billingManager.recordCollectorPayment({
                     invoice_id: invoiceId,
                     amount: invAmount,
                     payment_method,
                     reference_number: '',
-                    notes: notes || `Collector ${collectorId}`
+                    notes: notes || `Collector ${collectorId}`,
+                    collector_id: collectorId,
+                    commission_amount: commissionAmount
                 });
                 lastPaymentId = newPayment?.id || lastPaymentId;
             }
@@ -591,12 +593,14 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
                     const invAmount = parseFloat(inv.amount || 0) || 0;
                     if (remaining >= invAmount && invAmount > 0) {
                         await billingManager.updateInvoiceStatus(inv.id, 'paid', payment_method);
-                        const newPayment = await billingManager.recordPayment({
+                        const newPayment = await billingManager.recordCollectorPayment({
                             invoice_id: inv.id,
                             amount: invAmount,
                             payment_method,
                             reference_number: '',
-                            notes: notes || `Collector ${collectorId}`
+                            notes: notes || `Collector ${collectorId}`,
+                            collector_id: collectorId,
+                            commission_amount: Math.round((invAmount * commissionRate) / 100)
                         });
                         lastPaymentId = newPayment?.id || lastPaymentId;
                         remaining -= invAmount;

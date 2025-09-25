@@ -430,15 +430,17 @@ router.post('/api/collector-payment', adminAuth, async (req, res) => {
             for (const invoiceId of invoice_ids) {
                 // Tandai invoice lunas
                 await billingManager.updateInvoiceStatus(Number(invoiceId), 'paid', payment_method);
-                // Catat entri payment sesuai nilai invoice
+                // Catat entri payment sesuai nilai invoice dengan collector info
                 const inv = await billingManager.getInvoiceById(Number(invoiceId));
                 const invAmount = parseFloat(inv?.amount || 0) || 0;
-                await billingManager.recordPayment({
+                await billingManager.recordCollectorPayment({
                     invoice_id: Number(invoiceId),
                     amount: invAmount,
                     payment_method,
                     reference_number: '',
-                    notes: notes || `Collector ${collector_id}`
+                    notes: notes || `Collector ${collector_id}`,
+                    collector_id: collector_id,
+                    commission_amount: Math.round((invAmount * commissionRate) / 100)
                 });
             }
         } else {
@@ -459,12 +461,14 @@ router.post('/api/collector-payment', adminAuth, async (req, res) => {
                     const invAmount = Number(inv.amount) || 0;
                     if (remaining >= invAmount && invAmount > 0) {
                         await billingManager.updateInvoiceStatus(inv.id, 'paid', payment_method);
-                        await billingManager.recordPayment({
+                        await billingManager.recordCollectorPayment({
                             invoice_id: inv.id,
                             amount: invAmount,
                             payment_method,
                             reference_number: '',
-                            notes: notes || `Collector ${collector_id}`
+                            notes: notes || `Collector ${collector_id}`,
+                            collector_id: collector_id,
+                            commission_amount: Math.round((invAmount * commissionRate) / 100)
                         });
                         remaining -= invAmount;
                         if (remaining <= 0) break;
@@ -775,42 +779,11 @@ router.get('/collector-details/:id', getAppSettings, async (req, res) => {
 // Collector Remittance
 router.get('/collector-remittance', getAppSettings, async (req, res) => {
     try {
-        const dbPath = path.join(__dirname, '../data/billing.db');
-        const db = new sqlite3.Database(dbPath);
+        // Get collectors with pending amounts from payments table
+        const collectors = await billingManager.getCollectorsWithPendingAmounts();
         
-        // Get collectors with pending amounts (show all active collectors)
-        const collectors = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT c.*, 
-                       COALESCE(SUM(cp.payment_amount - cp.commission_amount), 0) as pending_amount
-                FROM collectors c
-                LEFT JOIN collector_payments cp ON c.id = cp.collector_id 
-                    AND cp.status = 'completed'
-                    AND cp.remittance_status IS NULL
-                WHERE c.status = 'active'
-                GROUP BY c.id
-                ORDER BY c.name
-            `, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows || []);
-            });
-        });
-        
-        // Get recent remittances
-        const remittances = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT cr.*, c.name as collector_name
-                FROM collector_remittances cr
-                LEFT JOIN collectors c ON cr.collector_id = c.id
-                ORDER BY cr.received_at DESC
-                LIMIT 20
-            `, (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows || []);
-            });
-        });
-        
-        db.close();
+        // Get recent remittances from expenses table (commission expenses)
+        const remittances = await billingManager.getCommissionExpenses();
         
         res.render('admin/billing/collector-remittance', {
             title: 'Terima Setoran Kolektor',
@@ -822,8 +795,8 @@ router.get('/collector-remittance', getAppSettings, async (req, res) => {
     } catch (error) {
         logger.error('Error loading collector remittance:', error);
         res.status(500).render('error', { 
-            message: 'Error loading collector remittance',
-            error: process.env.NODE_ENV === 'development' ? error : {}
+            message: 'Gagal memuat data setoran kolektor',
+            error: error.message 
         });
     }
 });
@@ -836,50 +809,23 @@ router.post('/api/collector-remittance', adminAuth, async (req, res) => {
         if (!collector_id || !remittance_amount || !payment_method) {
             return res.status(400).json({
                 success: false,
-                message: 'Missing required fields'
+                message: 'Semua field wajib diisi'
             });
         }
         
-        const dbPath = path.join(__dirname, '../data/billing.db');
-        const db = new sqlite3.Database(dbPath);
-        
-        // Record remittance
-        const remittanceId = await new Promise((resolve, reject) => {
-            db.run(`
-                INSERT INTO collector_remittances (
-                    collector_id, amount, payment_method, notes, received_at, received_by
-                ) VALUES (?, ?, ?, ?, ?, ?)
-            `, [
-                collector_id,
-                remittance_amount,
-                payment_method,
-                notes,
-                remittance_date,
-                (req.session && (req.session.admin?.id || req.session.adminUser)) || 'admin'
-            ], function(err) {
-                if (err) reject(err);
-                else resolve(this.lastID);
-            });
+        // Use billing manager to record remittance
+        const result = await billingManager.recordCollectorRemittance({
+            collector_id,
+            amount: parseFloat(remittance_amount),
+            payment_method,
+            notes: notes || '',
+            remittance_date: remittance_date || new Date().toISOString()
         });
-        
-        // Update collector payments status
-        await new Promise((resolve, reject) => {
-            db.run(`
-                UPDATE collector_payments 
-                SET remittance_status = 'received', remittance_id = ?
-                WHERE collector_id = ? AND status = 'completed' AND remittance_status IS NULL
-            `, [remittanceId, collector_id], (err) => {
-                if (err) reject(err);
-                else resolve();
-            });
-        });
-        
-        db.close();
         
         res.json({
             success: true,
             message: 'Setoran berhasil diterima',
-            remittance_id: remittanceId
+            data: result
         });
         
     } catch (error) {
@@ -1059,6 +1005,48 @@ router.get('/api/revenue/summary', adminAuth, async (req, res) => {
     } catch (error) {
         logger.error('Error getting revenue summary:', error);
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Halaman Semua Invoice (Invoice List)
+router.get('/invoice-list', getAppSettings, async (req, res) => {
+    try {
+        const { page = 1, limit = 50, status, customer_username, type } = req.query;
+        const offset = (page - 1) * limit;
+        
+        // Get all invoices with pagination
+        const invoices = await billingManager.getInvoices(null, limit, offset);
+        const customers = await billingManager.getCustomers();
+        const packages = await billingManager.getPackages();
+        
+        // Get total count for pagination
+        const totalCount = await billingManager.getInvoicesCount();
+        
+        res.render('admin/billing/invoice-list', {
+            title: 'Semua Invoice',
+            invoices,
+            customers,
+            packages,
+            pagination: {
+                currentPage: parseInt(page),
+                totalPages: Math.ceil(totalCount / limit),
+                totalCount,
+                limit: parseInt(limit)
+            },
+            filters: {
+                status: status || '',
+                customer_username: customer_username || '',
+                type: type || ''
+            },
+            appSettings: req.appSettings
+        });
+    } catch (error) {
+        logger.error('Error loading invoice list:', error);
+        res.status(500).render('error', {
+            message: 'Error loading invoice list',
+            error: error.message,
+            appSettings: req.appSettings
+        });
     }
 });
 
@@ -3490,7 +3478,7 @@ router.put('/invoices/:id', async (req, res) => {
 });
 
 // Delete invoice
-router.delete('/invoices/:id', async (req, res) => {
+router.delete('/invoices/:id', adminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         
@@ -3513,7 +3501,7 @@ router.delete('/invoices/:id', async (req, res) => {
 });
 
 // Bulk delete invoices
-router.post('/invoices/bulk-delete', async (req, res) => {
+router.post('/invoices/bulk-delete', adminAuth, async (req, res) => {
     try {
         const { ids } = req.body || {};
         if (!Array.isArray(ids) || ids.length === 0) {
@@ -3544,8 +3532,28 @@ router.post('/invoices/bulk-delete', async (req, res) => {
     }
 });
 
-// Payment Management
+// Payment Management - Collector Transactions Only
 router.get('/payments', getAppSettings, async (req, res) => {
+    try {
+        const payments = await billingManager.getCollectorPayments();
+        
+        res.render('admin/billing/payments', {
+            title: 'Transaksi Kolektor',
+            payments,
+            appSettings: req.appSettings
+        });
+    } catch (error) {
+        logger.error('Error loading payments:', error);
+        res.status(500).render('error', { 
+            message: 'Error loading payments',
+            error: error.message,
+            appSettings: req.appSettings
+        });
+    }
+});
+
+// All Payments - Admin and Collector
+router.get('/all-payments', getAppSettings, async (req, res) => {
     try {
         const payments = await billingManager.getPayments();
         
@@ -3555,9 +3563,9 @@ router.get('/payments', getAppSettings, async (req, res) => {
             appSettings: req.appSettings
         });
     } catch (error) {
-        logger.error('Error loading payments:', error);
+        logger.error('Error loading all payments:', error);
         res.status(500).render('error', { 
-            message: 'Error loading payments',
+            message: 'Error loading all payments',
             error: error.message,
             appSettings: req.appSettings
         });
@@ -4123,15 +4131,7 @@ router.get('/api/invoices/:id', async (req, res) => {
     }
 });
 
-router.get('/api/stats', async (req, res) => {
-    try {
-        const stats = await billingManager.getBillingStats();
-        res.json(stats);
-    } catch (error) {
-        logger.error('Error getting billing stats API:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
+// Route /api/stats sudah ada di atas dengan adminAuth middleware
 
 router.get('/api/overdue', async (req, res) => {
     try {
@@ -4597,6 +4597,19 @@ router.delete('/api/expenses/:id', async (req, res) => {
     }
 });
 
+// API untuk statistik komisi kolektor
+router.get('/api/commission-stats', async (req, res) => {
+    try {
+        const { start_date, end_date } = req.query;
+        const stats = await billingManager.getCommissionStats(start_date, end_date);
+        
+        res.json({ success: true, data: stats });
+    } catch (error) {
+        logger.error('Error getting commission stats:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // Root billing page - redirect to dashboard
 router.get('/', getAppSettings, async (req, res) => {
     res.redirect('/admin/billing/dashboard');
@@ -4636,25 +4649,15 @@ router.get('/mapping-new', getAppSettings, async (req, res) => {
     }
 });
 
-// Mapping page
+// Mapping page - Redirect to new mapping page
 router.get('/mapping', getAppSettings, async (req, res) => {
     try {
-        // Check if mobile view is requested
-        const isMobile = req.query.mobile === 'true' || req.headers['user-agent'].includes('Mobile');
-        
-        if (isMobile) {
-            return res.redirect('/admin/billing/mobile/map');
-        }
-        
-        res.render('admin/billing/mapping', {
-            title: 'Network Mapping',
-            page: 'mapping',
-            appSettings: req.appSettings
-        });
+        // Redirect to new mapping page
+        return res.redirect('/admin/billing/mapping-new');
     } catch (error) {
-        logger.error('Error loading mapping page:', error);
+        logger.error('Error redirecting to mapping page:', error);
         res.status(500).render('error', {
-            message: 'Error loading mapping page',
+            message: 'Error redirecting to mapping page',
             error: error.message,
             appSettings: req.appSettings
         });

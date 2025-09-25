@@ -778,14 +778,21 @@ function createRippleEffect(event, element) {
  * Update active navigation state
  */
 function updateActiveNavigation() {
-    const currentPath = window.location.pathname;
-    const navItems = document.querySelectorAll('.nav-item');
-    
+    const currentPath = window.location.pathname || '';
+    // Only anchor nav items to ensure href exists
+    const navItems = document.querySelectorAll('a.nav-item');
+
     navItems.forEach(item => {
         item.classList.remove('active');
         const href = item.getAttribute('href');
-        
-        if (currentPath.includes(href.replace('/admin/billing/mobile', ''))) {
+        const hrefStr = String(href || '');
+        if (!hrefStr) return;
+
+        const normalized = hrefStr.indexOf('/admin/billing/mobile') === 0
+            ? hrefStr.replace('/admin/billing/mobile', '')
+            : hrefStr;
+
+        if (normalized && currentPath.includes(normalized)) {
             item.classList.add('active');
         }
     });
