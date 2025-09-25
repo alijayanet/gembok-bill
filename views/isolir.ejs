@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Akses Internet Dibatasi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      --primary-color: #667eea;
+      --secondary-color: #764ba2;
+      --danger-color: #ff6b6b;
+      --success-color: #25D366;
+      --warning-color: #ffa726;
+      --info-color: #29b6f6;
+      --dark-color: #2c3e50;
+      --light-color: #f8f9fa;
+      --border-radius: 12px;
+      --box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      --gradient-danger: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+      --gradient-success: linear-gradient(135deg, #25D366 0%, #20c997 100%);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    
+    .main-container {
+      max-width: 800px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .card { 
+      border: 0; 
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.95);
+      animation: slideUp 0.8s ease-out;
+      overflow: hidden;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .card-header {
+      background: var(--gradient-danger);
+      color: white;
+      border: none;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: pulse 3s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    
+    .status-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
+    }
+    
+    .brand { 
+      font-weight: 700; 
+      letter-spacing: 0.5px;
+      font-size: 1.8rem;
+    }
+    
+    .wa { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 10px; 
+      background: var(--gradient-success); 
+      color: #fff; 
+      padding: 12px 20px; 
+      border-radius: var(--border-radius); 
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+    }
+    
+    .wa:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+      color: #fff; 
+      text-decoration: none; 
+    }
+    
+    .muted { color: #6c757d; }
+    
+    .logo { 
+      height: 50px; 
+      width: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .info-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .info-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .payment-card {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+      height: 100%;
+    }
+    
+    .payment-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .btn-copy {
+      background: var(--gradient-primary);
+      border: none;
+      color: white;
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-copy:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      color: white;
+    }
+    
+    .alert-modern {
+      background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+      border: 1px solid rgba(255, 193, 7, 0.2);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .alert-modern::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--warning-color);
+    }
+    
+    .steps-card {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      background: var(--gradient-primary);
+      color: white;
+      border-radius: 50%;
+      font-weight: 600;
+      margin-right: 1rem;
+      font-size: 0.9rem;
+    }
+    
+    .floating-elements {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .floating-element {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .floating-element:nth-child(1) {
+      width: 80px;
+      height: 80px;
+      top: 10%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+    
+    .floating-element:nth-child(2) {
+      width: 120px;
+      height: 120px;
+      top: 20%;
+      right: 10%;
+      animation-delay: 2s;
+    }
+    
+    .floating-element:nth-child(3) {
+      width: 60px;
+      height: 60px;
+      bottom: 20%;
+      left: 20%;
+      animation-delay: 4s;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+    }
+    
+    .badge-modern {
+      background: var(--gradient-danger);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      .main-container {
+        max-width: 100%;
+        margin: 0;
+      }
+      
+      .card-header {
+        padding: 1.5rem 1rem;
+      }
+      
+      .brand {
+        font-size: 1.5rem;
+      }
+      
+      .status-icon {
+        width: 50px;
+        height: 50px;
+      }
+      
+      .card-body {
+        padding: 1.5rem 1rem;
+      }
+      
+      .info-card {
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+      }
+      
+      .payment-card {
+        padding: 1rem;
+      }
+      
+      .wa {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+      }
+      
+      .btn-copy {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+      }
+      
+      .steps-card {
+        padding: 1.5rem 1rem;
+      }
+      
+      .step-number {
+        width: 25px;
+        height: 25px;
+        font-size: 0.8rem;
+        margin-right: 0.75rem;
+      }
+      
+      .floating-element:nth-child(1) {
+        width: 60px;
+        height: 60px;
+      }
+      
+      .floating-element:nth-child(2) {
+        width: 80px;
+        height: 80px;
+      }
+      
+      .floating-element:nth-child(3) {
+        width: 40px;
+        height: 40px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      body {
+        padding: 5px;
+      }
+      
+      .card-header {
+        padding: 1rem 0.75rem;
+      }
+      
+      .brand {
+        font-size: 1.3rem;
+      }
+      
+      .status-icon {
+        width: 45px;
+        height: 45px;
+      }
+      
+      .card-body {
+        padding: 1rem 0.75rem;
+      }
+      
+      .info-card {
+        padding: 0.75rem;
+      }
+      
+      .payment-card {
+        padding: 0.75rem;
+      }
+      
+      .wa {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .steps-card {
+        padding: 1rem 0.75rem;
+      }
+      
+      .step-number {
+        width: 22px;
+        height: 22px;
+        font-size: 0.75rem;
+        margin-right: 0.5rem;
+      }
+      
+      .row {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+      }
+      
+      .row > * {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .brand {
+        font-size: 1.2rem;
+      }
+      
+      .status-icon {
+        width: 40px;
+        height: 40px;
+      }
+      
+      .info-card h6,
+      .info-card h5 {
+        font-size: 1rem;
+      }
+      
+      .payment-card h6 {
+        font-size: 0.95rem;
+      }
+      
+      .steps-card h6 {
+        font-size: 1rem;
+      }
+      
+      .step-number {
+        width: 20px;
+        height: 20px;
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+  <% if (logoPath) { %>
+  <link rel="preload" href="<%= logoPath %>" as="image">
+  <% } %>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="Akses internet sedang dibatasi. Hubungi admin untuk bantuan." />
+  <meta property="og:title" content="Akses Internet Dibatasi" />
+  <meta property="og:description" content="Silakan hubungi admin untuk memulihkan layanan internet Anda." />
+  <% if (logoPath) { %>
+  <meta property="og:image" content="<%= logoPath %>" />
+  <% } %>
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="id_ID" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Akses Internet Dibatasi" />
+  <meta name="twitter:description" content="Silakan hubungi admin untuk memulihkan layanan internet Anda." />
+  <% if (logoPath) { %>
+  <meta name="twitter:image" content="<%= logoPath %>" />
+  <% } %>
+  <link rel="icon" href="/public/img/favicon.ico" />
+</head>
+<body>
+  <!-- Floating Elements -->
+  <div class="floating-elements">
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+  </div>
+
+  <div class="main-container">
+  <div class="card">
+      <!-- Header Section -->
+      <div class="card-header text-center">
+        <div class="status-icon mx-auto">
+          <i class="bi bi-wifi-off" style="font-size: 2rem;"></i>
+        </div>
+        <h1 class="brand mb-3">Akses Internet Dibatasi</h1>
+        <div class="badge-modern">Isolir Aktif</div>
+        <% if (logoPath) { %>
+          <div class="mt-3">
+          <img class="logo" src="<%= logoPath %>" alt="Logo <%= companyHeader %>" />
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Content Section -->
+      <div class="card-body p-4 p-md-5">
+        <!-- Welcome Message -->
+        <div class="info-card">
+          <div class="d-flex align-items-start gap-3">
+            <div class="flex-shrink-0">
+              <i class="bi bi-person-circle text-primary" style="font-size: 2rem;"></i>
+            </div>
+            <div>
+              <h5 class="mb-2">Halo <strong><%= customerName %></strong>!</h5>
+              <p class="muted mb-0">Akses internet Anda saat ini sedang dibatasi (isolir). Hal ini umumnya terjadi karena salah satu dari alasan berikut:</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reasons List -->
+        <div class="info-card">
+          <h6 class="mb-3"><i class="bi bi-list-check text-warning me-2"></i>Kemungkinan Penyebab:</h6>
+          <ul class="mb-0" style="padding-left: 1.2rem;">
+            <li class="mb-2"><i class="bi bi-credit-card text-danger me-2"></i>Tagihan belum dibayar atau jatuh tempo</li>
+            <li class="mb-2"><i class="bi bi-calendar-x text-warning me-2"></i>Masa aktif layanan telah berakhir</li>
+            <li class="mb-2"><i class="bi bi-gear text-info me-2"></i>Terdapat pembatasan sementara oleh sistem</li>
+      </ul>
+        </div>
+
+        <!-- Provider Info -->
+        <div class="info-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="flex-shrink-0">
+              <i class="bi bi-building text-primary" style="font-size: 2rem;"></i>
+            </div>
+            <div>
+              <h6 class="mb-1">Provider Internet</h6>
+              <h5 class="brand mb-0"><%= companyHeader %></h5>
+            </div>
+          </div>
+      </div>
+
+        <!-- Contact Admin -->
+        <div class="info-card">
+          <div class="d-flex align-items-start gap-3">
+            <div class="flex-shrink-0">
+              <i class="bi bi-headset text-success" style="font-size: 2rem;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <h6 class="mb-2">Hubungi Admin</h6>
+              <div class="mb-3">
+                <span class="text-muted">No. Admin:</span>
+                <strong class="ms-2"><%= adminDisplay %></strong>
+              </div>
+          <a class="wa" href="https://wa.me/<%= adminWA %>?text=Halo%20Admin%20<%= encodeURIComponent(companyHeader) %>,%20akun%20saya%20terisolir." target="_blank" rel="noopener">
+                <i class="bi bi-whatsapp"></i>
+            Chat WhatsApp
+          </a>
+            </div>
+        </div>
+      </div>
+
+        <!-- Payment Information -->
+      <% if (paymentAccounts && (paymentAccounts.bank_transfer || paymentAccounts.cash)) { %>
+        <div class="info-card">
+          <h6 class="mb-3"><i class="bi bi-credit-card text-info me-2"></i>Informasi Pembayaran</h6>
+        <div class="row g-3">
+          <% if (paymentAccounts.bank_transfer) { %>
+          <div class="col-12 col-md-6">
+              <div class="payment-card">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-bank text-primary" style="font-size: 1.5rem;"></i>
+                  <h6 class="mb-0">Transfer Bank</h6>
+                </div>
+                <div class="mb-2">
+                  <small class="text-muted">Bank</small>
+                  <div class="fw-bold"><%= paymentAccounts.bank_transfer.bank_name %></div>
+                </div>
+                <div class="mb-2">
+                  <small class="text-muted">No. Rekening</small>
+                  <div class="d-flex align-items-center justify-content-between">
+                    <code class="bg-light p-2 rounded flex-grow-1 me-2"><%= paymentAccounts.bank_transfer.account_number %></code>
+                    <button class="btn-copy" onclick="copyToClipboard('<%= paymentAccounts.bank_transfer.account_number %>')">
+                      <i class="bi bi-clipboard"></i>
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <small class="text-muted">Atas Nama</small>
+                  <div class="fw-bold"><%= paymentAccounts.bank_transfer.account_name %></div>
+                </div>
+            </div>
+          </div>
+          <% } %>
+          <% if (paymentAccounts.cash) { %>
+          <div class="col-12 col-md-6">
+              <div class="payment-card">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-cash-coin text-success" style="font-size: 1.5rem;"></i>
+                  <h6 class="mb-0">Pembayaran Tunai</h6>
+                </div>
+                <div class="mb-2">
+                  <small class="text-muted">Alamat Kantor</small>
+                  <div><%= paymentAccounts.cash.office_address %></div>
+                </div>
+                <div>
+                  <small class="text-muted">Jam Operasional</small>
+                  <div class="fw-bold"><%= paymentAccounts.cash.office_hours %></div>
+                </div>
+              </div>
+            </div>
+            <% } %>
+        </div>
+      </div>
+      <% } %>
+
+        <!-- Important Notice -->
+        <div class="alert-modern">
+          <div class="d-flex align-items-start gap-3">
+            <div class="flex-shrink-0">
+              <i class="bi bi-exclamation-triangle text-warning" style="font-size: 1.5rem;"></i>
+            </div>
+            <div>
+              <h6 class="mb-2">Informasi Penting</h6>
+              <p class="mb-0">Silakan hubungi admin untuk informasi tagihan/aktivasi layanan. Setelah status dipulihkan, akses internet akan normal kembali.</p>
+            </div>
+          </div>
+      </div>
+
+        <!-- Recovery Steps -->
+        <div class="steps-card">
+          <h6 class="mb-3"><i class="bi bi-list-ol text-primary me-2"></i>Cara Memulihkan Layanan</h6>
+          <ol class="mb-0">
+            <li class="mb-3 d-flex align-items-start">
+              <span class="step-number">1</span>
+              <div>
+                <strong>Hubungi Admin</strong>
+                <p class="mb-0 text-muted">Klik tombol WhatsApp di atas untuk menghubungi admin secara langsung.</p>
+              </div>
+            </li>
+            <li class="mb-3 d-flex align-items-start">
+              <span class="step-number">2</span>
+              <div>
+                <strong>Lakukan Pembayaran</strong>
+                <p class="mb-0 text-muted">Bayar sesuai informasi pada bagian "Informasi Pembayaran" di atas.</p>
+              </div>
+            </li>
+            <li class="mb-3 d-flex align-items-start">
+              <span class="step-number">3</span>
+              <div>
+                <strong>Kirim Bukti</strong>
+                <p class="mb-0 text-muted">Kirimkan bukti pembayaran kepada admin melalui WhatsApp.</p>
+              </div>
+            </li>
+            <li class="mb-0 d-flex align-items-start">
+              <span class="step-number">4</span>
+              <div>
+                <strong>Tunggu Aktivasi</strong>
+                <p class="mb-0 text-muted">Layanan biasanya pulih dalam beberapa menit setelah verifikasi.</p>
+              </div>
+            </li>
+        </ol>
+      </div>
+
+        <!-- Footer -->
+        <div class="text-center">
+          <p class="muted mb-0">
+            <i class="bi bi-shield-check text-success me-1"></i>
+            © <%= new Date().getFullYear() %> <%= companyHeader %> - Layanan Internet Terpercaya
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Copy to clipboard function
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(function() {
+        // Show success message
+        const button = event.target.closest('button');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="bi bi-check"></i>';
+        button.style.background = 'var(--success-color)';
+        
+        setTimeout(() => {
+          button.innerHTML = originalHTML;
+          button.style.background = '';
+        }, 2000);
+      }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      });
+    }
+
+    // Add some interactive effects
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add click animation to cards
+      const cards = document.querySelectorAll('.info-card, .payment-card');
+      cards.forEach(card => {
+        card.addEventListener('click', function() {
+          this.style.transform = 'scale(0.98)';
+          setTimeout(() => {
+            this.style.transform = '';
+          }, 150);
+        });
+      });
+
+      // Add loading animation to WhatsApp button
+      const waButton = document.querySelector('.wa');
+      if (waButton) {
+        waButton.addEventListener('click', function() {
+          this.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            this.style.transform = '';
+          }, 150);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+
+

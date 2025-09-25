@@ -136,7 +136,7 @@
         <!-- Include Responsive Admin Sidebar -->
         <%- include('partials/admin-responsive-sidebar', { page: 'setting', settings: settings }) %>
         
-        <main class="col-md-10 main-content ms-sm-auto">
+        <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4 main-content">
             <h3 class="mb-4">Pengaturan Sistem</h3>
             
             <div class="row">
@@ -465,6 +465,83 @@
                                     <a href="/admin/settings/donation-qr" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
                                         Buka QR ukuran penuh
                                     </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Script Generator Menu Isolir Mikrotik -->
+                        <div class="mt-4">
+                            <h5 class="mb-3"><i class="bi bi-router"></i> Script Generator Menu Isolir Mikrotik</h5>
+                            <p class="small text-muted mb-3">Generate script untuk mengatur menu isolir di Mikrotik. Pelanggan yang diisolir akan langsung diarahkan ke halaman isolir.</p>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">IP PPPoE Aktif</label>
+                                    <input type="text" class="form-control form-control-sm" id="activeIp" placeholder="192.168.1.1" value="192.168.1.1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">IP PPPoE Isolir</label>
+                                    <input type="text" class="form-control form-control-sm" id="isolirIp" placeholder="192.168.1.2" value="192.168.1.2">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Domain Halaman Isolir</label>
+                                    <input type="text" class="form-control form-control-sm" id="isolirDomain" placeholder="alijaya.gentiwifi.online" value="alijaya.gentiwifi.online">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Path Halaman Isolir</label>
+                                    <input type="text" class="form-control form-control-sm" id="isolirPath" placeholder="/isolir" value="/isolir">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Port Halaman Isolir (Opsional)</label>
+                                    <input type="text" class="form-control form-control-sm" id="isolirPort" placeholder="Kosongkan jika menggunakan tunneling" value="">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Jenis Akses</label>
+                                    <select class="form-select form-select-sm" id="accessType">
+                                        <option value="tunneling">Tunneling (Domain + Path)</option>
+                                        <option value="port">Port Langsung</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="generateIsolirScript()">
+                                    <i class="bi bi-gear"></i> Generate Script
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm ms-2" onclick="copyIsolirScript()">
+                                    <i class="bi bi-clipboard"></i> Copy Script
+                                </button>
+                            </div>
+                            
+                            <div class="command-card" id="isolirScriptCard" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0"><i class="bi bi-terminal"></i> Script Mikrotik</h6>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="copyIsolirScript()">
+                                        <i class="bi bi-clipboard"></i> Copy
+                                    </button>
+                                </div>
+                                <pre id="isolirScript" class="mb-0" style="background: #2d3748; color: #e2e8f0; padding: 15px; border-radius: 6px; font-size: 12px; max-height: 400px; overflow-y: auto;"></pre>
+                            </div>
+                            
+                            <div class="alert alert-info mt-3" id="isolirInfo">
+                                <h6><i class="bi bi-info-circle"></i> Cara Penggunaan:</h6>
+                                <ol class="mb-0">
+                                    <li>Masukkan IP PPPoE aktif dan isolir</li>
+                                    <li>Masukkan domain dan path halaman isolir</li>
+                                    <li>Pilih jenis akses: <strong>Tunneling</strong> (domain + path) atau <strong>Port Langsung</strong></li>
+                                    <li>Klik "Generate Script"</li>
+                                    <li>Copy script dan jalankan di terminal Mikrotik</li>
+                                    <li>Script akan membuat redirect yang mengarahkan ke halaman isolir</li>
+                                </ol>
+                                <div class="mt-2">
+                                    <strong>Contoh Tunneling:</strong> alijaya.gentiwifi.online/isolir<br>
+                                    <strong>Contoh Port Langsung:</strong> domain.com:3000/isolir
                                 </div>
                             </div>
                         </div>
@@ -2548,6 +2625,180 @@ $(document).ready(function() {
             }
         });
     });
+});
+
+// Functions untuk Script Generator Menu Isolir Mikrotik
+function generateIsolirScript() {
+    const activeIp = document.getElementById('activeIp').value.trim();
+    const isolirIp = document.getElementById('isolirIp').value.trim();
+    const isolirDomain = document.getElementById('isolirDomain').value.trim();
+    const isolirPath = document.getElementById('isolirPath').value.trim();
+    const isolirPort = document.getElementById('isolirPort').value.trim();
+    const accessType = document.getElementById('accessType').value;
+    
+    // Validasi input
+    if (!activeIp || !isolirIp || !isolirDomain || !isolirPath) {
+        showNotification('warning', 'Mohon lengkapi field yang wajib!');
+        return;
+    }
+    
+    // Validasi port untuk akses langsung
+    if (accessType === 'port' && !isolirPort) {
+        showNotification('warning', 'Port wajib diisi untuk akses langsung!');
+        return;
+    }
+    
+    // Validasi format IP
+    const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (!ipRegex.test(activeIp) || !ipRegex.test(isolirIp)) {
+        showNotification('warning', 'Format IP tidak valid!');
+        return;
+    }
+    
+    // Generate script Mikrotik
+    const isolirUrl = accessType === 'tunneling' 
+        ? isolirDomain + isolirPath 
+        : isolirDomain + ':' + isolirPort + isolirPath;
+    
+    const script = [
+        '# Script Menu Isolir Mikrotik',
+        '# Generated on: ' + new Date().toLocaleString('id-ID'),
+        '# IP PPPoE Aktif: ' + activeIp,
+        '# IP PPPoE Isolir: ' + isolirIp,
+        '# URL Halaman Isolir: ' + isolirUrl,
+        '# Jenis Akses: ' + (accessType === 'tunneling' ? 'Tunneling' : 'Port Langsung'),
+        '',
+        '# Buat profile isolir jika belum ada',
+        '/ppp profile add name="isolir" local-address=' + isolirIp + ' remote-address=' + isolirIp + ' \\',
+        '    rate-limit="0/0" comment="Profile untuk pelanggan yang diisolir"',
+        '',
+        '# Script untuk mengubah profile pelanggan ke isolir',
+        '# Contoh penggunaan: /ppp secret set [find name="username"] profile=isolir',
+        '# Script untuk restore: /ppp secret set [find name="username"] profile=default',
+        '',
+        '# Hotspot profile untuk isolir (jika menggunakan hotspot)',
+        '/ip hotspot profile add name="isolir" session-timeout=none \\',
+        '    keepalive-timeout=2m status-autorefresh=1m \\',
+        '    http-proxy=0.0.0.0 transparent-proxy=no \\',
+        '    use-radius=no nas-port-type=wireless-802.11 \\',
+        '    nas-port-id="isolir" \\',
+        '    login-by=http-chap,http-pap mac-cookie-timeout=3d',
+        '',
+        '# Firewall rules untuk redirect ke halaman isolir',
+        '# Redirect semua HTTP ke halaman isolir untuk user yang diisolir'
+    ];
+    
+    if (accessType === 'tunneling') {
+        // Untuk tunneling, redirect ke domain + path
+        script.push(
+            '/ip firewall nat add chain=dstnat dst-port=80 protocol=tcp \\',
+            '    src-address=' + isolirIp + '/32 action=dst-nat to-addresses=' + isolirDomain + ' \\',
+            '    to-ports=80 comment="Redirect isolir ke halaman isolir (tunneling)"',
+            '',
+            '# Redirect HTTPS juga jika diperlukan',
+            '/ip firewall nat add chain=dstnat dst-port=443 protocol=tcp \\',
+            '    src-address=' + isolirIp + '/32 action=dst-nat to-addresses=' + isolirDomain + ' \\',
+            '    to-ports=443 comment="Redirect isolir HTTPS ke halaman isolir (tunneling)"'
+        );
+    } else {
+        // Untuk port langsung
+        script.push(
+            '/ip firewall nat add chain=dstnat dst-port=80 protocol=tcp \\',
+            '    src-address=' + isolirIp + '/32 action=dst-nat to-addresses=' + isolirDomain + ' \\',
+            '    to-ports=' + isolirPort + ' comment="Redirect isolir ke halaman isolir (port langsung)"',
+            '',
+            '# Redirect HTTPS juga jika diperlukan',
+            '/ip firewall nat add chain=dstnat dst-port=443 protocol=tcp \\',
+            '    src-address=' + isolirIp + '/32 action=dst-nat to-addresses=' + isolirDomain + ' \\',
+            '    to-ports=' + isolirPort + ' comment="Redirect isolir HTTPS ke halaman isolir (port langsung)"'
+        );
+    }
+    
+    script.push(
+        '',
+        '# Script untuk isolir pelanggan',
+        '# Gunakan script ini untuk mengisolir pelanggan:',
+        '# :local username "nama_pelanggan"',
+        '# /ppp secret set [find name=$username] profile=isolir',
+        '# :log info "Pelanggan $username telah diisolir"',
+        '',
+        '# Script untuk restore pelanggan',
+        '# Gunakan script ini untuk restore pelanggan:',
+        '# :local username "nama_pelanggan"',
+        '# /ppp secret set [find name=$username] profile=default',
+        '# :log info "Pelanggan $username telah direstore"',
+        '',
+        'echo "Script menu isolir Mikrotik telah dibuat!"',
+        'echo "Pastikan halaman isolir dapat diakses dari IP: ' + isolirIp + '"',
+        'echo "URL halaman isolir: ' + isolirUrl + '"'
+    );
+    
+    const finalScript = script.join('\n');
+
+    // Tampilkan script
+    document.getElementById('isolirScript').textContent = finalScript;
+    document.getElementById('isolirScriptCard').style.display = 'block';
+    
+    showNotification('success', 'Script berhasil di-generate!');
+}
+
+function copyIsolirScript() {
+    const scriptElement = document.getElementById('isolirScript');
+    if (!scriptElement || !scriptElement.textContent) {
+        showNotification('warning', 'Tidak ada script untuk di-copy!');
+        return;
+    }
+    
+    navigator.clipboard.writeText(scriptElement.textContent).then(function() {
+        showNotification('success', 'Script berhasil di-copy ke clipboard!');
+    }).catch(function(err) {
+        // Fallback untuk browser lama
+        const textArea = document.createElement('textarea');
+        textArea.value = scriptElement.textContent;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification('success', 'Script berhasil di-copy ke clipboard!');
+    });
+}
+
+// Auto-generate script saat input berubah
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = ['activeIp', 'isolirIp', 'isolirDomain', 'isolirPath'];
+    inputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', function() {
+                // Auto-generate jika semua field wajib sudah terisi
+                const allFilled = inputs.every(inputId => {
+                    const el = document.getElementById(inputId);
+                    return el && el.value.trim();
+                });
+                
+                if (allFilled) {
+                    // Delay sedikit untuk UX yang lebih baik
+                    setTimeout(() => {
+                        generateIsolirScript();
+                    }, 500);
+                }
+            });
+        }
+    });
+    
+    // Handle access type change
+    const accessTypeSelect = document.getElementById('accessType');
+    if (accessTypeSelect) {
+        accessTypeSelect.addEventListener('change', function() {
+            const portField = document.getElementById('isolirPort');
+            if (this.value === 'tunneling') {
+                portField.placeholder = 'Kosongkan jika menggunakan tunneling';
+                portField.value = '';
+            } else {
+                portField.placeholder = 'Masukkan port (contoh: 3000)';
+            }
+        });
+    }
 });
 </script>
 
