@@ -1718,94 +1718,116 @@ class BillingManager {
     async recordCollectorPayment(paymentData) {
         return new Promise((resolve, reject) => {
             const { invoice_id, amount, payment_method, reference_number, notes, collector_id, commission_amount } = paymentData;
+            const self = this; // Store reference to this
             
-            // Mulai transaction untuk operasi kompleks
-            this.db.run('BEGIN TRANSACTION', (err) => {
+            // Set database timeout and WAL mode for better concurrency
+            this.db.run('PRAGMA busy_timeout=30000', (err) => {
                 if (err) {
                     reject(err);
                     return;
                 }
                 
-                // Insert payment
-                const sql = `INSERT INTO payments (
-                    invoice_id, amount, payment_method, reference_number, notes, 
-                    collector_id, commission_amount, payment_type
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'collector')`;
-                
-                this.db.run(sql, [
-                    invoice_id, amount, payment_method, reference_number, notes,
-                    collector_id, commission_amount || 0
-                ], function(err) {
+                self.db.run('PRAGMA journal_mode=WAL', (err) => {
                     if (err) {
-                        this.db.run('ROLLBACK');
                         reject(err);
                         return;
                     }
                     
-                    const paymentId = this.lastID;
-                    
-                    // Jika ada komisi, catat sebagai expense
-                    if (commission_amount && commission_amount > 0) {
-                        // Get collector name untuk deskripsi
-                        this.db.get('SELECT name FROM collectors WHERE id = ?', [collector_id], (err, collector) => {
+                    // Mulai transaction untuk operasi kompleks
+                    self.db.run('BEGIN IMMEDIATE TRANSACTION', (err) => {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+                        
+                        // Insert payment
+                        const sql = `INSERT INTO payments (
+                            invoice_id, amount, payment_method, reference_number, notes, 
+                            collector_id, commission_amount, payment_type
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'collector')`;
+                        
+                        self.db.run(sql, [
+                            invoice_id, amount, payment_method, reference_number, notes,
+                            collector_id, commission_amount || 0
+                        ], function(err) {
                             if (err) {
-                                this.db.run('ROLLBACK');
-                                reject(err);
+                                self.db.run('ROLLBACK', (rollbackErr) => {
+                                    if (rollbackErr) console.error('Rollback error:', rollbackErr.message);
+                                    reject(err);
+                                });
                                 return;
                             }
                             
-                            const collectorName = collector ? collector.name : 'Unknown Collector';
+                            const paymentId = this.lastID;
                             
-                            // Insert commission as expense
-                            const expenseSql = `INSERT INTO expenses (
-                                description, amount, category, expense_date, 
-                                payment_method, notes
-                            ) VALUES (?, ?, ?, DATE('now'), ?, ?)`;
-                            
-                            this.db.run(expenseSql, [
-                                `Komisi Kolektor - ${collectorName}`,
-                                commission_amount,
-                                'Operasional',
-                                'Transfer Bank', // Default payment method for commission
-                                `Komisi ${commission_amount}% dari pembayaran invoice ${invoice_id} via kolektor ${collectorName}`
-                            ], function(err) {
-                                if (err) {
-                                    this.db.run('ROLLBACK');
-                                    reject(err);
-                                    return;
-                                }
-                                
-                                // Commit transaction
-                                this.db.run('COMMIT', (err) => {
+                            // Jika ada komisi, catat sebagai expense
+                            if (commission_amount && commission_amount > 0) {
+                                // Get collector name untuk deskripsi
+                                self.db.get('SELECT name FROM collectors WHERE id = ?', [collector_id], (err, collector) => {
+                                    if (err) {
+                                        self.db.run('ROLLBACK', (rollbackErr) => {
+                                            if (rollbackErr) console.error('Rollback error:', rollbackErr.message);
+                                            reject(err);
+                                        });
+                                        return;
+                                    }
+                                    
+                                    const collectorName = collector ? collector.name : 'Unknown Collector';
+                                    
+                                    // Insert commission as expense
+                                    const expenseSql = `INSERT INTO expenses (
+                                        description, amount, category, expense_date, 
+                                        payment_method, notes
+                                    ) VALUES (?, ?, ?, DATE('now'), ?, ?)`;
+                                    
+                                    self.db.run(expenseSql, [
+                                        `Komisi Kolektor - ${collectorName}`,
+                                        commission_amount,
+                                        'Operasional',
+                                        'Transfer Bank', // Default payment method for commission
+                                        `Komisi ${commission_amount}% dari pembayaran invoice ${invoice_id} via kolektor ${collectorName}`
+                                    ], function(err) {
+                                        if (err) {
+                                            self.db.run('ROLLBACK', (rollbackErr) => {
+                                                if (rollbackErr) console.error('Rollback error:', rollbackErr.message);
+                                                reject(err);
+                                            });
+                                            return;
+                                        }
+                                        
+                                        // Commit transaction
+                                        self.db.run('COMMIT', (err) => {
+                                            if (err) {
+                                                reject(err);
+                                            } else {
+                                                resolve({ 
+                                                    success: true, 
+                                                    id: paymentId, 
+                                                    expenseId: this.lastID,
+                                                    commissionRecorded: true,
+                                                    ...paymentData 
+                                                });
+                                            }
+                                        });
+                                    });
+                                });
+                            } else {
+                                // Commit transaction tanpa expense
+                                self.db.run('COMMIT', (err) => {
                                     if (err) {
                                         reject(err);
                                     } else {
                                         resolve({ 
                                             success: true, 
                                             id: paymentId, 
-                                            expenseId: this.lastID,
-                                            commissionRecorded: true,
+                                            commissionRecorded: false,
                                             ...paymentData 
                                         });
                                     }
                                 });
-                            });
-                        });
-                    } else {
-                        // Commit transaction tanpa expense
-                        this.db.run('COMMIT', (err) => {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve({ 
-                                    success: true, 
-                                    id: paymentId, 
-                                    commissionRecorded: false,
-                                    ...paymentData 
-                                });
                             }
                         });
-                    }
+                    });
                 });
             });
         });
