@@ -1163,6 +1163,55 @@ router.post('/api/generate-monthly-summary', adminAuth, async (req, res) => {
     }
 });
 
+// API untuk manual monthly reset
+router.post('/api/monthly-reset', adminAuth, async (req, res) => {
+    try {
+        const result = await billingManager.performMonthlyReset();
+        
+        res.json({
+            success: result.success,
+            message: result.message,
+            year: result.year,
+            month: result.month,
+            previousYear: result.previousYear,
+            previousMonth: result.previousMonth,
+            collectorsProcessed: result.collectorsProcessed
+        });
+    } catch (error) {
+        logger.error('Error performing monthly reset:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal melakukan monthly reset',
+            error: error.message
+        });
+    }
+});
+
+// API untuk manual trigger monthly reset via scheduler
+router.post('/api/trigger-monthly-reset', adminAuth, async (req, res) => {
+    try {
+        const scheduler = require('../config/scheduler');
+        const result = await scheduler.triggerMonthlyReset();
+        
+        res.json({
+            success: result.success,
+            message: result.message,
+            year: result.year,
+            month: result.month,
+            previousYear: result.previousYear,
+            previousMonth: result.previousMonth,
+            collectorsProcessed: result.collectorsProcessed
+        });
+    } catch (error) {
+        logger.error('Error triggering monthly reset:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal trigger monthly reset',
+            error: error.message
+        });
+    }
+});
+
 // API untuk mendapatkan summary bulanan
 router.get('/api/monthly-summary', adminAuth, async (req, res) => {
     try {

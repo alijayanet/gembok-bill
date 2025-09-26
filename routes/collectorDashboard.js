@@ -17,98 +17,43 @@ const whatsappNotifications = require('../config/whatsapp-notifications');
 router.get('/dashboard', collectorAuth, async (req, res) => {
     try {
         const collectorId = req.collector.id;
-        const dbPath = path.join(__dirname, '../data/billing.db');
-        const db = new sqlite3.Database(dbPath);
         
-        // Get collector info dengan validasi
-        const collector = await new Promise((resolve, reject) => {
-            db.get('SELECT * FROM collectors WHERE id = ?', [collectorId], (err, row) => {
-                if (err) reject(err);
-                else {
-                    if (!row) {
-                        reject(new Error('Collector not found'));
-                        return;
-                    }
-                    // Validasi dan format data collector
-                    const validCollector = {
-                        ...row,
-                        commission_rate: Math.max(0, Math.min(100, parseFloat(row.commission_rate || 5))), // Pastikan 0-100%
-                        name: row.name || 'Unknown Collector',
-                        phone: row.phone || '',
-                        status: row.status || 'active'
-                    };
-                    resolve(validCollector);
-                }
+        // Get collector info menggunakan BillingManager
+        const collector = await billingManager.getCollectorById(collectorId);
+        
+        if (!collector) {
+            return res.status(404).render('error', { 
+                message: 'Collector not found',
+                error: {}
             });
-        });
+        }
         
-        // Get statistics
+        // Validasi dan format data collector
+        const validCollector = {
+            ...collector,
+            commission_rate: Math.max(0, Math.min(100, parseFloat(collector.commission_rate || 5))), // Pastikan 0-100%
+            name: collector.name || 'Unknown Collector',
+            phone: collector.phone || '',
+            status: collector.status || 'active'
+        };
+        
+        // Get statistics menggunakan BillingManager
         const today = new Date();
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
         
         const [todayPayments, totalCommission, totalPayments, recentPayments] = await Promise.all([
-            // Today's payments - dengan validasi data
-            new Promise((resolve, reject) => {
-                db.get(`
-                    SELECT COALESCE(SUM(payment_amount), 0) as total
-                    FROM collector_payments 
-                    WHERE collector_id = ? AND collected_at >= ? AND collected_at < ? AND status = 'completed'
-                `, [collectorId, startOfDay.toISOString(), endOfDay.toISOString()], (err, row) => {
-                    if (err) reject(err);
-                    else resolve(Math.round(parseFloat(row ? row.total : 0))); // Rounding untuk konsistensi
-                });
-            }),
-            // Total commission - dengan validasi data
-            new Promise((resolve, reject) => {
-                db.get(`
-                    SELECT COALESCE(SUM(commission_amount), 0) as total
-                    FROM collector_payments 
-                    WHERE collector_id = ? AND status = 'completed'
-                `, [collectorId], (err, row) => {
-                    if (err) reject(err);
-                    else resolve(Math.round(parseFloat(row ? row.total : 0))); // Rounding untuk konsistensi
-                });
-            }),
-            // Total payments count - dengan validasi data
-            new Promise((resolve, reject) => {
-                db.get(`
-                    SELECT COUNT(*) as count
-                    FROM collector_payments 
-                    WHERE collector_id = ? AND status = 'completed'
-                `, [collectorId], (err, row) => {
-                    if (err) reject(err);
-                    else resolve(parseInt(row ? row.count : 0)); // Pastikan integer
-                });
-            }),
-            // Recent payments - dengan validasi data
-            new Promise((resolve, reject) => {
-                db.all(`
-                    SELECT cp.*, c.name as customer_name, c.phone as customer_phone
-                    FROM collector_payments cp
-                    LEFT JOIN customers c ON cp.customer_id = c.id
-                    WHERE cp.collector_id = ? AND cp.status = 'completed'
-                    ORDER BY cp.collected_at DESC
-                    LIMIT 5
-                `, [collectorId], (err, rows) => {
-                    if (err) reject(err);
-                    else {
-                        // Validasi dan format data recent payments
-                        const validRows = (rows || []).map(row => ({
-                            ...row,
-                            payment_amount: Math.round(parseFloat(row.payment_amount || 0)),
-                            commission_amount: Math.round(parseFloat(row.commission_amount || 0)),
-                            customer_name: row.customer_name || 'Unknown Customer'
-                        }));
-                        resolve(validRows);
-                    }
-                });
-            })
+            // Today's payments - menggunakan data real dari database
+            billingManager.getCollectorTodayPayments(collectorId, startOfDay, endOfDay),
+            // Total commission - menggunakan data real dari database
+            billingManager.getCollectorTotalCommission(collectorId),
+            // Total payments count - menggunakan data real dari database
+            billingManager.getCollectorTotalPayments(collectorId),
+            // Recent payments - menggunakan data real dari database
+            billingManager.getCollectorRecentPayments(collectorId, 5)
         ]);
         
         const appSettings = await getAppSettings();
-        
-        db.close();
         
         res.render('collector/dashboard', {
             title: 'Dashboard Tukang Tagih',
@@ -206,27 +151,21 @@ router.get('/api/customer-invoices/:customerId', collectorAuth, async (req, res)
 router.get('/payments', collectorAuth, async (req, res) => {
     try {
         const collectorId = req.collector.id;
-        const dbPath = path.join(__dirname, '../data/billing.db');
-        const db = new sqlite3.Database(dbPath);
         
-        // Get collector payments
-        const payments = await new Promise((resolve, reject) => {
-            db.all(`
-                SELECT cp.*, c.name as customer_name, c.phone as customer_phone
-                FROM collector_payments cp
-                LEFT JOIN customers c ON cp.customer_id = c.id
-                WHERE cp.collector_id = ?
-                ORDER BY cp.collected_at DESC
-            `, [collectorId], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows || []);
+        // Get collector info menggunakan BillingManager
+        const collector = await billingManager.getCollectorById(collectorId);
+        
+        if (!collector) {
+            return res.status(404).render('error', { 
+                message: 'Collector not found',
+                error: {}
             });
-        });
+        }
+        
+        // Get all payments menggunakan BillingManager
+        const payments = await billingManager.getCollectorAllPayments(collectorId);
         
         const appSettings = await getAppSettings();
-        const collector = req.collector;
-        
-        db.close();
         
         res.render('collector/payments', {
             title: 'Riwayat Pembayaran',
@@ -508,25 +447,8 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
             });
         }
         
-        const dbPath = path.join(__dirname, '../data/billing.db');
-        const db = new sqlite3.Database(dbPath);
-        
-        // Mulai transaction untuk operasi kompleks
-        await new Promise((resolve, reject) => {
-            db.run('BEGIN TRANSACTION', (err) => {
-                if (err) reject(err);
-                else resolve();
-            });
-        });
-        
-        try {
-            // Get collector commission rate
-        const collector = await new Promise((resolve, reject) => {
-            db.get('SELECT commission_rate FROM collectors WHERE id = ?', [collectorId], (err, row) => {
-                if (err) reject(err);
-                else resolve(row);
-            });
-        });
+        // Get collector commission rate using BillingManager
+        const collector = await billingManager.getCollectorById(collectorId);
         
         if (!collector) {
             return res.status(400).json({
@@ -547,17 +469,16 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
         
         const commissionAmount = Math.round((paymentAmountNum * commissionRate) / 100); // Rounding untuk komisi
         
-        // Insert collector payment (ensure legacy 'amount' column is populated)
-        const paymentId = await new Promise((resolve, reject) => {
-            db.run(`
-                INSERT INTO collector_payments (
-                    collector_id, customer_id, amount, payment_amount, commission_amount,
-                    payment_method, notes, status, collected_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'completed', CURRENT_TIMESTAMP)
-            `, [collectorId, customer_id, paymentAmountNum, paymentAmountNum, commissionAmount, payment_method, notes], function(err) {
-                if (err) reject(err);
-                else resolve(this.lastID);
-            });
+        // Insert collector payment record
+        const paymentId = await billingManager.recordCollectorPaymentRecord({
+            collector_id: collectorId,
+            customer_id: customer_id,
+            amount: paymentAmountNum,
+            payment_amount: paymentAmountNum,
+            commission_amount: commissionAmount,
+            payment_method: payment_method,
+            notes: notes,
+            status: 'completed'
         });
         
         let lastPaymentId = null;
@@ -577,7 +498,7 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
                     reference_number: '',
                     notes: notes || `Collector ${collectorId}`,
                     collector_id: collectorId,
-                    commission_amount: commissionAmount
+                    commission_amount: Math.round((invAmount * commissionRate) / 100)
                 });
                 lastPaymentId = newPayment?.id || lastPaymentId;
             }
@@ -612,25 +533,6 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
             }
         }
 
-            // Commit transaction jika semua operasi berhasil
-            await new Promise((resolve, reject) => {
-                db.run('COMMIT', (err) => {
-                    if (err) reject(err);
-                    else resolve();
-                });
-            });
-            
-        } catch (error) {
-            // Rollback transaction jika ada error
-            await new Promise((resolve) => {
-                db.run('ROLLBACK', () => resolve());
-            });
-            throw error;
-        } finally {
-            // Tutup DB lokal untuk collector_payments insert
-            db.close();
-        }
-
         // Kirim notifikasi WhatsApp jika ada payment yang dicatat
         try {
             if (lastPaymentId) {
@@ -642,18 +544,21 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
         }
 
         // Cek restore layanan jika semua tagihan pelanggan sudah lunas
-        try {
-            const allInvoices = await billingManager.getInvoicesByCustomer(Number(customer_id));
-            const unpaid = (allInvoices || []).filter(i => i.status === 'unpaid');
-            if (unpaid.length === 0) {
-                const customer = await billingManager.getCustomerById(Number(customer_id));
-                if (customer && customer.status === 'suspended') {
-                    await serviceSuspension.restoreCustomerService(customer);
+        // Delay sedikit untuk memastikan database connection sudah ditutup
+        setTimeout(async () => {
+            try {
+                const allInvoices = await billingManager.getInvoicesByCustomer(Number(customer_id));
+                const unpaid = (allInvoices || []).filter(i => i.status === 'unpaid');
+                if (unpaid.length === 0) {
+                    const customer = await billingManager.getCustomerById(Number(customer_id));
+                    if (customer && customer.status === 'suspended') {
+                        await serviceSuspension.restoreCustomerService(customer);
+                    }
                 }
+            } catch (restoreErr) {
+                console.error('Immediate restore check failed:', restoreErr);
             }
-        } catch (restoreErr) {
-            console.error('Immediate restore check failed:', restoreErr);
-        }
+        }, 1000); // Delay 1 detik
 
         res.json({
             success: true,

@@ -585,13 +585,8 @@ router.post('/create-payment', async (req, res) => {
             });
         }
 
-        // Validate Tripay minimum amount
-        if (gateway === 'tripay' && Number(invoice.amount) < 10000) {
-            return res.status(400).json({
-                success: false,
-                message: 'Minimal nominal pembayaran adalah Rp 10.000'
-            });
-        }
+        // Note: Tripay minimum amount validation removed for production
+        // In production mode, Tripay doesn't have minimum amount restriction
 
         // Create online payment with specific method for Tripay
         const result = await billingManager.createOnlinePaymentWithMethod(invoice_id, gateway, method);

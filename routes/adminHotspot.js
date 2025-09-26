@@ -18,7 +18,9 @@ async function getVoucherOnlineSettings() {
             CREATE TABLE IF NOT EXISTS voucher_online_settings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 package_id TEXT NOT NULL UNIQUE,
+                name TEXT NOT NULL DEFAULT '',
                 profile TEXT NOT NULL,
+                digits INTEGER NOT NULL DEFAULT 5,
                 enabled INTEGER NOT NULL DEFAULT 1,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -41,19 +43,19 @@ async function getVoucherOnlineSettings() {
                             : 'default';
                         
                         const defaultSettings = [
-                            ['3k', defaultProfile, 1],
-                            ['5k', defaultProfile, 1],
-                            ['10k', defaultProfile, 1],
-                            ['15k', defaultProfile, 1],
-                            ['25k', defaultProfile, 1],
-                            ['50k', defaultProfile, 1]
+                            ['3k', '3rb - 1 Hari', defaultProfile, 5, 1],
+                            ['5k', '5rb - 2 Hari', defaultProfile, 5, 1],
+                            ['10k', '10rb - 5 Hari', defaultProfile, 5, 1],
+                            ['15k', '15rb - 8 Hari', defaultProfile, 5, 1],
+                            ['25k', '25rb - 15 Hari', defaultProfile, 5, 1],
+                            ['50k', '50rb - 30 Hari', defaultProfile, 5, 1]
                         ];
 
-                        const insertPromises = defaultSettings.map(([packageId, profile, enabled]) => {
+                        const insertPromises = defaultSettings.map(([packageId, name, profile, digits, enabled]) => {
                             return new Promise((resolveInsert, rejectInsert) => {
                                 db.run(
-                                    'INSERT OR IGNORE INTO voucher_online_settings (package_id, profile, enabled) VALUES (?, ?, ?)',
-                                    [packageId, profile, enabled],
+                                    'INSERT OR IGNORE INTO voucher_online_settings (package_id, name, profile, digits, enabled) VALUES (?, ?, ?, ?, ?)',
+                                    [packageId, name, profile, digits, enabled],
                                     (err) => {
                                         if (err) rejectInsert(err);
                                         else resolveInsert();
@@ -72,7 +74,9 @@ async function getVoucherOnlineSettings() {
                                     const settings = {};
                                     rows.forEach(row => {
                                         settings[row.package_id] = {
+                                            name: row.name || `${row.package_id} - Paket`,
                                             profile: row.profile,
+                                            digits: row.digits || 5,
                                             enabled: row.enabled === 1
                                         };
                                     });
@@ -89,19 +93,19 @@ async function getVoucherOnlineSettings() {
                         console.error('Error getting Mikrotik profiles for default settings:', err);
                         // Fallback to hardcoded defaults
                         const fallbackSettings = [
-                            ['3k', 'default', 1],
-                            ['5k', 'default', 1],
-                            ['10k', 'default', 1],
-                            ['15k', 'default', 1],
-                            ['25k', 'default', 1],
-                            ['50k', 'default', 1]
+                            ['3k', '3rb - 1 Hari', 'default', 5, 1],
+                            ['5k', '5rb - 2 Hari', 'default', 5, 1],
+                            ['10k', '10rb - 5 Hari', 'default', 5, 1],
+                            ['15k', '15rb - 8 Hari', 'default', 5, 1],
+                            ['25k', '25rb - 15 Hari', 'default', 5, 1],
+                            ['50k', '50rb - 30 Hari', 'default', 5, 1]
                         ];
                         
-                        const insertPromises = fallbackSettings.map(([packageId, profile, enabled]) => {
+                        const insertPromises = fallbackSettings.map(([packageId, name, profile, digits, enabled]) => {
                             return new Promise((resolveInsert, rejectInsert) => {
                                 db.run(
-                                    'INSERT OR IGNORE INTO voucher_online_settings (package_id, profile, enabled) VALUES (?, ?, ?)',
-                                    [packageId, profile, enabled],
+                                    'INSERT OR IGNORE INTO voucher_online_settings (package_id, name, profile, digits, enabled) VALUES (?, ?, ?, ?, ?)',
+                                    [packageId, name, profile, digits, enabled],
                                     (err) => {
                                         if (err) rejectInsert(err);
                                         else resolveInsert();
@@ -119,7 +123,9 @@ async function getVoucherOnlineSettings() {
                                     const settings = {};
                                     rows.forEach(row => {
                                         settings[row.package_id] = {
+                                            name: row.name || `${row.package_id} - Paket`,
                                             profile: row.profile,
+                                            digits: row.digits || 5,
                                             enabled: row.enabled === 1
                                         };
                                     });
@@ -735,7 +741,9 @@ router.post('/save-voucher-online-settings', async (req, res) => {
                 CREATE TABLE IF NOT EXISTS voucher_online_settings (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     package_id TEXT NOT NULL UNIQUE,
+                    name TEXT NOT NULL DEFAULT '',
                     profile TEXT NOT NULL,
+                    digits INTEGER NOT NULL DEFAULT 5,
                     enabled INTEGER NOT NULL DEFAULT 1,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -752,10 +760,10 @@ router.post('/save-voucher-online-settings', async (req, res) => {
             return new Promise((resolve, reject) => {
                 const sql = `
                     INSERT OR REPLACE INTO voucher_online_settings
-                    (package_id, profile, enabled, updated_at)
-                    VALUES (?, ?, ?, datetime('now'))
+                    (package_id, name, profile, digits, enabled, updated_at)
+                    VALUES (?, ?, ?, ?, ?, datetime('now'))
                 `;
-                db.run(sql, [packageId, setting.profile, setting.enabled ? 1 : 0], function(err) {
+                db.run(sql, [packageId, setting.name || `${packageId} - Paket`, setting.profile, setting.digits || 5, setting.enabled ? 1 : 0], function(err) {
                     if (err) reject(err);
                     else resolve();
                 });

@@ -26,6 +26,7 @@ router.post('/create', async (req, res) => {
                 message: 'Invoice ID is required'
             });
         }
+        
         // Fetch invoice to perform gateway-specific validations
         let invoice;
         try {
@@ -37,14 +38,16 @@ router.post('/create', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Invoice not found' });
         }
 
-        // Guard: Tripay minimum amount validation (Rp 10.000)
-        if ((gateway === 'tripay' || (!gateway && String((await billingManager.getGatewayStatus())?.active) === 'tripay'))
-            && Number(invoice.amount) < 10000) {
+        // Check if invoice is already paid
+        if (invoice.status === 'paid') {
             return res.status(400).json({
                 success: false,
-                message: 'Minimal nominal Tripay adalah Rp 10.000'
+                message: 'Invoice sudah dibayar'
             });
         }
+
+        // Note: Tripay minimum amount validation removed for production
+        // In production mode, Tripay doesn't have minimum amount restriction
 
         const result = await billingManager.createOnlinePayment(invoice_id, gateway);
         
@@ -65,10 +68,12 @@ router.post('/create', async (req, res) => {
 // Payment webhook handlers
 router.post('/webhook/midtrans', async (req, res) => {
     try {
+        console.log('🔍 Midtrans webhook received:', JSON.stringify(req.body, null, 2));
         const result = await billingManager.handlePaymentWebhook({ body: req.body, headers: req.headers }, 'midtrans');
+        console.log('✅ Midtrans webhook processed successfully:', result);
         res.status(200).json(result);
     } catch (error) {
-        console.error('Midtrans webhook error:', error);
+        console.error('❌ Midtrans webhook error:', error);
         res.status(500).json({
             success: false,
             message: error.message
@@ -78,10 +83,12 @@ router.post('/webhook/midtrans', async (req, res) => {
 
 router.post('/webhook/xendit', async (req, res) => {
     try {
+        console.log('🔍 Xendit webhook received:', JSON.stringify(req.body, null, 2));
         const result = await billingManager.handlePaymentWebhook({ body: req.body, headers: req.headers }, 'xendit');
+        console.log('✅ Xendit webhook processed successfully:', result);
         res.status(200).json(result);
     } catch (error) {
-        console.error('Xendit webhook error:', error);
+        console.error('❌ Xendit webhook error:', error);
         res.status(500).json({
             success: false,
             message: error.message
