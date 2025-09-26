@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Public Tools - Generator Script Mikrotik</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-content { 
+            padding: 40px 20px; 
+        }
+        
+        .hero-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+        
+        .tool-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .tool-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 20px;
+        }
+        
+        .tool-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .tool-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin: 5px 0 0 0;
+        }
+        
+        .tool-body {
+            padding: 25px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .script-output {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 300px;
+        }
+        
+        .footer {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-radius: 15px;
+        }
+        
+        .feature-badge {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-content">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <h1 class="hero-title">
+                    <i class="bi bi-tools"></i> Public Tools
+                </h1>
+                <p class="hero-subtitle">
+                    Generator Script Mikrotik untuk Konfigurasi Jaringan
+                </p>
+                <div class="feature-badge">
+                    <i class="bi bi-shield-check"></i> Gratis & Open Source
+                </div>
+            </div>
+
+            <!-- Tools Grid -->
+            <div class="row">
+                <!-- Kalkulator Redaman Splitter Optik -->
+                <div class="col-lg-6">
+                    <div class="tool-card">
+                        <div class="tool-header">
+                            <h5 class="tool-title">
+                                <i class="bi bi-lightning-charge"></i> Kalkulator Redaman Splitter Optik
+                            </h5>
+                            <p class="tool-description">Hitung redaman dan loss budget untuk jaringan fiber optik</p>
+                        </div>
+                        <div class="tool-body">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="fiberLength">Panjang Fiber (km)</label>
+                                    <input type="number" class="form-control" id="fiberLength" value="1" step="0.1" placeholder="1.0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="fiberLoss">Loss per km (dB/km)</label>
+                                    <input type="number" class="form-control" id="fiberLoss" value="0.4" step="0.1" placeholder="0.4">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="connectorCount">Jumlah Konektor</label>
+                                    <input type="number" class="form-control" id="connectorCount" value="2" placeholder="2">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="connectorLoss">Loss per Konektor (dB)</label>
+                                    <input type="number" class="form-control" id="connectorLoss" value="0.5" step="0.1" placeholder="0.5">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="splitterRatio">Rasio Splitter</label>
+                                    <select class="form-control" id="splitterRatio">
+                                        <option value="2">1:2 (3dB)</option>
+                                        <option value="4">1:4 (6dB)</option>
+                                        <option value="8">1:8 (9dB)</option>
+                                        <option value="16">1:16 (12dB)</option>
+                                        <option value="32">1:32 (15dB)</option>
+                                        <option value="64">1:64 (18dB)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="safetyMargin">Safety Margin (dB)</label>
+                                    <input type="number" class="form-control" id="safetyMargin" value="3" step="0.1" placeholder="3.0">
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button type="button" class="btn btn-primary" onclick="calculateOpticalLoss()">
+                                    <i class="bi bi-calculator"></i> Hitung Redaman
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="copyOpticalResult()" id="copyOpticalBtn" disabled>
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                            </div>
+                            
+                            <div id="opticalResult" class="mt-3" style="display: none;">
+                                <h6>Hasil Perhitungan:</h6>
+                                <div class="script-output" id="opticalResultContent"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Script Generator Menu Isolir Mikrotik -->
+                <div class="col-lg-6">
+                    <div class="tool-card">
+                        <div class="tool-header">
+                            <h5 class="tool-title">
+                                <i class="bi bi-router"></i> Generator Script Isolir Mikrotik
+                            </h5>
+                            <p class="tool-description">Generate script untuk mengatur menu isolir di Mikrotik</p>
+                        </div>
+                        <div class="tool-body">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="activeIp">IP PPPoE Aktif</label>
+                                    <input type="text" class="form-control" id="activeIp" value="192.168.10.1" placeholder="192.168.10.1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="isolirIp">IP PPPoE Isolir</label>
+                                    <input type="text" class="form-control" id="isolirIp" value="192.168.200.1" placeholder="192.168.200.1">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="isolirDomain">Domain/IP Aplikasi</label>
+                                    <input type="text" class="form-control" id="isolirDomain" value="192.168.8.89" placeholder="192.168.8.89">
+                                    <small class="form-text text-muted">IP atau domain aplikasi isolir</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="isolirPort">Port Aplikasi</label>
+                                    <input type="text" class="form-control" id="isolirPort" value="3003" placeholder="3003">
+                                    <small class="form-text text-muted">Port aplikasi isolir</small>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="isolirPath">Path Halaman Isolir</label>
+                                    <input type="text" class="form-control" id="isolirPath" value="/isolir" placeholder="/isolir">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="accessType">Jenis Akses</label>
+                                    <select class="form-control" id="accessType">
+                                        <option value="direct">Port Langsung (Recommended)</option>
+                                        <option value="tunneling">Tunneling</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button type="button" class="btn btn-primary" onclick="generateIsolirScript()">
+                                    <i class="bi bi-file-earmark-code"></i> Generate Script
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="copyIsolirScript()" id="copyIsolirBtn" disabled>
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                                <button type="button" class="btn btn-info" onclick="downloadIsolirScript()" id="downloadIsolirBtn" disabled>
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                            </div>
+                            
+                            <div id="isolirScriptOutput" class="mt-3" style="display: none;">
+                                <h6>Generated Script:</h6>
+                                <div class="script-output" id="isolirScriptContent"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generator Script Mikrotik DNS GenieACS -->
+                <div class="col-lg-6">
+                    <div class="tool-card">
+                        <div class="tool-header">
+                            <h5 class="tool-title">
+                                <i class="bi bi-globe"></i> Generator Script DNS GenieACS
+                            </h5>
+                            <p class="tool-description">Generate script untuk konfigurasi DNS dan TR069 GenieACS</p>
+                        </div>
+                        <div class="tool-body">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="genieacsServerIp">IP Server GenieACS</label>
+                                    <input type="text" class="form-control" id="genieacsServerIp" value="192.168.8.89" placeholder="192.168.8.89">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="genieacsPort">Port GenieACS</label>
+                                    <input type="number" class="form-control" id="genieacsPort" value="7547" placeholder="7547">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="pppoeRange">Range PPPoE</label>
+                                    <input type="text" class="form-control" id="pppoeRange" value="192.168.10.0/24" placeholder="192.168.10.0/24">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="dnsBackup">DNS Backup</label>
+                                    <input type="text" class="form-control" id="dnsBackup" value="8.8.8.8" placeholder="8.8.8.8">
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button type="button" class="btn btn-primary" onclick="generateMikrotikDNSGenieACSScript()">
+                                    <i class="bi bi-file-earmark-code"></i> Generate Script
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="copyMikrotikDNSGenieACSScript()" id="copyMikrotikDNSGenieACSBtn" disabled>
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                                <button type="button" class="btn btn-info" onclick="downloadMikrotikDNSGenieACSScript()" id="downloadMikrotikDNSGenieACSBtn" disabled>
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                            </div>
+                            
+                            <div id="mikrotikDNSGenieACSScriptOutput" class="mt-3" style="display: none;">
+                                <h6>Generated Script:</h6>
+                                <div class="script-output" id="mikrotikDNSGenieACSScriptContent"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generator DHCP Option 43 -->
+                <div class="col-lg-6">
+                    <div class="tool-card">
+                        <div class="tool-header">
+                            <h5 class="tool-title">
+                                <i class="bi bi-ethernet"></i> Generator DHCP Option 43
+                            </h5>
+                            <p class="tool-description">Generate nilai hex untuk DHCP Option 43 (Vendor Specific Information)</p>
+                        </div>
+                        <div class="tool-body">
+                            <div class="mb-3">
+                                <label class="form-label" for="genieacsUrl">URL GenieACS</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="genieacsUrl" placeholder="cth: https://genieacs.example.com:7547">
+                                    <button class="btn btn-primary" type="button" id="generateOption43">
+                                        <i class="bi bi-gear"></i> Generate
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="option43Output" class="mt-3" style="display: none;">
+                                <h6>Generated Option 43:</h6>
+                                <div class="script-output" id="option43Content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generator Mikrotik Isolation Script -->
+                <div class="col-lg-6">
+                    <div class="tool-card">
+                        <div class="tool-header">
+                            <h5 class="tool-title">
+                                <i class="bi bi-shield-lock"></i> Generator Script Isolir IP Statik
+                            </h5>
+                            <p class="tool-description">Generate script Mikrotik untuk sistem isolir pelanggan IP statik</p>
+                        </div>
+                        <div class="tool-body">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="isolationMethod">Metode Isolasi</label>
+                                    <select class="form-control" id="isolationMethod">
+                                        <option value="bandwidth">Bandwidth Limit</option>
+                                        <option value="firewall">Firewall Block</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="bandwidthLimit">Bandwidth Limit (kbps)</label>
+                                    <input type="number" class="form-control" id="bandwidthLimit" value="64" placeholder="64">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="networkRange">Network Range</label>
+                                    <input type="text" class="form-control" id="networkRange" value="192.168.1.0/24" placeholder="192.168.1.0/24">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="dnsServers">DNS Servers</label>
+                                    <input type="text" class="form-control" id="dnsServers" value="8.8.8.8,8.8.4.4" placeholder="8.8.8.8,8.8.4.4">
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button type="button" class="btn btn-primary" id="generateIsolationScript">
+                                    <i class="bi bi-lightning-charge"></i> Generate
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="copyIsolationScript()" id="copyIsolationBtn" disabled>
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                                <button type="button" class="btn btn-info" onclick="downloadIsolationScript()" id="downloadIsolationBtn" disabled>
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                            </div>
+                            
+                            <div id="isolationScriptOutput" class="mt-3" style="display: none;">
+                                <h6>Generated Script:</h6>
+                                <div class="script-output" id="isolationScriptContent"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generator Konfigurasi VPS & MikroTik -->
+                <div class="col-lg-6">
+                    <div class="tool-card">
+                        <div class="tool-header">
+                            <h5 class="tool-title">
+                                <i class="bi bi-cloud"></i> Generator Konfigurasi VPS & MikroTik
+                            </h5>
+                            <p class="tool-description">Generate konfigurasi untuk koneksi VPS ke MikroTik</p>
+                        </div>
+                        <div class="tool-body">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="vpsIp">IP VPS</label>
+                                    <input type="text" class="form-control" id="vpsIp" placeholder="103.123.45.67">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="mikrotikIp">IP MikroTik</label>
+                                    <input type="text" class="form-control" id="mikrotikIp" placeholder="192.168.1.1">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="tunnelType">Tipe Tunnel</label>
+                                    <select class="form-control" id="tunnelType">
+                                        <option value="gre">GRE Tunnel</option>
+                                        <option value="ipip">IPIP Tunnel</option>
+                                        <option value="l2tp">L2TP Tunnel</option>
+                                        <option value="pptp">PPTP Tunnel</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="tunnelName">Nama Tunnel</label>
+                                    <input type="text" class="form-control" id="tunnelName" value="vps-tunnel" placeholder="vps-tunnel">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="localTunnelIp">IP Local Tunnel</label>
+                                    <input type="text" class="form-control" id="localTunnelIp" value="10.0.0.1" placeholder="10.0.0.1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="remoteTunnelIp">IP Remote Tunnel</label>
+                                    <input type="text" class="form-control" id="remoteTunnelIp" value="10.0.0.2" placeholder="10.0.0.2">
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button type="button" class="btn btn-primary" onclick="generateVPSConfig()">
+                                    <i class="bi bi-gear"></i> Generate Config
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="copyVPSConfig()" id="copyVPSBtn" disabled>
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                                <button type="button" class="btn btn-info" onclick="downloadVPSConfig()" id="downloadVPSBtn" disabled>
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                            </div>
+                            
+                            <div id="vpsConfigOutput" class="mt-3" style="display: none;">
+                                <h6>Generated Configuration:</h6>
+                                <div class="script-output" id="vpsConfigContent"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kalkulator Burst Limit -->
+                <div class="col-lg-6">
+                    <div class="tool-card">
+                        <div class="tool-header">
+                            <h5 class="tool-title">
+                                <i class="bi bi-speedometer2"></i> Kalkulator Burst Limit
+                            </h5>
+                            <p class="tool-description">Hitung burst limit dan bandwidth untuk QoS MikroTik</p>
+                        </div>
+                        <div class="tool-body">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="baseLimit">Base Limit (kbps)</label>
+                                    <input type="number" class="form-control" id="baseLimit" value="1000" placeholder="1000">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="burstLimit">Burst Limit (kbps)</label>
+                                    <input type="number" class="form-control" id="burstLimit" value="2000" placeholder="2000">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="burstThreshold">Burst Threshold (kbps)</label>
+                                    <input type="number" class="form-control" id="burstThreshold" value="1500" placeholder="1500">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="burstTime">Burst Time (s)</label>
+                                    <input type="number" class="form-control" id="burstTime" value="10" placeholder="10">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="priority">Priority</label>
+                                    <select class="form-control" id="priority">
+                                        <option value="1">1 (Highest)</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                        <option value="6">6</option>
+                                        <option value="7">7</option>
+                                        <option value="8">8 (Lowest)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="packetSize">Packet Size (bytes)</label>
+                                    <input type="number" class="form-control" id="packetSize" value="1500" placeholder="1500">
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button type="button" class="btn btn-primary" onclick="calculateBurstLimit()">
+                                    <i class="bi bi-calculator"></i> Hitung Burst
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="copyBurstResult()" id="copyBurstBtn" disabled>
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                            </div>
+                            
+                            <div id="burstResult" class="mt-3" style="display: none;">
+                                <h6>Hasil Perhitungan:</h6>
+                                <div class="script-output" id="burstResultContent"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <p class="mb-0">
+                    <i class="bi bi-heart-fill text-danger"></i> 
+                    Dibuat dengan ❤️ untuk komunitas Mikrotik Indonesia
+                </p>
+                <small>© 2024 Public Tools - Generator Script Mikrotik</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Notification system
+        function showNotification(type, title, message) {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show notification`;
+            notification.innerHTML = `
+                <strong>${title}</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+        }
+
+        // ===== ISOLIR SCRIPT GENERATOR =====
+        function generateIsolirScript() {
+            const activeIp = document.getElementById('activeIp').value.trim();
+            const isolirIp = document.getElementById('isolirIp').value.trim();
+            const isolirDomain = document.getElementById('isolirDomain').value.trim();
+            const isolirPath = document.getElementById('isolirPath').value.trim();
+            const isolirPort = document.getElementById('isolirPort').value.trim();
+            const accessType = document.getElementById('accessType').value;
+            
+            if (!activeIp || !isolirIp || !isolirDomain) {
+                showNotification('warning', 'Error!', 'Mohon isi semua field yang diperlukan');
+                return;
+            }
+            
+            const script = generateIsolirScriptContent(activeIp, isolirIp, isolirDomain, isolirPath, isolirPort, accessType);
+            
+            document.getElementById('isolirScriptContent').textContent = script;
+            document.getElementById('isolirScriptOutput').style.display = 'block';
+            document.getElementById('copyIsolirBtn').disabled = false;
+            document.getElementById('downloadIsolirBtn').disabled = false;
+            
+            showNotification('success', 'Berhasil!', 'Script isolir berhasil digenerate');
+        }
+
+        function generateIsolirScriptContent(activeIp, isolirIp, isolirDomain, isolirPath, isolirPort, accessType) {
+            const script = `# ===========================================
+# MIKROTIK ISOLIR SCRIPT
+# ===========================================
+# Generated: ${new Date().toLocaleString('id-ID')}
+# Active IP: ${activeIp}
+# Isolir IP: ${isolirIp}
+# Domain: ${isolirDomain}
+# Path: ${isolirPath}
+# Port: ${isolirPort}
+# Access Type: ${accessType}
+# ===========================================
+
+# ===========================================
+# 1. SETUP DNS STATIC
+# ===========================================
+
+# Hapus DNS static lama
+/ip dns static remove [find where name="${isolirDomain}" and address="${isolirIp}"]
+
+# Tambahkan DNS static
+/ip dns static add name="${isolirDomain}" address="${isolirIp}" ttl=300
+
+# ===========================================
+# 2. SETUP NAT RULES
+# ===========================================
+
+# Hapus NAT rules lama
+/ip firewall nat remove [find comment="isolir-redirect"]
+
+# Redirect HTTP
+/ip firewall nat add chain=dstnat dst-address=${isolirIp}/32 dst-port=80 protocol=tcp action=dst-nat to-addresses=${isolirDomain} to-ports=${isolirPort} comment="isolir-redirect"
+
+# Redirect HTTPS
+/ip firewall nat add chain=dstnat dst-address=${isolirIp}/32 dst-port=443 protocol=tcp action=dst-nat to-addresses=${isolirDomain} to-ports=${isolirPort} comment="isolir-redirect-https"
+
+# ===========================================
+# 3. SETUP FIREWALL RULES
+# ===========================================
+
+# Hapus firewall rules lama
+/ip firewall filter remove [find comment="isolir-allow"]
+
+# Allow DNS queries
+/ip firewall filter add chain=forward src-address=${isolirIp}/32 dst-address=${isolirDomain} dst-port=53 protocol=udp action=accept comment="isolir-allow-dns"
+
+# Allow HTTP/HTTPS to application
+/ip firewall filter add chain=forward src-address=${isolirIp}/32 dst-address=${isolirDomain} dst-port=${isolirPort} protocol=tcp action=accept comment="isolir-allow-http"
+
+# ===========================================
+# 4. VERIFIKASI
+# ===========================================
+
+:put "=== VERIFIKASI KONFIGURASI ==="
+:put "Active IP: ${activeIp}"
+:put "Isolir IP: ${isolirIp}"
+:put "Domain: ${isolirDomain}"
+:put "Port: ${isolirPort}"
+:put "Script berhasil dijalankan!"`;
+
+            return script;
+        }
+
+        function copyIsolirScript() {
+            const scriptContent = document.getElementById('isolirScriptContent').textContent;
+            navigator.clipboard.writeText(scriptContent).then(() => {
+                showNotification('success', 'Berhasil!', 'Script berhasil dicopy ke clipboard');
+            }).catch(err => {
+                showNotification('error', 'Error!', 'Gagal copy script: ' + err.message);
+            });
+        }
+
+        function downloadIsolirScript() {
+            const scriptContent = document.getElementById('isolirScriptContent').textContent;
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            const filename = `mikrotik-isolir-${timestamp}.rsc`;
+            
+            const blob = new Blob([scriptContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('success', 'Berhasil!', `Script berhasil didownload: ${filename}`);
+        }
+
+        // ===== DNS GENIEACS SCRIPT GENERATOR =====
+        function generateMikrotikDNSGenieACSScript() {
+            const genieacsServerIp = document.getElementById('genieacsServerIp').value.trim();
+            const genieacsPort = document.getElementById('genieacsPort').value.trim() || '7547';
+            const pppoeRange = document.getElementById('pppoeRange').value.trim() || '192.168.10.0/24';
+            const dnsBackup = document.getElementById('dnsBackup').value.trim() || '8.8.8.8';
+            
+            if (!genieacsServerIp) {
+                showNotification('warning', 'Error!', 'Mohon isi IP Server GenieACS');
+                return;
+            }
+            
+            const script = generateMikrotikDNSGenieACSScriptContent(genieacsServerIp, genieacsPort, pppoeRange, dnsBackup);
+            
+            document.getElementById('mikrotikDNSGenieACSScriptContent').textContent = script;
+            document.getElementById('mikrotikDNSGenieACSScriptOutput').style.display = 'block';
+            document.getElementById('copyMikrotikDNSGenieACSBtn').disabled = false;
+            document.getElementById('downloadMikrotikDNSGenieACSBtn').disabled = false;
+            
+            showNotification('success', 'Berhasil!', 'Script DNS GenieACS berhasil digenerate');
+        }
+
+        function generateMikrotikDNSGenieACSScriptContent(genieacsServerIp, genieacsPort, pppoeRange, dnsBackup) {
+            const script = `# ===========================================
+# MIKROTIK DNS GENIEACS CONFIGURATION SCRIPT
+# ===========================================
+# Generated: ${new Date().toLocaleString('id-ID')}
+# GenieACS Server: ${genieacsServerIp}:${genieacsPort}
+# PPPoE Range: ${pppoeRange}
+# DNS Backup: ${dnsBackup}
+# ===========================================
+
+# ===========================================
+# 1. SETUP DNS STATIC
+# ===========================================
+
+# Hapus DNS static lama
+/ip dns static remove [find where name="genieacs.local" and address="${genieacsServerIp}"]
+/ip dns static remove [find where name="tr069.local" and address="${genieacsServerIp}"]
+
+# Tambahkan DNS static
+/ip dns static add name="genieacs.local" address="${genieacsServerIp}" ttl=300 comment="GenieACS Server"
+/ip dns static add name="tr069.local" address="${genieacsServerIp}" ttl=300 comment="TR069 Server"
+
+# ===========================================
+# 2. SETUP DHCP SERVER DNS
+# ===========================================
+
+# Update DHCP server
+/ip dhcp-server network set [find address="${pppoeRange}"] dns-server="${genieacsServerIp},${dnsBackup}" comment="GenieACS DNS Configuration"
+
+# ===========================================
+# 3. SETUP NAT RULES
+# ===========================================
+
+# Hapus NAT rules lama
+/ip firewall nat remove [find comment="genieacs-tr069-redirect"]
+
+# Redirect TR069 HTTP
+/ip firewall nat add chain=dstnat dst-port=7547 protocol=tcp action=dst-nat to-addresses=${genieacsServerIp} to-ports=${genieacsPort} comment="genieacs-tr069-redirect"
+
+# ===========================================
+# 4. SETUP FIREWALL RULES
+# ===========================================
+
+# Hapus firewall rules lama
+/ip firewall filter remove [find comment="genieacs-allow-tr069"]
+
+# Allow TR069 communication
+/ip firewall filter add chain=forward src-address=${pppoeRange} dst-address=${genieacsServerIp} dst-port=${genieacsPort} protocol=tcp action=accept comment="genieacs-allow-tr069"
+
+# Allow DNS queries
+/ip firewall filter add chain=forward src-address=${pppoeRange} dst-address=${genieacsServerIp} dst-port=53 protocol=udp action=accept comment="genieacs-allow-dns"
+
+# ===========================================
+# 5. SETUP PPP PROFILE
+# ===========================================
+
+# Update PPP profile
+/ppp profile set [find name="default"] dns-server="${genieacsServerIp},${dnsBackup}" comment="GenieACS DNS Configuration"
+
+# ===========================================
+# 6. VERIFIKASI
+# ===========================================
+
+:put "=== VERIFIKASI KONFIGURASI ==="
+:put "GenieACS Server: ${genieacsServerIp}:${genieacsPort}"
+:put "PPPoE Range: ${pppoeRange}"
+:put "DNS Backup: ${dnsBackup}"
+:put "Script berhasil dijalankan!"`;
+
+            return script;
+        }
+
+        function copyMikrotikDNSGenieACSScript() {
+            const scriptContent = document.getElementById('mikrotikDNSGenieACSScriptContent').textContent;
+            navigator.clipboard.writeText(scriptContent).then(() => {
+                showNotification('success', 'Berhasil!', 'Script berhasil dicopy ke clipboard');
+            }).catch(err => {
+                showNotification('error', 'Error!', 'Gagal copy script: ' + err.message);
+            });
+        }
+
+        function downloadMikrotikDNSGenieACSScript() {
+            const scriptContent = document.getElementById('mikrotikDNSGenieACSScriptContent').textContent;
+            const genieacsServerIp = document.getElementById('genieacsServerIp').value.trim();
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            const filename = `mikrotik-dns-genieacs-${genieacsServerIp.replace(/\./g, '-')}-${timestamp}.rsc`;
+            
+            const blob = new Blob([scriptContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('success', 'Berhasil!', `Script berhasil didownload: ${filename}`);
+        }
+
+        // ===== DHCP OPTION 43 GENERATOR =====
+        document.getElementById('generateOption43').addEventListener('click', function() {
+            const url = document.getElementById('genieacsUrl').value.trim();
+            
+            if (!url) {
+                showNotification('warning', 'Error!', 'Mohon isi URL GenieACS');
+                return;
+            }
+            
+            // Convert URL to hex
+            const hex = Array.from(url).map(char => char.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+            
+            const output = `# DHCP Option 43 untuk GenieACS
+# URL: ${url}
+# Hex: ${hex}
+
+# Mikrotik Script:
+/ip dhcp-server option add name="genieacs" code=43 value="0x${hex}"
+
+# Atau gunakan di DHCP Server Network:
+/ip dhcp-server network set [find address="192.168.1.0/24"] dhcp-option="genieacs"`;
+
+            document.getElementById('option43Content').textContent = output;
+            document.getElementById('option43Output').style.display = 'block';
+            
+            showNotification('success', 'Berhasil!', 'Option 43 berhasil digenerate');
+        });
+
+        // ===== ISOLATION SCRIPT GENERATOR =====
+        document.getElementById('generateIsolationScript').addEventListener('click', function() {
+            const method = document.getElementById('isolationMethod').value;
+            const bandwidthLimit = document.getElementById('bandwidthLimit').value;
+            const networkRange = document.getElementById('networkRange').value;
+            const dnsServers = document.getElementById('dnsServers').value;
+            
+            let script = `# ===========================================
+# MIKROTIK ISOLATION SCRIPT
+# ===========================================
+# Generated: ${new Date().toLocaleString('id-ID')}
+# Method: ${method}
+# Network: ${networkRange}
+# DNS: ${dnsServers}
+# ===========================================
+
+`;
+
+            if (method === 'bandwidth') {
+                script += `# Bandwidth Limitation Method
+/ip firewall mangle add chain=forward src-address=${networkRange} action=mark-connection new-connection-mark=isolated
+/ip firewall mangle add chain=forward connection-mark=isolated action=mark-packet new-packet-mark=isolated
+/queue simple add name="Isolation" target=${networkRange} max-limit=${bandwidthLimit}k/${bandwidthLimit}k packet-marks=isolated`;
+            } else {
+                script += `# Firewall Block Method
+/ip firewall filter add chain=forward src-address=${networkRange} action=drop comment="Isolation Block"`;
+            }
+
+            script += `
+
+# DNS Configuration
+/ip dhcp-server network set [find address="${networkRange}"] dns-server="${dnsServers}"
+
+:put "=== ISOLATION SCRIPT SELESAI ==="
+:put "Method: ${method}"
+:put "Network: ${networkRange}"
+:put "Script berhasil dijalankan!"`;
+
+            document.getElementById('isolationScriptContent').textContent = script;
+            document.getElementById('isolationScriptOutput').style.display = 'block';
+            document.getElementById('copyIsolationBtn').disabled = false;
+            document.getElementById('downloadIsolationBtn').disabled = false;
+            
+            showNotification('success', 'Berhasil!', 'Script isolation berhasil digenerate');
+        });
+
+        function copyIsolationScript() {
+            const scriptContent = document.getElementById('isolationScriptContent').textContent;
+            navigator.clipboard.writeText(scriptContent).then(() => {
+                showNotification('success', 'Berhasil!', 'Script berhasil dicopy ke clipboard');
+            }).catch(err => {
+                showNotification('error', 'Error!', 'Gagal copy script: ' + err.message);
+            });
+        }
+
+        function downloadIsolationScript() {
+            const scriptContent = document.getElementById('isolationScriptContent').textContent;
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            const filename = `mikrotik-isolation-${timestamp}.rsc`;
+            
+            const blob = new Blob([scriptContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('success', 'Berhasil!', `Script berhasil didownload: ${filename}`);
+        }
+
+        // ===== KALKULATOR REDAMAN SPLITTER OPTIK =====
+        function calculateOpticalLoss() {
+            const fiberLength = parseFloat(document.getElementById('fiberLength').value) || 0;
+            const fiberLoss = parseFloat(document.getElementById('fiberLoss').value) || 0;
+            const connectorCount = parseInt(document.getElementById('connectorCount').value) || 0;
+            const connectorLoss = parseFloat(document.getElementById('connectorLoss').value) || 0;
+            const splitterRatio = parseInt(document.getElementById('splitterRatio').value) || 2;
+            const safetyMargin = parseFloat(document.getElementById('safetyMargin').value) || 0;
+            
+            // Hitung splitter loss berdasarkan rasio
+            const splitterLosses = {
+                2: 3.0,   // 1:2 = 3dB
+                4: 6.0,   // 1:4 = 6dB
+                8: 9.0,   // 1:8 = 9dB
+                16: 12.0, // 1:16 = 12dB
+                32: 15.0, // 1:32 = 15dB
+                64: 18.0  // 1:64 = 18dB
+            };
+            
+            const splitterLoss = splitterLosses[splitterRatio] || 3.0;
+            
+            // Perhitungan total loss
+            const fiberTotalLoss = fiberLength * fiberLoss;
+            const connectorTotalLoss = connectorCount * connectorLoss;
+            const totalLoss = fiberTotalLoss + connectorTotalLoss + splitterLoss + safetyMargin;
+            
+            // Budget link (asumsi transmitter +3dBm, receiver -27dBm)
+            const linkBudget = 30; // 3 - (-27) = 30dB
+            const margin = linkBudget - totalLoss;
+            
+            const result = `# ===========================================
+# KALKULATOR REDAMAN SPLITTER OPTIK
+# ===========================================
+# Generated: ${new Date().toLocaleString('id-ID')}
+# ===========================================
+
+# PARAMETER INPUT:
+# Panjang Fiber: ${fiberLength} km
+# Loss per km: ${fiberLoss} dB/km
+# Jumlah Konektor: ${connectorCount}
+# Loss per Konektor: ${connectorLoss} dB
+# Rasio Splitter: 1:${splitterRatio}
+# Safety Margin: ${safetyMargin} dB
+
+# PERHITUNGAN LOSS:
+# 1. Fiber Loss: ${fiberLength} km × ${fiberLoss} dB/km = ${fiberTotalLoss.toFixed(2)} dB
+# 2. Konektor Loss: ${connectorCount} × ${connectorLoss} dB = ${connectorTotalLoss.toFixed(2)} dB
+# 3. Splitter Loss: ${splitterLoss} dB (1:${splitterRatio})
+# 4. Safety Margin: ${safetyMargin} dB
+
+# TOTAL LOSS: ${totalLoss.toFixed(2)} dB
+
+# LINK BUDGET:
+# Transmitter Power: +3 dBm
+# Receiver Sensitivity: -27 dBm
+# Available Budget: 30 dB
+# Margin: ${margin.toFixed(2)} dB
+
+# KESIMPULAN:
+${margin >= 0 ? '✅ LINK FEASIBLE - Margin positif' : '❌ LINK TIDAK FEASIBLE - Margin negatif'}
+
+# REKOMENDASI:
+${margin < 0 ? '- Kurangi panjang fiber atau gunakan splitter dengan rasio lebih kecil' : '- Link dapat digunakan dengan aman'}
+${margin < 3 ? '- Pertimbangkan untuk menambah safety margin' : ''}
+
+# ===========================================`;
+
+            document.getElementById('opticalResultContent').textContent = result;
+            document.getElementById('opticalResult').style.display = 'block';
+            document.getElementById('copyOpticalBtn').disabled = false;
+            
+            showNotification('success', 'Berhasil!', 'Perhitungan redaman selesai');
+        }
+
+        function copyOpticalResult() {
+            const resultContent = document.getElementById('opticalResultContent').textContent;
+            navigator.clipboard.writeText(resultContent).then(() => {
+                showNotification('success', 'Berhasil!', 'Hasil perhitungan berhasil dicopy');
+            }).catch(err => {
+                showNotification('error', 'Error!', 'Gagal copy hasil: ' + err.message);
+            });
+        }
+
+        // ===== GENERATOR KONFIGURASI VPS & MIKROTIK =====
+        function generateVPSConfig() {
+            const vpsIp = document.getElementById('vpsIp').value.trim();
+            const mikrotikIp = document.getElementById('mikrotikIp').value.trim();
+            const tunnelType = document.getElementById('tunnelType').value;
+            const tunnelName = document.getElementById('tunnelName').value.trim() || 'vps-tunnel';
+            const localTunnelIp = document.getElementById('localTunnelIp').value.trim();
+            const remoteTunnelIp = document.getElementById('remoteTunnelIp').value.trim();
+            
+            if (!vpsIp || !mikrotikIp || !localTunnelIp || !remoteTunnelIp) {
+                showNotification('warning', 'Error!', 'Mohon isi semua field yang diperlukan');
+                return;
+            }
+            
+            let config = '';
+            
+            if (tunnelType === 'gre') {
+                config = `# ===========================================
+# KONFIGURASI GRE TUNNEL VPS - MIKROTIK
+# ===========================================
+# Generated: ${new Date().toLocaleString('id-ID')}
+# VPS IP: ${vpsIp}
+# MikroTik IP: ${mikrotikIp}
+# ===========================================
+
+# MIKROTIK SIDE:
+# 1. Buat GRE Tunnel
+/interface gre add name="${tunnelName}" remote-address=${vpsIp} local-address=${mikrotikIp}
+
+# 2. Set IP Address
+/ip address add address=${localTunnelIp}/30 interface="${tunnelName}"
+
+# 3. Add Route ke VPS
+/ip route add dst-address=${remoteTunnelIp}/32 gateway="${tunnelName}"
+
+# 4. Firewall Rules (Optional)
+/ip firewall filter add chain=input src-address=${vpsIp} action=accept comment="Allow VPS"
+/ip firewall filter add chain=forward src-address=${localTunnelIp}/30 action=accept comment="Allow Tunnel"
+
+# VPS SIDE (Linux):
+# 1. Install GRE module
+modprobe ip_gre
+
+# 2. Create GRE interface
+ip tunnel add ${tunnelName} mode gre remote ${mikrotikIp} local ${vpsIp}
+
+# 3. Set IP address
+ip addr add ${remoteTunnelIp}/30 dev ${tunnelName}
+
+# 4. Bring interface up
+ip link set ${tunnelName} up
+
+# 5. Add route to MikroTik network
+ip route add ${mikrotikIp}/32 dev ${tunnelName}
+
+# 6. Enable IP forwarding
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+# 7. Add iptables rules (Optional)
+iptables -A INPUT -s ${mikrotikIp} -j ACCEPT
+iptables -A FORWARD -s ${localTunnelIp}/30 -j ACCEPT
+
+# ===========================================`;
+            } else if (tunnelType === 'ipip') {
+                config = `# ===========================================
+# KONFIGURASI IPIP TUNNEL VPS - MIKROTIK
+# ===========================================
+# Generated: ${new Date().toLocaleString('id-ID')}
+# VPS IP: ${vpsIp}
+# MikroTik IP: ${mikrotikIp}
+# ===========================================
+
+# MIKROTIK SIDE:
+# 1. Buat IPIP Tunnel
+/interface ipip add name="${tunnelName}" remote-address=${vpsIp} local-address=${mikrotikIp}
+
+# 2. Set IP Address
+/ip address add address=${localTunnelIp}/30 interface="${tunnelName}"
+
+# 3. Add Route
+/ip route add dst-address=${remoteTunnelIp}/32 gateway="${tunnelName}"
+
+# VPS SIDE (Linux):
+# 1. Create IPIP interface
+ip tunnel add ${tunnelName} mode ipip remote ${mikrotikIp} local ${vpsIp}
+
+# 2. Set IP address
+ip addr add ${remoteTunnelIp}/30 dev ${tunnelName}
+
+# 3. Bring interface up
+ip link set ${tunnelName} up
+
+# 4. Add route
+ip route add ${mikrotikIp}/32 dev ${tunnelName}
+
+# ===========================================`;
+            } else if (tunnelType === 'l2tp') {
+                config = `# ===========================================
+# KONFIGURASI L2TP TUNNEL VPS - MIKROTIK
+# ===========================================
+# Generated: ${new Date().toLocaleString('id-ID')}
+# VPS IP: ${vpsIp}
+# MikroTik IP: ${mikrotikIp}
+# ===========================================
+
+# MIKROTIK SIDE:
+# 1. Buat L2TP Server
+/interface l2tp-server server set enabled=yes
+/interface l2tp-server server add name="${tunnelName}" user=admin password=password
+
+# 2. Set IP Pool
+/ip pool add name="l2tp-pool" ranges=${localTunnelIp}-${localTunnelIp.split('.')[0]}.${localTunnelIp.split('.')[1]}.${localTunnelIp.split('.')[2]}.${parseInt(localTunnelIp.split('.')[3]) + 1}
+
+# 3. Set PPP Profile
+/ppp profile add name="l2tp-profile" local-address=${localTunnelIp} remote-address="l2tp-pool"
+
+# VPS SIDE (Linux):
+# 1. Install xl2tpd
+# apt-get install xl2tpd
+
+# 2. Configure /etc/xl2tpd/xl2tpd.conf
+# [global]
+# ipsec saref = yes
+# saref refinfo = 30
+
+# [lns default]
+# ip range = ${remoteTunnelIp}
+# local ip = ${remoteTunnelIp}
+# require chap = yes
+# refuse pap = yes
+# require authentication = yes
+# name = l2tpd
+# ppp debug = yes
+# pppoptfile = /etc/ppp/options.xl2tpd
+
+# ===========================================`;
+            } else if (tunnelType === 'pptp') {
+                config = `# ===========================================
+# KONFIGURASI PPTP TUNNEL VPS - MIKROTIK
+# ===========================================
+# Generated: ${new Date().toLocaleString('id-ID')}
+# VPS IP: ${vpsIp}
+# MikroTik IP: ${mikrotikIp}
+# ===========================================
+
+# MIKROTIK SIDE:
+# 1. Buat PPTP Server
+/interface pptp-server server set enabled=yes
+/interface pptp-server server add name="${tunnelName}" user=admin password=password
+
+# 2. Set IP Pool
+/ip pool add name="pptp-pool" ranges=${localTunnelIp}-${localTunnelIp.split('.')[0]}.${localTunnelIp.split('.')[1]}.${localTunnelIp.split('.')[2]}.${parseInt(localTunnelIp.split('.')[3]) + 1}
+
+# 3. Set PPP Profile
+/ppp profile add name="pptp-profile" local-address=${localTunnelIp} remote-address="pptp-pool"
+
+# VPS SIDE (Linux):
+# 1. Install pptpd
+# apt-get install pptpd
+
+# 2. Configure /etc/pptpd.conf
+# localip ${remoteTunnelIp}
+# remoteip ${remoteTunnelIp.split('.')[0]}.${remoteTunnelIp.split('.')[1]}.${remoteTunnelIp.split('.')[2]}.${parseInt(remoteTunnelIp.split('.')[3]) + 1}-${remoteTunnelIp.split('.')[0]}.${remoteTunnelIp.split('.')[1]}.${remoteTunnelIp.split('.')[2]}.${parseInt(remoteTunnelIp.split('.')[3]) + 10}
+
+# 3. Configure /etc/ppp/chap-secrets
+# admin pptpd password *
+
+# ===========================================`;
+            }
+            
+            document.getElementById('vpsConfigContent').textContent = config;
+            document.getElementById('vpsConfigOutput').style.display = 'block';
+            document.getElementById('copyVPSBtn').disabled = false;
+            document.getElementById('downloadVPSBtn').disabled = false;
+            
+            showNotification('success', 'Berhasil!', 'Konfigurasi VPS berhasil digenerate');
+        }
+
+        function copyVPSConfig() {
+            const configContent = document.getElementById('vpsConfigContent').textContent;
+            navigator.clipboard.writeText(configContent).then(() => {
+                showNotification('success', 'Berhasil!', 'Konfigurasi berhasil dicopy');
+            }).catch(err => {
+                showNotification('error', 'Error!', 'Gagal copy konfigurasi: ' + err.message);
+            });
+        }
+
+        function downloadVPSConfig() {
+            const configContent = document.getElementById('vpsConfigContent').textContent;
+            const tunnelType = document.getElementById('tunnelType').value;
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            const filename = `vps-mikrotik-${tunnelType}-${timestamp}.txt`;
+            
+            const blob = new Blob([configContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('success', 'Berhasil!', `Konfigurasi berhasil didownload: ${filename}`);
+        }
+
+        // ===== KALKULATOR BURST LIMIT =====
+        function calculateBurstLimit() {
+            const baseLimit = parseInt(document.getElementById('baseLimit').value) || 0;
+            const burstLimit = parseInt(document.getElementById('burstLimit').value) || 0;
+            const burstThreshold = parseInt(document.getElementById('burstThreshold').value) || 0;
+            const burstTime = parseInt(document.getElementById('burstTime').value) || 0;
+            const priority = parseInt(document.getElementById('priority').value) || 1;
+            const packetSize = parseInt(document.getElementById('packetSize').value) || 1500;
+            
+            if (baseLimit <= 0 || burstLimit <= 0) {
+                showNotification('warning', 'Error!', 'Base Limit dan Burst Limit harus lebih dari 0');
+                return;
+            }
+            
+            // Perhitungan burst
+            const burstRatio = burstLimit / baseLimit;
+            const burstBytes = Math.floor((burstLimit * 1000 * burstTime) / 8); // Convert to bytes
+            const thresholdBytes = Math.floor((burstThreshold * 1000 * burstTime) / 8);
+            
+            // Queue Tree Script
+            const queueScript = `# ===========================================
+# KONFIGURASI BURST LIMIT MIKROTIK
+# ===========================================
+# Generated: ${new Date().toLocaleString('id-ID')}
+# Base Limit: ${baseLimit} kbps
+# Burst Limit: ${burstLimit} kbps
+# Burst Threshold: ${burstThreshold} kbps
+# Burst Time: ${burstTime} seconds
+# Priority: ${priority}
+# ===========================================
+
+# 1. Buat Queue Tree
+/queue tree add name="burst-queue" parent=global priority=${priority} limit-at=${baseLimit}k/${baseLimit}k max-limit=${burstLimit}k/${burstLimit}k burst-limit=${burstLimit}k/${burstLimit}k burst-threshold=${burstThreshold}k/${burstThreshold}k burst-time=${burstTime}s/${burstTime}s packet-size=${packetSize}
+
+# 2. Atau gunakan Simple Queue (Alternative)
+/queue simple add name="burst-simple" target=192.168.1.0/24 max-limit=${burstLimit}k/${burstLimit}k burst-limit=${burstLimit}k/${burstLimit}k burst-threshold=${burstThreshold}k/${burstThreshold}k burst-time=${burstTime}s/${burstTime}s priority=${priority}/1 packet-size=${packetSize}
+
+# 3. Firewall Mangle untuk marking
+/ip firewall mangle add chain=forward src-address=192.168.1.0/24 action=mark-connection new-connection-mark=burst-conn
+/ip firewall mangle add chain=forward connection-mark=burst-conn action=mark-packet new-packet-mark=burst-packet
+
+# 4. Queue Tree dengan Packet Mark
+/queue tree add name="burst-marked" parent=global packet-mark=burst-packet priority=${priority} limit-at=${baseLimit}k/${baseLimit}k max-limit=${burstLimit}k/${burstLimit}k burst-limit=${burstLimit}k/${burstLimit}k burst-threshold=${burstThreshold}k/${burstThreshold}k burst-time=${burstTime}s/${burstTime}s
+
+# ===========================================`;
+
+            const result = `# ===========================================
+# HASIL PERHITUNGAN BURST LIMIT
+# ===========================================
+# Generated: ${new Date().toLocaleString('id-ID')}
+# ===========================================
+
+# PARAMETER INPUT:
+# Base Limit: ${baseLimit} kbps
+# Burst Limit: ${burstLimit} kbps
+# Burst Threshold: ${burstThreshold} kbps
+# Burst Time: ${burstTime} seconds
+# Priority: ${priority}
+# Packet Size: ${packetSize} bytes
+
+# PERHITUNGAN:
+# Burst Ratio: ${burstRatio.toFixed(2)}x
+# Burst Bytes: ${burstBytes.toLocaleString()} bytes (${(burstBytes/1024/1024).toFixed(2)} MB)
+# Threshold Bytes: ${thresholdBytes.toLocaleString()} bytes (${(thresholdBytes/1024/1024).toFixed(2)} MB)
+
+# KONFIGURASI MIKROTIK:
+${queueScript}
+
+# PENJELASAN:
+# - Base Limit: Bandwidth minimum yang dijamin
+# - Burst Limit: Bandwidth maksimum saat burst
+# - Burst Threshold: Batas untuk memulai burst
+# - Burst Time: Durasi burst dalam detik
+# - Priority: Prioritas queue (1=tertinggi, 8=terendah)
+
+# REKOMENDASI:
+${burstRatio > 2 ? '- Burst ratio tinggi, pastikan bandwidth upstream mencukupi' : '- Burst ratio normal'}
+${burstTime > 15 ? '- Burst time panjang, pertimbangkan untuk dikurangi' : '- Burst time normal'}
+${priority > 4 ? '- Priority rendah, traffic lain akan diprioritaskan' : '- Priority normal'}
+
+# ===========================================`;
+
+            document.getElementById('burstResultContent').textContent = result;
+            document.getElementById('burstResult').style.display = 'block';
+            document.getElementById('copyBurstBtn').disabled = false;
+            
+            showNotification('success', 'Berhasil!', 'Perhitungan burst limit selesai');
+        }
+
+        function copyBurstResult() {
+            const resultContent = document.getElementById('burstResultContent').textContent;
+            navigator.clipboard.writeText(resultContent).then(() => {
+                showNotification('success', 'Berhasil!', 'Hasil perhitungan berhasil dicopy');
+            }).catch(err => {
+                showNotification('error', 'Error!', 'Gagal copy hasil: ' + err.message);
+            });
+        }
+    </script>
+</body>
+</html>
