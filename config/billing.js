@@ -1833,6 +1833,241 @@ class BillingManager {
         });
     }
 
+    async getCollectorById(collectorId) {
+        return new Promise((resolve, reject) => {
+            this.db.get('SELECT * FROM collectors WHERE id = ?', [collectorId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+    }
+
+    async recordCollectorPaymentRecord(paymentData) {
+        return new Promise((resolve, reject) => {
+            const { collector_id, customer_id, amount, payment_amount, commission_amount, payment_method, notes, status } = paymentData;
+            
+            const sql = `INSERT INTO collector_payments (
+                collector_id, customer_id, amount, payment_amount, commission_amount,
+                payment_method, notes, status, collected_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
+            
+            this.db.run(sql, [
+                collector_id, customer_id, amount, payment_amount, commission_amount,
+                payment_method, notes, status
+            ], function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ 
+                        success: true, 
+                        id: this.lastID,
+                        ...paymentData 
+                    });
+                }
+            });
+        });
+    }
+
+    async getCollectorTodayPayments(collectorId, startOfDay, endOfDay) {
+        return new Promise((resolve, reject) => {
+            this.db.get(`
+                SELECT COALESCE(SUM(payment_amount), 0) as total
+                FROM collector_payments 
+                WHERE collector_id = ? AND collected_at >= ? AND collected_at < ? AND status = 'completed'
+            `, [collectorId, startOfDay.toISOString(), endOfDay.toISOString()], (err, row) => {
+                if (err) reject(err);
+                else resolve(Math.round(parseFloat(row ? row.total : 0)));
+            });
+        });
+    }
+
+    // Get current month's total commission (reset every month)
+    async getCollectorTotalCommission(collectorId) {
+        return new Promise((resolve, reject) => {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const startDate = new Date(year, month - 1, 1).toISOString();
+            const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+            
+            this.db.get(`
+                SELECT COALESCE(SUM(commission_amount), 0) as total
+                FROM collector_payments 
+                WHERE collector_id = ? AND collected_at >= ? AND collected_at <= ? AND status = 'completed'
+            `, [collectorId, startDate, endDate], (err, row) => {
+                if (err) reject(err);
+                else resolve(Math.round(parseFloat(row ? row.total : 0)));
+            });
+        });
+    }
+
+    // Get current month's total payments count (reset every month)
+    async getCollectorTotalPayments(collectorId) {
+        return new Promise((resolve, reject) => {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const startDate = new Date(year, month - 1, 1).toISOString();
+            const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+            
+            this.db.get(`
+                SELECT COUNT(*) as count
+                FROM collector_payments 
+                WHERE collector_id = ? AND collected_at >= ? AND collected_at <= ? AND status = 'completed'
+            `, [collectorId, startDate, endDate], (err, row) => {
+                if (err) reject(err);
+                else resolve(parseInt(row ? row.count : 0));
+            });
+        });
+    }
+
+    async getCollectorRecentPayments(collectorId, limit = 5) {
+        return new Promise((resolve, reject) => {
+            this.db.all(`
+                SELECT cp.*, c.name as customer_name, c.phone as customer_phone
+                FROM collector_payments cp
+                LEFT JOIN customers c ON cp.customer_id = c.id
+                WHERE cp.collector_id = ? AND cp.status = 'completed'
+                ORDER BY cp.collected_at DESC
+                LIMIT ?
+            `, [collectorId, limit], (err, rows) => {
+                if (err) reject(err);
+                else {
+                    const validRows = (rows || []).map(row => ({
+                        ...row,
+                        payment_amount: Math.round(parseFloat(row.payment_amount || 0)),
+                        commission_amount: Math.round(parseFloat(row.commission_amount || 0)),
+                        customer_name: row.customer_name || 'Unknown Customer'
+                    }));
+                    resolve(validRows);
+                }
+            });
+        });
+    }
+
+    async getCollectorAllPayments(collectorId) {
+        return new Promise((resolve, reject) => {
+            this.db.all(`
+                SELECT cp.*, c.name as customer_name, c.phone as customer_phone
+                FROM collector_payments cp
+                LEFT JOIN customers c ON cp.customer_id = c.id
+                WHERE cp.collector_id = ?
+                ORDER BY cp.collected_at DESC
+            `, [collectorId], (err, rows) => {
+                if (err) reject(err);
+                else {
+                    const validRows = (rows || []).map(row => ({
+                        ...row,
+                        payment_amount: Math.round(parseFloat(row.payment_amount || 0)),
+                        commission_amount: Math.round(parseFloat(row.commission_amount || 0)),
+                        customer_name: row.customer_name || 'Unknown Customer',
+                        collected_at: row.collected_at || new Date().toISOString()
+                    }));
+                    resolve(validRows);
+                }
+            });
+        });
+    }
+
+    // Monthly reset methods for collector summary
+    async getCollectorMonthlyPayments(collectorId, year, month) {
+        return new Promise((resolve, reject) => {
+            const startDate = new Date(year, month - 1, 1).toISOString();
+            const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+            
+            this.db.get(`
+                SELECT COALESCE(SUM(payment_amount), 0) as total
+                FROM collector_payments 
+                WHERE collector_id = ? AND collected_at >= ? AND collected_at <= ? AND status = 'completed'
+            `, [collectorId, startDate, endDate], (err, row) => {
+                if (err) reject(err);
+                else resolve(Math.round(parseFloat(row ? row.total : 0)));
+            });
+        });
+    }
+
+    async getCollectorMonthlyCommission(collectorId, year, month) {
+        return new Promise((resolve, reject) => {
+            const startDate = new Date(year, month - 1, 1).toISOString();
+            const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+            
+            this.db.get(`
+                SELECT COALESCE(SUM(commission_amount), 0) as total
+                FROM collector_payments 
+                WHERE collector_id = ? AND collected_at >= ? AND collected_at <= ? AND status = 'completed'
+            `, [collectorId, startDate, endDate], (err, row) => {
+                if (err) reject(err);
+                else resolve(Math.round(parseFloat(row ? row.total : 0)));
+            });
+        });
+    }
+
+    async getCollectorMonthlyCount(collectorId, year, month) {
+        return new Promise((resolve, reject) => {
+            const startDate = new Date(year, month - 1, 1).toISOString();
+            const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+            
+            this.db.get(`
+                SELECT COUNT(*) as count
+                FROM collector_payments 
+                WHERE collector_id = ? AND collected_at >= ? AND collected_at <= ? AND status = 'completed'
+            `, [collectorId, startDate, endDate], (err, row) => {
+                if (err) reject(err);
+                else resolve(parseInt(row ? row.count : 0));
+            });
+        });
+    }
+
+    // Save collector monthly summary
+    async saveCollectorMonthlySummary(collectorId, year, month, stats) {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                INSERT OR REPLACE INTO collector_monthly_summary (
+                    collector_id, year, month, total_payments, total_commission, 
+                    payment_count, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            `;
+            
+            this.db.run(sql, [
+                collectorId, year, month, 
+                stats.total_payments || 0,
+                stats.total_commission || 0,
+                stats.payment_count || 0
+            ], function(err) {
+                if (err) reject(err);
+                else resolve({ id: this.lastID, collectorId, year, month });
+            });
+        });
+    }
+
+    // Get collector monthly summary
+    async getCollectorMonthlySummary(collectorId, year, month) {
+        return new Promise((resolve, reject) => {
+            this.db.get(`
+                SELECT * FROM collector_monthly_summary 
+                WHERE collector_id = ? AND year = ? AND month = ?
+            `, [collectorId, year, month], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+    }
+
+    // Get all collector monthly summaries
+    async getAllCollectorMonthlySummaries(collectorId, limit = 12) {
+        return new Promise((resolve, reject) => {
+            this.db.all(`
+                SELECT * FROM collector_monthly_summary 
+                WHERE collector_id = ?
+                ORDER BY year DESC, month DESC
+                LIMIT ?
+            `, [collectorId, limit], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+    }
+
     async getPayments(invoiceId = null) {
         return new Promise((resolve, reject) => {
             let sql = `
@@ -2409,6 +2644,91 @@ class BillingManager {
             logger.error('Error generating monthly summary:', error);
             throw error;
         }
+    }
+
+    // Auto reset monthly summary for all collectors and admin
+    async performMonthlyReset() {
+        try {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+            
+            // Get previous month for saving summary
+            const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+            const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+            
+            logger.info(`🔄 Starting monthly reset for ${currentYear}-${currentMonth}`);
+            
+            // 1. Save admin monthly summary for previous month
+            const adminStats = await this.getBillingStats();
+            await this.saveMonthlySummary(prevYear, prevMonth, adminStats, `Auto-generated on ${now.toISOString().split('T')[0]}`);
+            logger.info(`✅ Admin monthly summary saved for ${prevYear}-${prevMonth}`);
+            
+            // 2. Save collector monthly summaries for previous month
+            const collectors = await this.getAllCollectors();
+            for (const collector of collectors) {
+                const collectorStats = {
+                    total_payments: await this.getCollectorMonthlyPayments(collector.id, prevYear, prevMonth),
+                    total_commission: await this.getCollectorMonthlyCommission(collector.id, prevYear, prevMonth),
+                    payment_count: await this.getCollectorMonthlyCount(collector.id, prevYear, prevMonth)
+                };
+                
+                await this.saveCollectorMonthlySummary(collector.id, prevYear, prevMonth, collectorStats);
+                logger.info(`✅ Collector ${collector.name} monthly summary saved for ${prevYear}-${prevMonth}`);
+            }
+            
+            // 3. Create collector_monthly_summary table if not exists
+            await this.ensureCollectorMonthlySummaryTable();
+            
+            logger.info(`🎉 Monthly reset completed successfully for ${currentYear}-${currentMonth}`);
+            
+            return {
+                success: true,
+                message: `Monthly reset completed for ${currentYear}-${currentMonth}`,
+                year: currentYear,
+                month: currentMonth,
+                previousYear: prevYear,
+                previousMonth: prevMonth,
+                collectorsProcessed: collectors.length
+            };
+            
+        } catch (error) {
+            logger.error('Error performing monthly reset:', error);
+            throw error;
+        }
+    }
+
+    // Ensure collector_monthly_summary table exists
+    async ensureCollectorMonthlySummaryTable() {
+        return new Promise((resolve, reject) => {
+            this.db.run(`
+                CREATE TABLE IF NOT EXISTS collector_monthly_summary (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    collector_id INTEGER NOT NULL,
+                    year INTEGER NOT NULL,
+                    month INTEGER NOT NULL,
+                    total_payments REAL NOT NULL DEFAULT 0,
+                    total_commission REAL NOT NULL DEFAULT 0,
+                    payment_count INTEGER NOT NULL DEFAULT 0,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(collector_id, year, month)
+                )
+            `, (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+    }
+
+    // Get all collectors
+    async getAllCollectors() {
+        return new Promise((resolve, reject) => {
+            this.db.all('SELECT * FROM collectors WHERE status = "active"', (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
     }
 
     // Mobile dashboard specific methods
@@ -3183,6 +3503,7 @@ async handlePaymentWebhook(payload, gateway) {
     async recordCollectorRemittance(remittanceData) {
         return new Promise((resolve, reject) => {
             const { collector_id, amount, payment_method, notes, remittance_date } = remittanceData;
+            const self = this; // Store reference to this
             
             // Mulai transaction
             this.db.run('BEGIN TRANSACTION', (err) => {
@@ -3200,44 +3521,27 @@ async handlePaymentWebhook(payload, gateway) {
                     WHERE collector_id = ? 
                     AND payment_type = 'collector'
                     AND remittance_status IS NULL
-                    LIMIT ?
                 `;
                 
-                // Hitung berapa payment yang perlu di-update berdasarkan amount
-                this.db.get(`
-                    SELECT COUNT(*) as count
-                    FROM payments 
-                    WHERE collector_id = ? 
-                    AND payment_type = 'collector'
-                    AND remittance_status IS NULL
-                `, [collector_id], (err, row) => {
+                // Update semua payment yang belum di-remit
+                self.db.run(updateSql, [remittance_date, notes, collector_id], function(err) {
                     if (err) {
-                        this.db.run('ROLLBACK');
+                        self.db.run('ROLLBACK');
                         reject(err);
                         return;
                     }
                     
-                    const paymentCount = Math.min(row.count, Math.ceil(amount / 100000)); // Estimasi
-                    
-                    this.db.run(updateSql, [remittance_date, notes, collector_id, paymentCount], function(err) {
+                    // Commit transaction
+                    self.db.run('COMMIT', (err) => {
                         if (err) {
-                            this.db.run('ROLLBACK');
                             reject(err);
-                            return;
+                        } else {
+                            resolve({ 
+                                success: true, 
+                                updatedPayments: this.changes,
+                                ...remittanceData 
+                            });
                         }
-                        
-                        // Commit transaction
-                        this.db.run('COMMIT', (err) => {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve({ 
-                                    success: true, 
-                                    updatedPayments: this.changes,
-                                    ...remittanceData 
-                                });
-                            }
-                        });
                     });
                 });
             });

@@ -75,6 +75,22 @@ class InvoiceScheduler {
         
         logger.info('Monthly summary scheduler initialized - will run on 1st of every month at 23:59');
 
+        // Schedule monthly reset on 1st of every month at 00:01 (after summary generation)
+        cron.schedule('1 0 1 * *', async () => {
+            try {
+                logger.info('Starting monthly reset process...');
+                await this.performMonthlyReset();
+                logger.info('Monthly reset process completed');
+            } catch (error) {
+                logger.error('Error in monthly reset process:', error);
+            }
+        }, {
+            scheduled: true,
+            timezone: "Asia/Jakarta"
+        });
+        
+        logger.info('Monthly reset scheduler initialized - will run on 1st of every month at 00:01');
+
         // Schedule daily service suspension check at 10:00
         cron.schedule('0 10 * * *', async () => {
             try {
@@ -375,6 +391,19 @@ class InvoiceScheduler {
         }
     }
 
+    // Manual trigger for monthly reset
+    async triggerMonthlyReset() {
+        try {
+            logger.info('Triggering monthly reset manually...');
+            const result = await this.performMonthlyReset();
+            logger.info('Manual monthly reset completed');
+            return result;
+        } catch (error) {
+            logger.error('Error in manual monthly reset:', error);
+            throw error;
+        }
+    }
+
     async cleanupExpiredVoucherInvoices() {
         try {
             logger.info('Starting voucher cleanup process...');
@@ -411,6 +440,27 @@ class InvoiceScheduler {
             return result;
         } catch (error) {
             logger.error('Error in generateMonthlySummary:', error);
+            throw error;
+        }
+    }
+
+    async performMonthlyReset() {
+        try {
+            logger.info('Starting monthly reset process...');
+            const result = await billingManager.performMonthlyReset();
+            
+            if (result.success) {
+                logger.info(`Monthly reset completed: ${result.message}`);
+                logger.info(`Summary saved for ${result.previousYear}-${result.previousMonth}`);
+                logger.info(`Reset for ${result.year}-${result.month}`);
+                logger.info(`Processed ${result.collectorsProcessed} collectors`);
+            } else {
+                logger.error('Monthly reset failed:', result.message);
+            }
+            
+            return result;
+        } catch (error) {
+            logger.error('Error in performMonthlyReset:', error);
             throw error;
         }
     }
