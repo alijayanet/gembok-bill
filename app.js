@@ -227,6 +227,10 @@ app.use('/customer/trouble', troubleReportRouter);
 const { router: publicVoucherRouter } = require('./routes/publicVoucher');
 app.use('/voucher', publicVoucherRouter);
 
+// Import dan gunakan route public tools
+const publicToolsRouter = require('./routes/publicTools');
+app.use('/tools', publicToolsRouter);
+
 // Tambahkan webhook endpoint untuk voucher payment
 app.use('/webhook/voucher', publicVoucherRouter);
 
