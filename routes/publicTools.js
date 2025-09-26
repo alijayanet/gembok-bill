@@ -1,12 +1,27 @@
 const express = require('express');
 const router = express.Router();
+const { getSettingsWithCache } = require('../config/settingsManager');
 
 // GET: Render halaman Public Tools
-router.get('/', (req, res) => {
-    res.render('public-tools', { 
-        title: 'Public Tools - Generator Script Mikrotik',
-        description: 'Generator script Mikrotik untuk konfigurasi jaringan - Gratis dan Open Source'
-    });
+router.get('/', async (req, res) => {
+    try {
+        const settings = await getSettingsWithCache();
+        const year = new Date().getFullYear();
+
+        res.render('public-tools', { 
+            title: 'Public Tools - Generator Script Mikrotik',
+            description: 'Generator script Mikrotik untuk konfigurasi jaringan - Gratis dan Open Source',
+            settings,
+            year
+        });
+    } catch (error) {
+        res.render('public-tools', { 
+            title: 'Public Tools - Generator Script Mikrotik',
+            description: 'Generator script Mikrotik untuk konfigurasi jaringan - Gratis dan Open Source',
+            settings: {},
+            year: new Date().getFullYear()
+        });
+    }
 });
 
 // GET: API untuk generate script (optional - bisa digunakan untuk future enhancement)
