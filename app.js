@@ -326,6 +326,73 @@ app.use('/technician', technicianCableNetworkRouter);
 // Alias Bahasa Indonesia untuk technician cable network
 app.use('/teknisi', technicianCableNetworkRouter);
 
+// Halaman Isolir - menampilkan info dari settings.json dan auto-resolve nama
+app.get('/isolir', async (req, res) => {
+    try {
+        const { getSettingsWithCache, getSetting } = require('./config/settingsManager');
+        const billingManager = require('./config/billing');
+
+        const settings = getSettingsWithCache();
+        const companyHeader = getSetting('company_header', 'GEMBOK');
+        const adminWA = getSetting('admins.0', '6281234567890'); // format 62...
+        const adminDisplay = adminWA && adminWA.startsWith('62') ? ('0' + adminWA.slice(2)) : (adminWA || '-');
+
+        // Auto-resolve nama pelanggan: urutan prioritas -> query.nama -> PPPoE username -> session -> '-' 
+        let customerName = (req.query.nama || req.query.name || '').toString().trim();
+        if (!customerName) {
+            // Coba dari session customer_username
+            const sessionUsername = req.session && (req.session.customer_username || req.session.username);
+            if (sessionUsername) {
+                try {
+                    const c = await billingManager.getCustomerByUsername(sessionUsername);
+                    if (c && c.name) customerName = c.name;
+                } catch {}
+            }
+        }
+        if (!customerName) {
+            // Coba dari PPPoE username (query pppoe / username)
+            const qUser = (req.query.pppoe || req.query.username || '').toString().trim();
+            if (qUser) {
+                try {
+                    const c = await billingManager.getCustomerByPPPoE(qUser);
+                    if (c && c.name) customerName = c.name;
+                } catch {}
+            }
+        }
+        if (!customerName) {
+            // Coba dari nomor HP (query phone) untuk fallback
+            const qPhone = (req.query.phone || req.query.nohp || '').toString().trim();
+            if (qPhone) {
+                try {
+                    const c = await billingManager.getCustomerByPhone(qPhone);
+                    if (c && c.name) customerName = c.name;
+                } catch {}
+            }
+        }
+        if (!customerName) customerName = 'Pelanggan';
+
+        // Logo path dari settings.json (served via /public or /storage pattern)
+        const logoFile = settings.logo_filename || 'logo.png';
+        const logoPath = `/public/img/${logoFile}`;
+
+        // Payment accounts from settings.json (bank transfer & cash)
+        const paymentAccounts = settings.payment_accounts || {};
+
+        res.render('isolir', {
+            companyHeader,
+            adminWA,
+            adminDisplay,
+            customerName: customerName.slice(0, 64),
+            logoPath,
+            paymentAccounts,
+            encodeURIComponent
+        });
+    } catch (error) {
+        console.error('Error rendering isolir page:', error);
+        res.status(500).send('Gagal memuat halaman isolir');
+    }
+});
+
 // Import dan gunakan route tukang tagih (collector)
 const { router: collectorAuthRouter } = require('./routes/collectorAuth');
 app.use('/collector', collectorAuthRouter);
