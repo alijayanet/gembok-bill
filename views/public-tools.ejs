@@ -583,10 +583,13 @@
             <!-- Footer -->
             <div class="footer">
                 <p class="mb-0">
-                    <i class="bi bi-heart-fill text-danger"></i> 
-                    Dibuat dengan ❤️ untuk komunitas Mikrotik Indonesia
+                    <i class="bi bi-heart-fill text-danger"></i>
+                    <%= (settings && settings.company_slogan) ? settings.company_slogan : 'Dibuat dengan ❤️ untuk komunitas Mikrotik Indonesia' %>
                 </p>
-                <small>© 2024 Public Tools - Generator Script Mikrotik</small>
+                <small>© <%= typeof year !== 'undefined' ? year : new Date().getFullYear() %> <%= (settings && settings.company_header) ? settings.company_header : 'Public Tools - Generator Script Mikrotik' %></small>
+                <div>
+                    <small><%= (settings && settings.footer_info) ? settings.footer_info : '' %></small>
+                </div>
             </div>
         </div>
     </div>
