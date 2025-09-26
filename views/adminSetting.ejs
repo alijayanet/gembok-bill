@@ -477,18 +477,19 @@
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">IP PPPoE Aktif</label>
-                                    <input type="text" class="form-control form-control-sm" id="activeIp" placeholder="192.168.1.1" value="192.168.1.1">
+                                    <input type="text" class="form-control form-control-sm" id="activeIp" placeholder="192.168.10.1" value="192.168.10.1">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">IP PPPoE Isolir</label>
-                                    <input type="text" class="form-control form-control-sm" id="isolirIp" placeholder="192.168.1.2" value="192.168.1.2">
+                                    <input type="text" class="form-control form-control-sm" id="isolirIp" placeholder="192.168.200.1" value="192.168.200.1">
                                 </div>
                             </div>
                             
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Domain Halaman Isolir</label>
-                                    <input type="text" class="form-control form-control-sm" id="isolirDomain" placeholder="alijaya.gentiwifi.online" value="alijaya.gentiwifi.online">
+                                    <label class="form-label small fw-bold">Domain/IP Aplikasi</label>
+                                    <input type="text" class="form-control form-control-sm" id="isolirDomain" placeholder="192.168.8.89" value="192.168.8.89">
+                                    <small class="text-muted">IP atau domain aplikasi (contoh: 192.168.8.89 atau alijaya.gantiwifi.online)</small>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Path Halaman Isolir</label>
@@ -498,21 +499,26 @@
                             
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Port Halaman Isolir (Opsional)</label>
-                                    <input type="text" class="form-control form-control-sm" id="isolirPort" placeholder="Kosongkan jika menggunakan tunneling" value="">
+                                    <label class="form-label small fw-bold">Port Aplikasi</label>
+                                    <input type="text" class="form-control form-control-sm" id="isolirPort" placeholder="3003" value="3003">
+                                    <small class="text-muted">Port aplikasi (contoh: 3003 untuk aplikasi lokal)</small>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Jenis Akses</label>
                                     <select class="form-select form-select-sm" id="accessType">
+                                        <option value="port">Port Langsung (Recommended)</option>
                                         <option value="tunneling">Tunneling (Domain + Path)</option>
-                                        <option value="port">Port Langsung</option>
                                     </select>
+                                    <small class="text-muted">Port Langsung untuk aplikasi lokal, Tunneling untuk domain</small>
                                 </div>
                             </div>
                             
                             <div class="mb-3">
                                 <button type="button" class="btn btn-primary btn-sm" onclick="generateIsolirScript()">
                                     <i class="bi bi-gear"></i> Generate Script
+                                </button>
+                                <button type="button" class="btn btn-success btn-sm ms-2" onclick="generateLocalIsolirScript()">
+                                    <i class="bi bi-house"></i> Generate Script Lokal
                                 </button>
                                 <button type="button" class="btn btn-outline-secondary btn-sm ms-2" onclick="copyIsolirScript()">
                                     <i class="bi bi-clipboard"></i> Copy Script
@@ -533,15 +539,17 @@
                                 <h6><i class="bi bi-info-circle"></i> Cara Penggunaan:</h6>
                                 <ol class="mb-0">
                                     <li>Masukkan IP PPPoE aktif dan isolir</li>
-                                    <li>Masukkan domain dan path halaman isolir</li>
-                                    <li>Pilih jenis akses: <strong>Tunneling</strong> (domain + path) atau <strong>Port Langsung</strong></li>
+                                    <li>Masukkan IP/domain aplikasi dan path halaman isolir</li>
+                                    <li>Masukkan port aplikasi (contoh: 3003 untuk aplikasi lokal)</li>
+                                    <li>Pilih jenis akses: <strong>Port Langsung</strong> (recommended) atau <strong>Tunneling</strong></li>
                                     <li>Klik "Generate Script"</li>
                                     <li>Copy script dan jalankan di terminal Mikrotik</li>
                                     <li>Script akan membuat redirect yang mengarahkan ke halaman isolir</li>
                                 </ol>
                                 <div class="mt-2">
-                                    <strong>Contoh Tunneling:</strong> alijaya.gentiwifi.online/isolir<br>
-                                    <strong>Contoh Port Langsung:</strong> domain.com:3000/isolir
+                                    <strong>Contoh Aplikasi Lokal:</strong> 192.168.8.89:3003/isolir<br>
+                                    <strong>Contoh Domain:</strong> alijaya.gantiwifi.online/isolir<br>
+                                    <strong>Keuntungan:</strong> Tidak perlu web proxy, performa lebih baik
                                 </div>
                             </div>
                         </div>
@@ -2661,60 +2669,123 @@ function generateIsolirScript() {
         : isolirDomain + ':' + isolirPort + isolirPath;
     
     const script = [
-        '# Script Menu Isolir Mikrotik',
+        '# Script Menu Isolir Mikrotik - Enhanced Version',
         '# Generated on: ' + new Date().toLocaleString('id-ID'),
         '# IP PPPoE Aktif: ' + activeIp,
         '# IP PPPoE Isolir: ' + isolirIp,
         '# URL Halaman Isolir: ' + isolirUrl,
         '# Jenis Akses: ' + (accessType === 'tunneling' ? 'Tunneling' : 'Port Langsung'),
         '',
+        '# ===========================================',
+        '# 1. SETUP DNS STATIC - Arahkan semua domain ke aplikasi',
+        '# ===========================================',
+        '',
+        '# Hapus DNS static lama (jika ada)',
+        '/ip dns static remove [find where name="' + isolirDomain + '" and address="' + isolirIp + '"]',
+        '',
+        '# Tambahkan DNS static untuk domain aplikasi',
+        '/ip dns static add name="' + isolirDomain + '" address="' + isolirIp + '" ttl=300',
+        '',
+        '# Arahkan domain populer ke aplikasi (opsional)',
+        '/ip dns static add name="google.com" address="' + isolirIp + '" ttl=300',
+        '/ip dns static add name="facebook.com" address="' + isolirIp + '" ttl=300',
+        '/ip dns static add name="youtube.com" address="' + isolirIp + '" ttl=300',
+        '/ip dns static add name="instagram.com" address="' + isolirIp + '" ttl=300',
+        '',
+        '# ===========================================',
+        '# 2. SETUP NAT RULES - Redirect HTTP/HTTPS ke aplikasi',
+        '# ===========================================',
+        '',
+        '# Hapus NAT rules lama (jika ada)',
+        '/ip firewall nat remove [find where comment~"isolir-redirect"]',
+        '',
+        '# ===========================================',
+        '# 3. SETUP FIREWALL RULES - Block semua kecuali aplikasi',
+        '# ===========================================',
+        '',
+        '# Hapus firewall rules lama (jika ada)',
+        '/ip firewall filter remove [find where comment~"isolir"]',
+        '',
+        '# ===========================================',
+        '# 4. SETUP PPP PROFILE ISOLIR',
+        '# ===========================================',
+        '',
         '# Buat profile isolir jika belum ada',
         '/ppp profile add name="isolir" local-address=' + isolirIp + ' remote-address=' + isolirIp + ' \\',
         '    rate-limit="0/0" comment="Profile untuk pelanggan yang diisolir"',
         '',
-        '# Script untuk mengubah profile pelanggan ke isolir',
-        '# Contoh penggunaan: /ppp secret set [find name="username"] profile=isolir',
-        '# Script untuk restore: /ppp secret set [find name="username"] profile=default',
+        '# ===========================================',
+        '# 5. SETUP ADDRESS LIST - Untuk kemudahan management',
+        '# ===========================================',
         '',
-        '# Hotspot profile untuk isolir (jika menggunakan hotspot)',
-        '/ip hotspot profile add name="isolir" session-timeout=none \\',
-        '    keepalive-timeout=2m status-autorefresh=1m \\',
-        '    http-proxy=0.0.0.0 transparent-proxy=no \\',
-        '    use-radius=no nas-port-type=wireless-802.11 \\',
-        '    nas-port-id="isolir" \\',
-        '    login-by=http-chap,http-pap mac-cookie-timeout=3d',
+        '# Hapus address list lama (jika ada)',
+        '/ip firewall address-list remove [find where list="isolir-users"]',
         '',
-        '# Firewall rules untuk redirect ke halaman isolir',
-        '# Redirect semua HTTP ke halaman isolir untuk user yang diisolir'
+        '# Tambahkan IP range isolir ke address list',
+        '/ip firewall address-list add address=' + isolirIp + '/32 list="isolir-users" comment="PPPoE Isolir Users"'
     ];
     
     if (accessType === 'tunneling') {
         // Untuk tunneling, redirect ke domain + path
         script.push(
-            '/ip firewall nat add chain=dstnat dst-port=80 protocol=tcp \\',
-            '    src-address=' + isolirIp + '/32 action=dst-nat to-addresses=' + isolirDomain + ' \\',
-            '    to-ports=80 comment="Redirect isolir ke halaman isolir (tunneling)"',
+            '# Redirect HTTP traffic ke aplikasi',
+            '/ip firewall nat add chain=dstnat src-address=' + isolirIp + '/32 dst-port=80 protocol=tcp \\',
+            '    action=dst-nat to-addresses=' + isolirDomain + ' to-ports=80 \\',
+            '    comment="isolir-redirect-http"',
             '',
-            '# Redirect HTTPS juga jika diperlukan',
-            '/ip firewall nat add chain=dstnat dst-port=443 protocol=tcp \\',
-            '    src-address=' + isolirIp + '/32 action=dst-nat to-addresses=' + isolirDomain + ' \\',
-            '    to-ports=443 comment="Redirect isolir HTTPS ke halaman isolir (tunneling)"'
+            '# Redirect HTTPS traffic ke aplikasi',
+            '/ip firewall nat add chain=dstnat src-address=' + isolirIp + '/32 dst-port=443 protocol=tcp \\',
+            '    action=dst-nat to-addresses=' + isolirDomain + ' to-ports=443 \\',
+            '    comment="isolir-redirect-https"',
+            '',
+            '# Allow DNS queries ke aplikasi',
+            '/ip firewall filter add chain=forward src-address=' + isolirIp + '/32 \\',
+            '    dst-address=' + isolirDomain + ' dst-port=53 protocol=udp \\',
+            '    action=accept comment="isolir-allow-dns"',
+            '',
+            '# Allow HTTP/HTTPS ke aplikasi',
+            '/ip firewall filter add chain=forward src-address=' + isolirIp + '/32 \\',
+            '    dst-address=' + isolirDomain + ' dst-port=80,443 protocol=tcp \\',
+            '    action=accept comment="isolir-allow-app"',
+            '',
+            '# Block semua traffic lainnya',
+            '/ip firewall filter add chain=forward src-address=' + isolirIp + '/32 \\',
+            '    action=drop comment="isolir-block-all"'
         );
     } else {
         // Untuk port langsung
         script.push(
-            '/ip firewall nat add chain=dstnat dst-port=80 protocol=tcp \\',
-            '    src-address=' + isolirIp + '/32 action=dst-nat to-addresses=' + isolirDomain + ' \\',
-            '    to-ports=' + isolirPort + ' comment="Redirect isolir ke halaman isolir (port langsung)"',
+            '# Redirect HTTP traffic ke aplikasi lokal',
+            '/ip firewall nat add chain=dstnat src-address=' + isolirIp + '/32 dst-port=80 protocol=tcp \\',
+            '    action=dst-nat to-addresses=' + isolirDomain + ' to-ports=' + isolirPort + ' \\',
+            '    comment="isolir-redirect-http"',
             '',
-            '# Redirect HTTPS juga jika diperlukan',
-            '/ip firewall nat add chain=dstnat dst-port=443 protocol=tcp \\',
-            '    src-address=' + isolirIp + '/32 action=dst-nat to-addresses=' + isolirDomain + ' \\',
-            '    to-ports=' + isolirPort + ' comment="Redirect isolir HTTPS ke halaman isolir (port langsung)"'
+            '# Redirect HTTPS traffic ke aplikasi lokal',
+            '/ip firewall nat add chain=dstnat src-address=' + isolirIp + '/32 dst-port=443 protocol=tcp \\',
+            '    action=dst-nat to-addresses=' + isolirDomain + ' to-ports=' + isolirPort + ' \\',
+            '    comment="isolir-redirect-https"',
+            '',
+            '# Allow DNS queries ke aplikasi lokal',
+            '/ip firewall filter add chain=forward src-address=' + isolirIp + '/32 \\',
+            '    dst-address=' + isolirDomain + ' dst-port=53 protocol=udp \\',
+            '    action=accept comment="isolir-allow-dns"',
+            '',
+            '# Allow HTTP/HTTPS ke aplikasi lokal',
+            '/ip firewall filter add chain=forward src-address=' + isolirIp + '/32 \\',
+            '    dst-address=' + isolirDomain + ' dst-port=' + isolirPort + ' protocol=tcp \\',
+            '    action=accept comment="isolir-allow-app"',
+            '',
+            '# Block semua traffic lainnya',
+            '/ip firewall filter add chain=forward src-address=' + isolirIp + '/32 \\',
+            '    action=drop comment="isolir-block-all"'
         );
     }
     
     script.push(
+        '',
+        '# ===========================================',
+        '# 6. SCRIPT MANAGEMENT - Isolir & Restore',
+        '# ===========================================',
         '',
         '# Script untuk isolir pelanggan',
         '# Gunakan script ini untuk mengisolir pelanggan:',
@@ -2728,6 +2799,42 @@ function generateIsolirScript() {
         '# /ppp secret set [find name=$username] profile=default',
         '# :log info "Pelanggan $username telah direstore"',
         '',
+        '# ===========================================',
+        '# 7. VERIFIKASI KONFIGURASI',
+        '# ===========================================',
+        '',
+        ':put "=== KONFIGURASI ISOLIR SELESAI ==="',
+        ':put "User PPPoE di ' + isolirIp + ' akan diarahkan ke aplikasi"',
+        ':put "Aplikasi: ' + isolirUrl + '"',
+        ':put ""',
+        ':put "=== VERIFIKASI ==="',
+        '',
+        '# Cek DNS static',
+        ':put "DNS Static Rules:"',
+        '/ip dns static print where name~"' + isolirDomain + '"',
+        '',
+        '# Cek NAT rules',
+        ':put "NAT Rules:"',
+        '/ip firewall nat print where comment~"isolir"',
+        '',
+        '# Cek Firewall rules',
+        ':put "Firewall Rules:"',
+        '/ip firewall filter print where comment~"isolir"',
+        '',
+        '# Cek Address List',
+        ':put "Address List:"',
+        '/ip firewall address-list print where list="isolir-users"',
+        '',
+        ':put ""',
+        ':put "=== CARA KERJA ==="',
+        ':put "1. User PPPoE terisolir mendapat IP: ' + isolirIp + '"',
+        ':put "2. DNS query untuk domain apapun diarahkan ke: ' + isolirDomain + '"',
+        ':put "3. HTTP/HTTPS request di-redirect ke: ' + isolirUrl + '"',
+        ':put "4. Aplikasi menampilkan halaman isolir"',
+        ':put "5. Traffic lainnya di-block"',
+        ':put ""',
+        ':put "=== SELESAI ==="',
+        '',
         'echo "Script menu isolir Mikrotik telah dibuat!"',
         'echo "Pastikan halaman isolir dapat diakses dari IP: ' + isolirIp + '"',
         'echo "URL halaman isolir: ' + isolirUrl + '"'
@@ -2740,6 +2847,152 @@ function generateIsolirScript() {
     document.getElementById('isolirScriptCard').style.display = 'block';
     
     showNotification('success', 'Script berhasil di-generate!');
+}
+
+function generateLocalIsolirScript() {
+    const activeIp = document.getElementById('activeIp').value.trim();
+    const isolirIp = document.getElementById('isolirIp').value.trim();
+    const isolirDomain = document.getElementById('isolirDomain').value.trim();
+    const isolirPath = document.getElementById('isolirPath').value.trim();
+    const isolirPort = document.getElementById('isolirPort').value.trim();
+    
+    // Validasi input
+    if (!activeIp || !isolirIp || !isolirDomain || !isolirPath || !isolirPort) {
+        showNotification('warning', 'Mohon lengkapi semua field!');
+        return;
+    }
+    
+    // Validasi format IP
+    const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (!ipRegex.test(activeIp) || !ipRegex.test(isolirIp)) {
+        showNotification('warning', 'Format IP tidak valid!');
+        return;
+    }
+    
+    // Generate script Mikrotik untuk aplikasi lokal
+    const script = [
+        '# Script Mikrotik untuk User PPPoE Terisolir - Aplikasi Lokal',
+        '# Generated on: ' + new Date().toLocaleString('id-ID'),
+        '# IP PPPoE Aktif: ' + activeIp,
+        '# IP PPPoE Isolir: ' + isolirIp,
+        '# Aplikasi Lokal: ' + isolirDomain + ':' + isolirPort + isolirPath,
+        '',
+        '# ===========================================',
+        '# 1. DNS STATIC - Arahkan semua domain ke aplikasi lokal',
+        '# ===========================================',
+        '',
+        '# Hapus DNS static lama (jika ada)',
+        '/ip dns static remove [find where name="' + isolirDomain + '" and address="' + isolirDomain + '"]',
+        '',
+        '# Tambahkan DNS static untuk domain aplikasi',
+        '/ip dns static add name="' + isolirDomain + '" address="' + isolirDomain + '" ttl=300',
+        '',
+        '# Arahkan domain populer ke aplikasi lokal',
+        '/ip dns static add name="google.com" address="' + isolirDomain + '" ttl=300',
+        '/ip dns static add name="facebook.com" address="' + isolirDomain + '" ttl=300',
+        '/ip dns static add name="youtube.com" address="' + isolirDomain + '" ttl=300',
+        '/ip dns static add name="instagram.com" address="' + isolirDomain + '" ttl=300',
+        '/ip dns static add name="twitter.com" address="' + isolirDomain + '" ttl=300',
+        '/ip dns static add name="tiktok.com" address="' + isolirDomain + '" ttl=300',
+        '/ip dns static add name="whatsapp.com" address="' + isolirDomain + '" ttl=300',
+        '/ip dns static add name="telegram.org" address="' + isolirDomain + '" ttl=300',
+        '',
+        '# ===========================================',
+        '# 2. NAT RULES - Redirect HTTP/HTTPS ke aplikasi lokal',
+        '# ===========================================',
+        '',
+        '# Hapus NAT rules lama (jika ada)',
+        '/ip firewall nat remove [find where comment~"isolir-redirect"]',
+        '',
+        '# Redirect HTTP traffic ke aplikasi lokal',
+        '/ip firewall nat add chain=dstnat src-address=' + isolirIp + '/32 dst-port=80 protocol=tcp \\',
+        '    action=dst-nat to-addresses=' + isolirDomain + ' to-ports=' + isolirPort + ' \\',
+        '    comment="isolir-redirect-http"',
+        '',
+        '# Redirect HTTPS traffic ke aplikasi lokal',
+        '/ip firewall nat add chain=dstnat src-address=' + isolirIp + '/32 dst-port=443 protocol=tcp \\',
+        '    action=dst-nat to-addresses=' + isolirDomain + ' to-ports=' + isolirPort + ' \\',
+        '    comment="isolir-redirect-https"',
+        '',
+        '# ===========================================',
+        '# 3. FIREWALL RULES - Block semua kecuali aplikasi lokal',
+        '# ===========================================',
+        '',
+        '# Hapus firewall rules lama (jika ada)',
+        '/ip firewall filter remove [find where comment~"isolir"]',
+        '',
+        '# Allow DNS queries ke aplikasi lokal',
+        '/ip firewall filter add chain=forward src-address=' + isolirIp + '/32 \\',
+        '    dst-address=' + isolirDomain + ' dst-port=53 protocol=udp \\',
+        '    action=accept comment="isolir-allow-dns"',
+        '',
+        '# Allow HTTP/HTTPS ke aplikasi lokal',
+        '/ip firewall filter add chain=forward src-address=' + isolirIp + '/32 \\',
+        '    dst-address=' + isolirDomain + ' dst-port=' + isolirPort + ' protocol=tcp \\',
+        '    action=accept comment="isolir-allow-app"',
+        '',
+        '# Block semua traffic lainnya',
+        '/ip firewall filter add chain=forward src-address=' + isolirIp + '/32 \\',
+        '    action=drop comment="isolir-block-all"',
+        '',
+        '# ===========================================',
+        '# 4. ADDRESS LIST - Untuk kemudahan management',
+        '# ===========================================',
+        '',
+        '# Hapus address list lama (jika ada)',
+        '/ip firewall address-list remove [find where list="isolir-users"]',
+        '',
+        '# Tambahkan IP range isolir ke address list',
+        '/ip firewall address-list add address=' + isolirIp + '/32 list="isolir-users" comment="PPPoE Isolir Users"',
+        '',
+        '# ===========================================',
+        '# 5. VERIFIKASI KONFIGURASI',
+        '# ===========================================',
+        '',
+        ':put "=== KONFIGURASI ISOLIR LOKAL SELESAI ==="',
+        ':put "User PPPoE di ' + isolirIp + ' akan diarahkan ke aplikasi lokal"',
+        ':put "Aplikasi lokal: http://' + isolirDomain + ':' + isolirPort + isolirPath + '"',
+        ':put ""',
+        ':put "=== VERIFIKASI ==="',
+        '',
+        '# Cek DNS static',
+        ':put "DNS Static Rules:"',
+        '/ip dns static print where name~"' + isolirDomain + '"',
+        '',
+        '# Cek NAT rules',
+        ':put "NAT Rules:"',
+        '/ip firewall nat print where comment~"isolir"',
+        '',
+        '# Cek Firewall rules',
+        ':put "Firewall Rules:"',
+        '/ip firewall filter print where comment~"isolir"',
+        '',
+        '# Cek Address List',
+        ':put "Address List:"',
+        '/ip firewall address-list print where list="isolir-users"',
+        '',
+        ':put ""',
+        ':put "=== CARA KERJA ==="',
+        ':put "1. User PPPoE terisolir mendapat IP: ' + isolirIp + '"',
+        ':put "2. DNS query untuk domain apapun diarahkan ke: ' + isolirDomain + '"',
+        ':put "3. HTTP/HTTPS request di-redirect ke: ' + isolirDomain + ':' + isolirPort + '"',
+        ':put "4. Aplikasi lokal menampilkan halaman isolir"',
+        ':put "5. Traffic lainnya di-block"',
+        ':put ""',
+        ':put "=== SELESAI ==="',
+        '',
+        'echo "Script isolir lokal Mikrotik telah dibuat!"',
+        'echo "Pastikan aplikasi lokal berjalan di: ' + isolirDomain + ':' + isolirPort + '"',
+        'echo "Halaman isolir: http://' + isolirDomain + ':' + isolirPort + isolirPath + '"'
+    ];
+    
+    const finalScript = script.join('\n');
+
+    // Tampilkan script
+    document.getElementById('isolirScript').textContent = finalScript;
+    document.getElementById('isolirScriptCard').style.display = 'block';
+    
+    showNotification('success', 'Script isolir lokal berhasil di-generate!');
 }
 
 function copyIsolirScript() {
