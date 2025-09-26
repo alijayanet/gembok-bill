@@ -743,6 +743,52 @@
             }
         }
 
+        // Fungsi untuk monthly reset
+        async function monthlyReset() {
+            if (!confirm('Apakah Anda yakin ingin melakukan reset bulanan?\n\nIni akan:\n- Menyimpan summary bulan lalu\n- Reset counter ke 0 untuk bulan baru\n- Memproses semua collector')) {
+                return;
+            }
+
+            const btn = document.getElementById('monthlyResetBtn');
+            const originalText = btn.innerHTML;
+            
+            // Disable button dan show loading
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i>Resetting...';
+            
+            try {
+                const response = await fetch('/admin/billing/api/monthly-reset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    showAlert('success', 'Reset Berhasil!', 
+                        `Summary bulan ${result.previousMonth}/${result.previousYear} telah disimpan.\n` +
+                        `Counter direset untuk bulan ${result.month}/${result.year}.\n` +
+                        `Diproses ${result.collectorsProcessed} collector.`);
+                    
+                    // Reload page setelah 3 detik
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3000);
+                } else {
+                    showAlert('danger', 'Error!', result.message);
+                }
+            } catch (error) {
+                showAlert('danger', 'Error!', 'Gagal melakukan monthly reset: ' + error.message);
+            } finally {
+                // Restore button
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
         // Fungsi untuk menampilkan alert
         function showAlert(type, title, message) {
             const alertHtml = `

@@ -151,7 +151,7 @@
                         </div>
                         <div class="mb-3" id="tax_rate_group">
                             <label for="tax_rate" class="form-label">PPN (%)</label>
-                            <input type="number" class="form-control" id="tax_rate" name="tax_rate" step="0.01" min="0" max="100" value="11.00">
+                            <input type="number" class="form-control" id="tax_rate" name="tax_rate" step="0.01" min="0" max="100" value="0">
                             <small class="form-text text-muted">Persentase PPN yang akan ditambahkan ke harga paket.</small>
                         </div>
                         <div class="mb-3">
@@ -302,7 +302,22 @@
 
             // Load profiles into Add form on open
             $('#addPackageModal').on('shown.bs.modal', function(){
+                console.log('🔍 Modal opened - resetting form...');
                 loadPPPoEProfiles('#pppoe_profile');
+                // Reset form and hide tax group
+                $('#addPackageForm')[0].reset();
+                $('#enable_tax').prop('checked', false);
+                $('#tax_rate_group').hide();
+                $('#tax_rate_group input').prop('disabled', true);
+                $('#tax_rate').val(0);
+                // Ensure price with tax shows base price
+                const price = parseFloat($('#price').val()) || 0;
+                $('#price_with_tax').val(price.toLocaleString('id-ID'));
+                
+                console.log('   - Form reset completed');
+                console.log('   - Checkbox checked:', $('#enable_tax').is(':checked'));
+                console.log('   - Tax rate value:', $('#tax_rate').val());
+                console.log('   - Tax rate disabled:', $('#tax_rate').prop('disabled'));
             });
             // Preload on page ready for Add form
             loadPPPoEProfiles('#pppoe_profile');
@@ -319,6 +334,10 @@
         // Hide tax rate group by default (checkbox unchecked)
         $('#tax_rate_group').hide();
         $('#tax_rate_group input').prop('disabled', true);
+        
+        // Hide edit tax rate group by default (checkbox unchecked)
+        $('#edit_tax_rate_group').hide();
+        $('#edit_tax_rate_group input').prop('disabled', true);
         });
 
         // PPN Calculation Functions
@@ -392,22 +411,12 @@
         }
 
         function setDefaultTaxRate() {
-            // Fetch tax settings from server
-            fetch('/admin/settings/data')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.tax_settings && data.tax_settings.default_tax_rate) {
-                        const defaultTaxRate = data.tax_settings.default_tax_rate;
-                        $('#tax_rate').val(defaultTaxRate);
-                        $('#edit_tax_rate').val(defaultTaxRate);
-                        
-                        // Trigger calculation for initial display
-                        calculatePriceWithTax('price', 'tax_rate', 'price_with_tax');
-                    }
-                })
-                .catch(error => {
-                    console.log('Using default tax rate (11%)');
-                });
+            // Set tax rate to 0 by default (no PPN unless explicitly enabled)
+            $('#tax_rate').val(0);
+            $('#edit_tax_rate').val(0);
+            
+            // Don't trigger calculation since checkbox is unchecked by default
+            console.log('Tax rate set to 0% by default (no PPN)');
         }
 
         // Fetch and populate PPPoE Profiles from Mikrotik
@@ -456,6 +465,12 @@
         $('#addPackageForm').on('submit', function(e) {
             e.preventDefault();
             
+            // Debug logging
+            console.log('🔍 Form submission debug:');
+            console.log('   - Checkbox checked:', $('#enable_tax').is(':checked'));
+            console.log('   - Tax rate input value:', $('#tax_rate').val());
+            console.log('   - Tax rate input disabled:', $('#tax_rate').prop('disabled'));
+            
             // Get form data
             const formData = {
                 name: $('#name').val().trim(),
@@ -465,6 +480,8 @@
                 description: $('#description').val().trim(),
                 pppoe_profile: $('#pppoe_profile').val().trim() || 'default'
             };
+            
+            console.log('   - Calculated tax_rate:', formData.tax_rate);
             
             // Validate required fields
             if (!formData.name || !formData.speed || !formData.price || formData.price <= 0) {
