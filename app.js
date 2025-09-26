@@ -11,6 +11,9 @@ const { getSetting } = require('./config/settingsManager');
 // Import invoice scheduler
 const invoiceScheduler = require('./config/scheduler');
 
+// Import auto GenieACS setup untuk development (DISABLED - menggunakan web interface)
+// const { autoGenieACSSetup } = require('./config/autoGenieACSSetup');
+
 // Import technician sync service for hot-reload
 const technicianSync = {
     start() {
@@ -504,6 +507,27 @@ logger.info(`Attempting to start server on configured port: ${port}`);
 
 // Mulai server dengan port dari konfigurasi
 startServer(port);
+
+// Auto setup GenieACS DNS untuk development (DISABLED - menggunakan web interface)
+// setTimeout(async () => {
+//     try {
+//         logger.info('🚀 Memulai auto setup GenieACS DNS untuk development...');
+//         const result = await autoGenieACSSetup.runAutoSetup();
+//         
+//         if (result.success) {
+//             logger.info('✅ Auto GenieACS DNS setup berhasil');
+//             if (result.data) {
+//                 logger.info(`📋 IP Server: ${result.data.serverIP}`);
+//                 logger.info(`📋 GenieACS URL: ${result.data.genieacsUrl}`);
+//                 logger.info(`📋 Script Mikrotik: ${result.data.mikrotikScript}`);
+//             }
+//         } else {
+//             logger.warn(`⚠️  Auto GenieACS DNS setup: ${result.message}`);
+//         }
+//     } catch (error) {
+//         logger.error('❌ Error dalam auto GenieACS DNS setup:', error);
+//     }
+// }, 15000); // Delay 15 detik setelah server start
 
 // Tambahkan perintah untuk menambahkan nomor pelanggan ke tag GenieACS
 const { addCustomerTag } = require('./config/customerTag');

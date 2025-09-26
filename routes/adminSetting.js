@@ -6,6 +6,7 @@ const multer = require('multer');
 const { getSettingsWithCache } = require('../config/settingsManager')
 const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 const logger = require('../config/logger');
+const { spawn } = require('child_process');
 
 // Konfigurasi penyimpanan file
 const storage = multer.diskStorage({
@@ -1324,6 +1325,135 @@ router.post('/test-generate-isolation-script', (req, res) => {
         });
     }
 });
+
+// ===== DNS MANAGEMENT API ENDPOINTS =====
+
+// POST: Test koneksi GenieACS
+router.post('/api/test-genieacs-connection', async (req, res) => {
+    try {
+        const result = await runConsoleScript('1');
+        res.json({
+            success: result.success,
+            message: result.message,
+            output: result.output
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error testing GenieACS connection: ' + error.message
+        });
+    }
+});
+
+// POST: Get GenieACS devices
+router.post('/api/get-genieacs-devices', async (req, res) => {
+    try {
+        const result = await runConsoleScript('2');
+        res.json({
+            success: result.success,
+            message: result.message,
+            output: result.output
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error getting GenieACS devices: ' + error.message
+        });
+    }
+});
+
+// POST: Configure DNS for specific device
+router.post('/api/configure-genieacs-dns', async (req, res) => {
+    try {
+        const { deviceId, dnsServer } = req.body;
+        
+        if (!deviceId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Device ID harus diisi'
+            });
+        }
+        
+        const result = await runConsoleScript('3', `${deviceId}\n${dnsServer || '192.168.8.89'}`);
+        res.json({
+            success: result.success,
+            message: result.message,
+            output: result.output
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error configuring DNS: ' + error.message
+        });
+    }
+});
+
+// POST: Configure DNS for all online devices
+router.post('/api/configure-all-genieacs-dns', async (req, res) => {
+    try {
+        const result = await runConsoleScript('4');
+        res.json({
+            success: result.success,
+            message: result.message,
+            output: result.output
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error configuring all DNS: ' + error.message
+        });
+    }
+});
+
+// Helper function to run console script
+function runConsoleScript(option, additionalInput = '') {
+    return new Promise((resolve, reject) => {
+        const scriptPath = './scripts/simple-genieacs-dns.js';
+        
+        const child = spawn('node', [scriptPath], {
+            stdio: ['pipe', 'pipe', 'pipe'],
+            shell: true
+        });
+        
+        let output = '';
+        let error = '';
+        
+        child.stdout.on('data', (data) => {
+            output += data.toString();
+        });
+        
+        child.stderr.on('data', (data) => {
+            error += data.toString();
+        });
+        
+        child.on('close', (code) => {
+            if (code === 0) {
+                resolve({
+                    success: true,
+                    message: 'Script executed successfully',
+                    output: output
+                });
+            } else {
+                resolve({
+                    success: false,
+                    message: error || 'Script execution failed',
+                    output: output
+                });
+            }
+        });
+        
+        child.on('error', (err) => {
+            reject(err);
+        });
+        
+        // Send input to script
+        child.stdin.write(option + '\n');
+        if (additionalInput) {
+            child.stdin.write(additionalInput + '\n');
+        }
+        child.stdin.end();
+    });
+}
 
 // Export fungsi untuk testing
 module.exports = {
