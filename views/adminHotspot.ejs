@@ -234,9 +234,18 @@
                         <div class="col-md-6 col-lg-4 mb-3">
                             <div class="card border-primary">
                                 <div class="card-header bg-primary text-white">
-                                    <h6 class="mb-0">3rb - 1 Hari</h6>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">3rb - 1 Hari</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-light" onclick="editPackageName('3k')">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
+                                    <div class="mb-2">
+                                        <small class="text-muted">Nama Paket:</small>
+                                        <input type="text" class="form-control form-control-sm" id="name_3k" value="<%= voucherOnlineSettings['3k']?.name || '3rb - 1 Hari' %>" placeholder="Nama paket">
+                                    </div>
                                     <div class="mb-2">
                                         <small class="text-muted">Profile Mikrotik:</small>
                                         <select class="form-select form-select-sm" id="profile_3k">
@@ -248,6 +257,15 @@
                                     <div class="mb-2">
                                         <small class="text-muted">Harga:</small>
                                         <input type="number" class="form-control form-control-sm" id="price_3k" value="3000" readonly>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Digit Voucher:</small>
+                                        <select class="form-select form-select-sm" id="digits_3k">
+                                            <option value="4" <%= (voucherOnlineSettings['3k']?.digits || 5) === 4 ? 'selected' : '' %>>4 digit</option>
+                                            <option value="5" <%= (voucherOnlineSettings['3k']?.digits || 5) === 5 ? 'selected' : '' %>>5 digit</option>
+                                            <option value="6" <%= (voucherOnlineSettings['3k']?.digits || 5) === 6 ? 'selected' : '' %>>6 digit</option>
+                                            <option value="8" <%= (voucherOnlineSettings['3k']?.digits || 5) === 8 ? 'selected' : '' %>>8 digit</option>
+                                        </select>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="online_3k" <%= voucherOnlineSettings['3k']?.enabled !== false ? 'checked' : '' %>>
@@ -263,9 +281,18 @@
                         <div class="col-md-6 col-lg-4 mb-3">
                             <div class="card border-success">
                                 <div class="card-header bg-success text-white">
-                                    <h6 class="mb-0">5rb - 2 Hari</h6>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">5rb - 2 Hari</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-light" onclick="editPackageName('5k')">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
+                                    <div class="mb-2">
+                                        <small class="text-muted">Nama Paket:</small>
+                                        <input type="text" class="form-control form-control-sm" id="name_5k" value="<%= voucherOnlineSettings['5k']?.name || '5rb - 2 Hari' %>" placeholder="Nama paket">
+                                    </div>
                                     <div class="mb-2">
                                         <small class="text-muted">Profile Mikrotik:</small>
                                         <select class="form-select form-select-sm" id="profile_5k">
@@ -277,6 +304,15 @@
                                     <div class="mb-2">
                                         <small class="text-muted">Harga:</small>
                                         <input type="number" class="form-control form-control-sm" id="price_5k" value="5000" readonly>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Digit Voucher:</small>
+                                        <select class="form-select form-select-sm" id="digits_5k">
+                                            <option value="4" <%= (voucherOnlineSettings['5k']?.digits || 5) === 4 ? 'selected' : '' %>>4 digit</option>
+                                            <option value="5" <%= (voucherOnlineSettings['5k']?.digits || 5) === 5 ? 'selected' : '' %>>5 digit</option>
+                                            <option value="6" <%= (voucherOnlineSettings['5k']?.digits || 5) === 6 ? 'selected' : '' %>>6 digit</option>
+                                            <option value="8" <%= (voucherOnlineSettings['5k']?.digits || 5) === 8 ? 'selected' : '' %>>8 digit</option>
+                                        </select>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="online_5k" <%= voucherOnlineSettings['5k']?.enabled !== false ? 'checked' : '' %>>
@@ -292,9 +328,18 @@
                         <div class="col-md-6 col-lg-4 mb-3">
                             <div class="card border-info">
                                 <div class="card-header bg-info text-white">
-                                    <h6 class="mb-0">10rb - 5 Hari</h6>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">10rb - 5 Hari</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-light" onclick="editPackageName('10k')">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
+                                    <div class="mb-2">
+                                        <small class="text-muted">Nama Paket:</small>
+                                        <input type="text" class="form-control form-control-sm" id="name_10k" value="<%= voucherOnlineSettings['10k']?.name || '10rb - 5 Hari' %>" placeholder="Nama paket">
+                                    </div>
                                     <div class="mb-2">
                                         <small class="text-muted">Profile Mikrotik:</small>
                                         <select class="form-select form-select-sm" id="profile_10k">
@@ -306,6 +351,15 @@
                                     <div class="mb-2">
                                         <small class="text-muted">Harga:</small>
                                         <input type="number" class="form-control form-control-sm" id="price_10k" value="10000" readonly>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Digit Voucher:</small>
+                                        <select class="form-select form-select-sm" id="digits_10k">
+                                            <option value="4" <%= (voucherOnlineSettings['10k']?.digits || 5) === 4 ? 'selected' : '' %>>4 digit</option>
+                                            <option value="5" <%= (voucherOnlineSettings['10k']?.digits || 5) === 5 ? 'selected' : '' %>>5 digit</option>
+                                            <option value="6" <%= (voucherOnlineSettings['10k']?.digits || 5) === 6 ? 'selected' : '' %>>6 digit</option>
+                                            <option value="8" <%= (voucherOnlineSettings['10k']?.digits || 5) === 8 ? 'selected' : '' %>>8 digit</option>
+                                        </select>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="online_10k" <%= voucherOnlineSettings['10k']?.enabled !== false ? 'checked' : '' %>>
@@ -321,9 +375,18 @@
                         <div class="col-md-6 col-lg-4 mb-3">
                             <div class="card border-warning">
                                 <div class="card-header bg-warning text-dark">
-                                    <h6 class="mb-0">15rb - 8 Hari</h6>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">15rb - 8 Hari</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-dark" onclick="editPackageName('15k')">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
+                                    <div class="mb-2">
+                                        <small class="text-muted">Nama Paket:</small>
+                                        <input type="text" class="form-control form-control-sm" id="name_15k" value="<%= voucherOnlineSettings['15k']?.name || '15rb - 8 Hari' %>" placeholder="Nama paket">
+                                    </div>
                                     <div class="mb-2">
                                         <small class="text-muted">Profile Mikrotik:</small>
                                         <select class="form-select form-select-sm" id="profile_15k">
@@ -335,6 +398,15 @@
                                     <div class="mb-2">
                                         <small class="text-muted">Harga:</small>
                                         <input type="number" class="form-control form-control-sm" id="price_15k" value="15000" readonly>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Digit Voucher:</small>
+                                        <select class="form-select form-select-sm" id="digits_15k">
+                                            <option value="4" <%= (voucherOnlineSettings['15k']?.digits || 5) === 4 ? 'selected' : '' %>>4 digit</option>
+                                            <option value="5" <%= (voucherOnlineSettings['15k']?.digits || 5) === 5 ? 'selected' : '' %>>5 digit</option>
+                                            <option value="6" <%= (voucherOnlineSettings['15k']?.digits || 5) === 6 ? 'selected' : '' %>>6 digit</option>
+                                            <option value="8" <%= (voucherOnlineSettings['15k']?.digits || 5) === 8 ? 'selected' : '' %>>8 digit</option>
+                                        </select>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="online_15k" <%= voucherOnlineSettings['15k']?.enabled !== false ? 'checked' : '' %>>
@@ -350,9 +422,18 @@
                         <div class="col-md-6 col-lg-4 mb-3">
                             <div class="card border-danger">
                                 <div class="card-header bg-danger text-white">
-                                    <h6 class="mb-0">25rb - 15 Hari</h6>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">25rb - 15 Hari</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-light" onclick="editPackageName('25k')">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
+                                    <div class="mb-2">
+                                        <small class="text-muted">Nama Paket:</small>
+                                        <input type="text" class="form-control form-control-sm" id="name_25k" value="<%= voucherOnlineSettings['25k']?.name || '25rb - 15 Hari' %>" placeholder="Nama paket">
+                                    </div>
                                     <div class="mb-2">
                                         <small class="text-muted">Profile Mikrotik:</small>
                                         <select class="form-select form-select-sm" id="profile_25k">
@@ -364,6 +445,15 @@
                                     <div class="mb-2">
                                         <small class="text-muted">Harga:</small>
                                         <input type="number" class="form-control form-control-sm" id="price_25k" value="25000" readonly>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Digit Voucher:</small>
+                                        <select class="form-select form-select-sm" id="digits_25k">
+                                            <option value="4" <%= (voucherOnlineSettings['25k']?.digits || 5) === 4 ? 'selected' : '' %>>4 digit</option>
+                                            <option value="5" <%= (voucherOnlineSettings['25k']?.digits || 5) === 5 ? 'selected' : '' %>>5 digit</option>
+                                            <option value="6" <%= (voucherOnlineSettings['25k']?.digits || 5) === 6 ? 'selected' : '' %>>6 digit</option>
+                                            <option value="8" <%= (voucherOnlineSettings['25k']?.digits || 5) === 8 ? 'selected' : '' %>>8 digit</option>
+                                        </select>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="online_25k" <%= voucherOnlineSettings['25k']?.enabled !== false ? 'checked' : '' %>>
@@ -379,9 +469,18 @@
                         <div class="col-md-6 col-lg-4 mb-3">
                             <div class="card border-secondary">
                                 <div class="card-header bg-secondary text-white">
-                                    <h6 class="mb-0">50rb - 30 Hari</h6>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">50rb - 30 Hari</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-light" onclick="editPackageName('50k')">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
+                                    <div class="mb-2">
+                                        <small class="text-muted">Nama Paket:</small>
+                                        <input type="text" class="form-control form-control-sm" id="name_50k" value="<%= voucherOnlineSettings['50k']?.name || '50rb - 30 Hari' %>" placeholder="Nama paket">
+                                    </div>
                                     <div class="mb-2">
                                         <small class="text-muted">Profile Mikrotik:</small>
                                         <select class="form-select form-select-sm" id="profile_50k">
@@ -393,6 +492,15 @@
                                     <div class="mb-2">
                                         <small class="text-muted">Harga:</small>
                                         <input type="number" class="form-control form-control-sm" id="price_50k" value="50000" readonly>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Digit Voucher:</small>
+                                        <select class="form-select form-select-sm" id="digits_50k">
+                                            <option value="4" <%= (voucherOnlineSettings['50k']?.digits || 5) === 4 ? 'selected' : '' %>>4 digit</option>
+                                            <option value="5" <%= (voucherOnlineSettings['50k']?.digits || 5) === 5 ? 'selected' : '' %>>5 digit</option>
+                                            <option value="6" <%= (voucherOnlineSettings['50k']?.digits || 5) === 6 ? 'selected' : '' %>>6 digit</option>
+                                            <option value="8" <%= (voucherOnlineSettings['50k']?.digits || 5) === 8 ? 'selected' : '' %>>8 digit</option>
+                                        </select>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="online_50k" <%= voucherOnlineSettings['50k']?.enabled !== false ? 'checked' : '' %>>
@@ -1902,12 +2010,16 @@ document.addEventListener('DOMContentLoaded', function () {
         // Ambil setting dari setiap paket
         const packages = ['3k', '5k', '10k', '15k', '25k', '50k'];
         packages.forEach(pkg => {
+            const nameInput = document.getElementById(`name_${pkg}`);
             const profileSelect = document.getElementById(`profile_${pkg}`);
+            const digitsSelect = document.getElementById(`digits_${pkg}`);
             const enabledCheckbox = document.getElementById(`online_${pkg}`);
 
             if (profileSelect && enabledCheckbox) {
                 settings[pkg] = {
+                    name: nameInput ? nameInput.value : `${pkg} - Paket`,
                     profile: profileSelect.value,
+                    digits: digitsSelect ? parseInt(digitsSelect.value) : 5,
                     enabled: enabledCheckbox.checked
                 };
             }
@@ -1933,6 +2045,20 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Error:', error);
             showToast('Error menyimpan setting voucher online', 'error');
         });
+    };
+
+    // Function untuk edit nama paket
+    window.editPackageName = function(packageId) {
+        const nameInput = document.getElementById(`name_${packageId}`);
+        const headerElement = document.querySelector(`#profile_${packageId}`).closest('.card').querySelector('.card-header h6');
+        
+        if (nameInput && headerElement) {
+            // Update header dengan nama baru
+            headerElement.textContent = nameInput.value;
+            
+            // Tampilkan toast konfirmasi
+            showToast(`Nama paket ${packageId} berhasil diupdate`, 'success');
+        }
     };
 
     // Function untuk reset setting voucher online ke profile pertama
