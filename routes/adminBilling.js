@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
+const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 const billingManager = require('../config/billing');
 const logger = require('../config/logger');
@@ -11,6 +12,41 @@ const multer = require('multer');
 const upload = multer();
 const ExcelJS = require('exceljs');
 const { adminAuth } = require('./adminAuth');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadPath = path.join(__dirname, '../public/img/packages');
+        // Ensure directory exists
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        // Generate unique filename with timestamp
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname).toLowerCase();
+        cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    // Accept only image files
+    if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+        cb(null, true);
+    } else {
+        cb(new Error('Only PNG, JPG, and JPEG files are allowed'), false);
+    }
+};
+
+const uploadPackageImage = multer({ 
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 2 * 1024 * 1024 // 2MB limit
+    }
+});
 
 // Ensure JSON body parsing for this router
 router.use(express.json());
@@ -2596,7 +2632,7 @@ router.get('/packages', getAppSettings, async (req, res) => {
     }
 });
 
-router.post('/packages', async (req, res) => {
+router.post('/packages', uploadPackageImage.single('package_image'), async (req, res) => {
     try {
         const { name, speed, price, tax_rate, description, pppoe_profile } = req.body;
         const packageData = {
@@ -2607,6 +2643,11 @@ router.post('/packages', async (req, res) => {
             description: description.trim(),
             pppoe_profile: pppoe_profile ? pppoe_profile.trim() : 'default'
         };
+
+        // Add image filename if uploaded
+        if (req.file) {
+            packageData.image_filename = req.file.filename;
+        }
 
         if (!packageData.name || !packageData.speed || !packageData.price) {
             return res.status(400).json({
@@ -2633,7 +2674,7 @@ router.post('/packages', async (req, res) => {
     }
 });
 
-router.put('/packages/:id', async (req, res) => {
+router.put('/packages/:id', uploadPackageImage.single('package_image'), async (req, res) => {
     try {
         const { id } = req.params;
         const { name, speed, price, tax_rate, description, pppoe_profile } = req.body;
@@ -2645,6 +2686,11 @@ router.put('/packages/:id', async (req, res) => {
             description: description.trim(),
             pppoe_profile: pppoe_profile ? pppoe_profile.trim() : 'default'
         };
+
+        // Add image filename if uploaded
+        if (req.file) {
+            packageData.image_filename = req.file.filename;
+        }
 
         if (!packageData.name || !packageData.speed || !packageData.price) {
             return res.status(400).json({
@@ -2666,6 +2712,25 @@ router.put('/packages/:id', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error updating package',
+            error: error.message
+        });
+    }
+});
+
+router.delete('/packages/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await billingManager.deletePackage(id);
+        logger.info(`Package deleted: ${id}`);
+        res.json({
+            success: true,
+            message: 'Paket berhasil dihapus'
+        });
+    } catch (error) {
+        logger.error('Error deleting package:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting package',
             error: error.message
         });
     }
