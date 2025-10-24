@@ -11903,3 +11903,56 @@
   "message": "AgentWhatsAppCommands is not a constructor",
   "stack": "TypeError: AgentWhatsAppCommands is not a constructor\n    at new AgentWhatsAppIntegration (E:\\gembok-bill-main\\config\\agentWhatsAppIntegration.js:5:25)\n    at E:\\gembok-bill-main\\app.js:439:35"
 }
+[2025-10-23T02:38:02.772Z] [ERROR] Error creating customer:
+{
+  "name": "Error",
+  "message": "SQLITE_CONSTRAINT: UNIQUE constraint failed: customers.phone",
+  "stack": "Error: SQLITE_CONSTRAINT: UNIQUE constraint failed: customers.phone"
+}
+[2025-10-23T02:39:40.006Z] [ERROR] Error creating customer:
+{
+  "name": "Error",
+  "message": "SQLITE_CONSTRAINT: UNIQUE constraint failed: customers.phone",
+  "stack": "Error: SQLITE_CONSTRAINT: UNIQUE constraint failed: customers.phone"
+}
+[2025-10-24T00:42:59.014Z] [ERROR] Error loading financial report:
+{
+  "name": "Error",
+  "message": "SQLITE_ERROR: no such column: pgt.payment_method",
+  "stack": "Error: SQLITE_ERROR: no such column: pgt.payment_method\n--> in Database#all('\\n' +\n  '                        SELECT \\n' +\n  \"                            'income' as type,\\n\" +\n  '                            pgt.created_at as date,\\n' +\n  '                            pgt.amount as amount,\\n' +\n  \"                            COALESCE(pgt.payment_method, i.payment_method, 'Online Payment') as payment_method,\\n\" +\n  \"                            COALESCE(pgt.gateway_name, pgt.gateway, 'Online Gateway') as gateway_name,\\n\" +\n  '                            i.invoice_number as invoice_number,\\n' +\n  '                            c.name as customer_name,\\n' +\n  '                            c.phone as customer_phone,\\n' +\n  \"                            '' as description,\\n\" +\n  \"                            '' as notes,\\n\" +\n  \"                            '' as collector_name,\\n\" +\n  '                            0 as commission_amount\\n' +\n  '                        FROM payment_gateway_transactions pgt\\n' +\n  '                        JOIN invoices i ON pgt.invoice_id = i.id\\n' +\n  '                        JOIN customers c ON i.customer_id = c.id\\n' +\n  \"                        WHERE pgt.status = 'success' \\n\" +\n  '                        AND DATE(pgt.created_at) BETWEEN ? AND ?\\n' +\n  '                        \\n' +\n  '                        UNION ALL\\n' +\n  '                        \\n' +\n  '                        SELECT \\n' +\n  \"                            'income' as type,\\n\" +\n  '                            p.payment_date as date,\\n' +\n  '                            p.amount as amount,\\n' +\n  '                            p.payment_method,\\n' +\n  '                            CASE \\n' +\n  \"                                WHEN p.payment_type = 'collector' THEN CONCAT('Kolektor - ', COALESCE(col.name, 'Unknown'))\\n\" +\n  \"                                WHEN p.payment_type = 'online' THEN 'Online Payment'\\n\" +\n  \"                                WHEN p.payment_type = 'manual' THEN 'Manual Payment'\\n\" +\n  \"                                ELSE 'Direct Payment'\\n\" +\n  '                            END as gateway_name,\\n' +\n  '                            i.invoice_number as invoice_number,\\n' +\n  '                            c.name as customer_name,\\n' +\n  '                            c.phone as customer_phone,\\n' +\n  '                            CASE \\n' +\n  \"                                WHEN p.payment_type = 'collector' THEN CONCAT('Pembayaran via kolektor ', COALESCE(col.name, 'Unknown'))\\n\" +\n  \"                                ELSE ''\\n\" +\n  '                            END as description,\\n' +\n  '                            p.notes,\\n' +\n  \"                            COALESCE(col.name, '') as collector_name,\\n\" +\n  '                            COALESCE(p.commission_amount, 0) as commission_amount\\n' +\n  '                        FROM payments p\\n' +\n  '                        JOIN invoices i ON p.invoice_id = i.id\\n' +\n  '                        JOIN customers c ON i.customer_id = c.id\\n' +\n  '                        LEFT JOIN collectors col ON p.collector_id = col.id\\n' +\n  '                        WHERE DATE(p.payment_date) BETWEEN ? AND ?\\n' +\n  \"                        AND p.payment_type IN ('direct', 'collector', 'online', 'manual')\\n\" +\n  '                        \\n' +\n  '                        UNION ALL\\n' +\n  '                        \\n' +\n  '                        SELECT \\n' +\n  \"                            'expense' as type,\\n\" +\n  '                            e.expense_date as date,\\n' +\n  '                            e.amount as amount,\\n' +\n  '                            e.payment_method,\\n' +\n  '                            e.category as gateway_name,\\n' +\n  '                            e.description as description,\\n' +\n  '                            e.notes as notes,\\n' +\n  \"                            '' as invoice_number,\\n\" +\n  \"                            '' as customer_name,\\n\" +\n  \"                            '' as customer_phone,\\n\" +\n  \"                            '' as collector_name,\\n\" +\n  '                            0 as commission_amount\\n' +\n  '                        FROM expenses e\\n' +\n  '                        WHERE DATE(e.expense_date) BETWEEN ? AND ?\\n' +\n  '                        \\n' +\n  '                        ORDER BY date DESC\\n' +\n  '                    ', [\n  '2025-09-30',\n  '2025-10-30',\n  '2025-09-30',\n  '2025-10-30',\n  '2025-09-30',\n  '2025-10-30'\n], [Function (anonymous)])\n    at C:\\Users\\DELL\\Desktop\\gembok-bill-main\\config\\billing.js:3359:25\n    at new Promise (<anonymous>)\n    at BillingManager.getFinancialReport (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\config\\billing.js:3203:16)\n    at C:\\Users\\DELL\\Desktop\\gembok-bill-main\\routes\\adminBilling.js:841:52\n    at Layer.handleRequest (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\node_modules\\router\\lib\\route.js:157:13)\n    at getAppSettings (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\routes\\adminBilling.js:48:5)\n    at Layer.handleRequest (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\DELL\\Desktop\\gembok-bill-main\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\node_modules\\router\\index.js:291:5)"
+}
+[2025-10-24T00:47:49.278Z] [ERROR] Error loading collector reports:
+{
+  "name": "Error",
+  "message": "SQLITE_ERROR: no such column: cp.collected_at",
+  "stack": "Error: SQLITE_ERROR: no such column: cp.collected_at"
+}
+[2025-10-24T00:48:29.272Z] [ERROR] ❌ ERROR: Port 3003 sudah digunakan oleh aplikasi lain!
+[2025-10-24T00:48:29.272Z] [ERROR] 💡 Solusi: Hentikan aplikasi yang menggunakan port 3003 atau ubah port di settings.json
+[2025-10-24T00:48:29.274Z] [ERROR] 🔍 Cek aplikasi yang menggunakan port: netstat -ano | findstr :3003
+[2025-10-24T00:49:24.526Z] [ERROR] Error loading collector reports:
+{
+  "name": "Error",
+  "message": "SQLITE_ERROR: no such column: cp.collected_at",
+  "stack": "Error: SQLITE_ERROR: no such column: cp.collected_at"
+}
+[2025-10-24T00:53:22.102Z] [ERROR] Error loading collector reports:
+{
+  "name": "Error",
+  "message": "SQLITE_ERROR: no such column: cp.collected_at",
+  "stack": "Error: SQLITE_ERROR: no such column: cp.collected_at"
+}
+[2025-10-24T01:34:17.662Z] [ERROR] WhatsApp sock not initialized
+[2025-10-24T01:34:17.664Z] [ERROR] Failed to send service restoration notification to alijayanet2: - WhatsApp not connected
+[2025-10-24T01:46:26.269Z] [ERROR] Error getting settings:
+{
+  "name": "Error",
+  "message": "Cannot find module './settings'\nRequire stack:\n- C:\\Users\\DELL\\Desktop\\gembok-bill-main\\config\\agentWhatsApp.js\n- C:\\Users\\DELL\\Desktop\\gembok-bill-main\\routes\\agentAuth.js\n- C:\\Users\\DELL\\Desktop\\gembok-bill-main\\app.js",
+  "stack": "Error: Cannot find module './settings'\nRequire stack:\n- C:\\Users\\DELL\\Desktop\\gembok-bill-main\\config\\agentWhatsApp.js\n- C:\\Users\\DELL\\Desktop\\gembok-bill-main\\routes\\agentAuth.js\n- C:\\Users\\DELL\\Desktop\\gembok-bill-main\\app.js\n    at Function._resolveFilename (node:internal/modules/cjs/loader:1244:15)\n    at Function._load (node:internal/modules/cjs/loader:1070:27)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:217:24)\n    at Module.require (node:internal/modules/cjs/loader:1335:12)\n    at require (node:internal/modules/helpers:136:16)\n    at getSettingsWithCache (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\config\\agentWhatsApp.js:6:33)\n    at AgentWhatsAppManager.sendBalanceUpdateNotification (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\config\\agentWhatsApp.js:212:30)\n    at C:\\Users\\DELL\\Desktop\\gembok-bill-main\\routes\\adminAgents.js:698:43"
+}
+[2025-10-24T01:46:26.272Z] [ERROR] Send balance notification error:
+{
+  "name": "TypeError",
+  "message": "Cannot read properties of undefined (reading 'id')",
+  "stack": "TypeError: Cannot read properties of undefined (reading 'id')\n    at Object.sendMessage (file:///C:/Users/DELL/Desktop/gembok-bill-main/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:862:48)\n    at AgentWhatsAppManager.sendBalanceUpdateNotification (C:\\Users\\DELL\\Desktop\\gembok-bill-main\\config\\agentWhatsApp.js:230:33)\n    at C:\\Users\\DELL\\Desktop\\gembok-bill-main\\routes\\adminAgents.js:698:43"
+}

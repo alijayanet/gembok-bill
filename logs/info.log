@@ -74049,3 +74049,2232 @@
   "bunga"
 ]
 [2025-10-04T04:08:02.635Z] [INFO] Monitoring PPPoE connections: 178 active connections
+[2025-10-23T02:34:30.789Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-23T02:34:31.055Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-23T02:34:31.056Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-23T02:34:31.059Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-23T02:34:31.061Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-23T02:34:31.065Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-23T02:34:31.067Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-23T02:34:31.071Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-23T02:34:31.073Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-23T02:34:32.077Z] [INFO] Direktori sesi WhatsApp dibuat: ./whatsapp-session
+[2025-10-23T02:34:32.205Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-23T02:34:32.205Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-23T02:34:32.206Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-23T02:34:32.207Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-23T02:34:32.214Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-23T02:34:32.216Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-23T02:34:32.217Z] [INFO] Environment: development
+[2025-10-23T02:34:32.486Z] [INFO] WhatsApp socket set in pppoe-notifications module
+[2025-10-23T02:34:32.496Z] [INFO] WhatsApp socket set in pppoe-commands module
+[2025-10-23T02:34:32.497Z] [INFO] WhatsApp socket set in genieacs-commands module
+[2025-10-23T02:34:32.503Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-23T02:34:32.506Z] [INFO] Starting RX Power Warning monitoring (interval: 10 hours)
+[2025-10-23T02:34:32.508Z] [INFO] Starting RX Power Recap monitoring (interval: 6 hours)
+[2025-10-23T02:34:32.512Z] [INFO] Starting Offline Notification monitoring (interval: 12 hours)
+[2025-10-23T02:34:32.513Z] [INFO] IntervalManager initialized successfully
+[2025-10-23T02:34:32.514Z] [INFO] Interval Manager initialized with all monitoring systems
+[2025-10-23T02:34:32.515Z] [INFO] PPPoE monitoring auto-started on initialization
+[2025-10-23T02:34:32.516Z] [INFO] PPPoE monitoring initialized
+[2025-10-23T02:34:57.567Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-23T02:34:57.570Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-23T02:35:32.313Z] [INFO] PPPoE LOGIN:
+[
+  "darim",
+  "iman@",
+  "brohim",
+  "wiwin@seblak",
+  "nurudin",
+  "nina@kesin",
+  "aldo",
+  "antony@ps",
+  "suliwa",
+  "kandar",
+  "codet",
+  "koriya",
+  "rasta",
+  "eva",
+  "kus",
+  "raeni",
+  "abibah",
+  "dhea_tile@rawagunda",
+  "dasta",
+  "elis@rawagunda",
+  "Uchi",
+  "sanyo",
+  "nadiva",
+  "junanto@rawagunda",
+  "adiiman",
+  "lisan@banteng",
+  "sandi@rajan",
+  "winata",
+  "yudi",
+  "server_umi",
+  "server@ilik",
+  "ooh",
+  "daruni@rawagunda",
+  "dayuni",
+  "tariman",
+  "kasdi@rawagunda",
+  "kanu",
+  "yuni@rawagunda",
+  "fajar",
+  "ejun",
+  "newok",
+  "toko@sayur",
+  "jami@sut",
+  "karsih",
+  "kama@",
+  "sarwan",
+  "sumi",
+  "wardi",
+  "eka",
+  "atam",
+  "wakeng",
+  "kendo@tanjungpura",
+  "hany@tarsiti",
+  "nuriyah",
+  "salsa",
+  "wendy@tanjungpura",
+  "tibil",
+  "yudi@rawagunda",
+  "memble@",
+  "damar",
+  "rudi_",
+  "indah@tanjungpura",
+  "cecep",
+  "rom@lah",
+  "aqiel",
+  "coyih",
+  "pandi@tanjungpura",
+  "suminih@rawagunda",
+  "lussy",
+  "tarci",
+  "darim@lor",
+  "erul",
+  "toax",
+  "dedi@aira",
+  "yohan@rawagunda",
+  "alan@pentud",
+  "juanda",
+  "durta",
+  "elvano1",
+  "seka",
+  "gadel",
+  "nesa",
+  "santo",
+  "yuyun",
+  "aang2",
+  "runaeni",
+  "nana",
+  "mardi",
+  "rintem",
+  "maktub",
+  "warungyuni@laut",
+  "andi",
+  "server@arep",
+  "murba",
+  "karban",
+  "dedy@sarkim",
+  "winata@laut",
+  "opang@tanjungpura",
+  "test",
+  "tinih",
+  "tinih_toko",
+  "Tarci@lor",
+  "warung_elisa@laut",
+  "sarjo",
+  "muktar@ompong",
+  "erni",
+  "memble2",
+  "rangdu",
+  "server",
+  "gunawan",
+  "Zea",
+  "wiranto",
+  "ajri",
+  "aang",
+  "talita",
+  "darmini",
+  "toyinah",
+  "RT-KARONI",
+  "icha",
+  "server@yayan",
+  "warsana",
+  "mella",
+  "kincling",
+  "bunga",
+  "handoko",
+  "kasmuri",
+  "wadi@rawagunda",
+  "windah",
+  "karmanda",
+  "alam",
+  "walong@asep",
+  "yogi",
+  "luwih@",
+  "SDNUG1",
+  "waran",
+  "surminih@pegagan",
+  "astri@pegagan",
+  "yusuf",
+  "waidah@pegagan",
+  "wendy@genjong",
+  "leha",
+  "Endra@genjong1",
+  "linah@ujungmulya",
+  "khofik@janggar",
+  "eva@pegagan",
+  "intan@ujungmulya",
+  "indra@plentong",
+  "F663",
+  "dadang@genjong",
+  "sang",
+  "gemblung",
+  "nani",
+  "pabudi@genjong",
+  "opang@pegagan",
+  "murdani",
+  "ety@pegagan",
+  "uung@pegagan",
+  "umikulsum@janggar",
+  "turidah",
+  "durniyah@pegagan",
+  "sutara@pegagan",
+  "mangasep@janggar",
+  "novita",
+  "sudini@pegagan",
+  "nalda@pegagan",
+  "denihamdani@pegagan",
+  "soleh@pegagan",
+  "adineasep",
+  "yuni@ujungmulya",
+  "abas@pegagan",
+  "anwar@janggar",
+  "sarna@pegagan",
+  "kurnati",
+  "eryanto@pegagan",
+  "mastobari@",
+  "h.juroh"
+]
+[2025-10-23T02:35:32.314Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T02:36:32.284Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T02:37:32.231Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T02:38:38.582Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-23T02:38:38.756Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-23T02:38:38.757Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-23T02:38:38.758Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-23T02:38:38.760Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-23T02:38:38.761Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-23T02:38:38.763Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-23T02:38:38.764Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-23T02:38:38.765Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-23T02:38:39.892Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-23T02:38:39.893Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-23T02:38:39.894Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-23T02:38:39.894Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-23T02:38:39.899Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-23T02:38:39.900Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-23T02:38:39.900Z] [INFO] Environment: development
+[2025-10-23T02:38:40.257Z] [INFO] WhatsApp socket set in pppoe-notifications module
+[2025-10-23T02:38:40.287Z] [INFO] WhatsApp socket set in pppoe-commands module
+[2025-10-23T02:38:40.288Z] [INFO] WhatsApp socket set in genieacs-commands module
+[2025-10-23T02:38:40.295Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-23T02:38:40.384Z] [INFO] Starting RX Power Warning monitoring (interval: 10 hours)
+[2025-10-23T02:38:40.390Z] [INFO] Starting RX Power Recap monitoring (interval: 6 hours)
+[2025-10-23T02:38:40.391Z] [INFO] Starting Offline Notification monitoring (interval: 12 hours)
+[2025-10-23T02:38:40.392Z] [INFO] IntervalManager initialized successfully
+[2025-10-23T02:38:40.396Z] [INFO] Interval Manager initialized with all monitoring systems
+[2025-10-23T02:38:40.398Z] [INFO] PPPoE monitoring auto-started on initialization
+[2025-10-23T02:38:40.399Z] [INFO] PPPoE monitoring initialized
+[2025-10-23T02:38:47.378Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-23T02:38:47.382Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-23T02:39:39.995Z] [INFO] PPPoE LOGIN:
+[
+  "darim",
+  "iman@",
+  "brohim",
+  "wiwin@seblak",
+  "nurudin",
+  "nina@kesin",
+  "aldo",
+  "antony@ps",
+  "suliwa",
+  "kandar",
+  "codet",
+  "koriya",
+  "rasta",
+  "eva",
+  "kus",
+  "raeni",
+  "abibah",
+  "dhea_tile@rawagunda",
+  "dasta",
+  "elis@rawagunda",
+  "Uchi",
+  "sanyo",
+  "nadiva",
+  "junanto@rawagunda",
+  "adiiman",
+  "lisan@banteng",
+  "sandi@rajan",
+  "winata",
+  "yudi",
+  "server_umi",
+  "server@ilik",
+  "ooh",
+  "daruni@rawagunda",
+  "dayuni",
+  "tariman",
+  "kasdi@rawagunda",
+  "kanu",
+  "yuni@rawagunda",
+  "fajar",
+  "ejun",
+  "newok",
+  "toko@sayur",
+  "jami@sut",
+  "karsih",
+  "kama@",
+  "sarwan",
+  "sumi",
+  "wardi",
+  "eka",
+  "atam",
+  "wakeng",
+  "kendo@tanjungpura",
+  "hany@tarsiti",
+  "nuriyah",
+  "salsa",
+  "wendy@tanjungpura",
+  "tibil",
+  "yudi@rawagunda",
+  "memble@",
+  "damar",
+  "rudi_",
+  "indah@tanjungpura",
+  "cecep",
+  "rom@lah",
+  "aqiel",
+  "coyih",
+  "pandi@tanjungpura",
+  "suminih@rawagunda",
+  "lussy",
+  "tarci",
+  "darim@lor",
+  "erul",
+  "toax",
+  "dedi@aira",
+  "yohan@rawagunda",
+  "alan@pentud",
+  "juanda",
+  "durta",
+  "elvano1",
+  "seka",
+  "gadel",
+  "nesa",
+  "santo",
+  "yuyun",
+  "aang2",
+  "runaeni",
+  "nana",
+  "mardi",
+  "rintem",
+  "maktub",
+  "warungyuni@laut",
+  "andi",
+  "server@arep",
+  "murba",
+  "karban",
+  "dedy@sarkim",
+  "winata@laut",
+  "opang@tanjungpura",
+  "test",
+  "tinih",
+  "tinih_toko",
+  "Tarci@lor",
+  "warung_elisa@laut",
+  "sarjo",
+  "muktar@ompong",
+  "erni",
+  "memble2",
+  "rangdu",
+  "server",
+  "gunawan",
+  "Zea",
+  "wiranto",
+  "ajri",
+  "aang",
+  "talita",
+  "darmini",
+  "toyinah",
+  "RT-KARONI",
+  "icha",
+  "server@yayan",
+  "warsana",
+  "mella",
+  "kincling",
+  "bunga",
+  "handoko",
+  "kasmuri",
+  "wadi@rawagunda",
+  "windah",
+  "karmanda",
+  "alam",
+  "walong@asep",
+  "yogi",
+  "luwih@",
+  "SDNUG1",
+  "waran",
+  "surminih@pegagan",
+  "astri@pegagan",
+  "yusuf",
+  "waidah@pegagan",
+  "wendy@genjong",
+  "leha",
+  "Endra@genjong1",
+  "linah@ujungmulya",
+  "khofik@janggar",
+  "eva@pegagan",
+  "intan@ujungmulya",
+  "indra@plentong",
+  "F663",
+  "dadang@genjong",
+  "sang",
+  "gemblung",
+  "nani",
+  "pabudi@genjong",
+  "opang@pegagan",
+  "murdani",
+  "ety@pegagan",
+  "uung@pegagan",
+  "umikulsum@janggar",
+  "turidah",
+  "durniyah@pegagan",
+  "sutara@pegagan",
+  "mangasep@janggar",
+  "novita",
+  "sudini@pegagan",
+  "nalda@pegagan",
+  "denihamdani@pegagan",
+  "soleh@pegagan",
+  "adineasep",
+  "yuni@ujungmulya",
+  "abas@pegagan",
+  "anwar@janggar",
+  "sarna@pegagan",
+  "kurnati",
+  "eryanto@pegagan",
+  "mastobari@",
+  "h.juroh"
+]
+[2025-10-23T02:39:39.996Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T02:40:39.968Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T02:41:39.914Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T02:42:39.994Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T02:43:39.940Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T02:59:37.453Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-23T02:59:38.568Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-23T02:59:38.569Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-23T02:59:38.583Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-23T02:59:38.592Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-23T02:59:38.601Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-23T02:59:38.609Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-23T02:59:38.621Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-23T02:59:38.627Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-23T02:59:48.777Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-23T02:59:48.778Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-23T02:59:48.779Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-23T02:59:48.780Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-23T02:59:48.821Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-23T02:59:48.822Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-23T02:59:48.823Z] [INFO] Environment: development
+[2025-10-23T02:59:49.176Z] [INFO] WhatsApp socket set in pppoe-notifications module
+[2025-10-23T02:59:49.188Z] [INFO] WhatsApp socket set in pppoe-commands module
+[2025-10-23T02:59:49.190Z] [INFO] WhatsApp socket set in genieacs-commands module
+[2025-10-23T02:59:49.195Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-23T02:59:49.198Z] [INFO] Starting RX Power Warning monitoring (interval: 10 hours)
+[2025-10-23T02:59:49.199Z] [INFO] Starting RX Power Recap monitoring (interval: 6 hours)
+[2025-10-23T02:59:49.202Z] [INFO] Starting Offline Notification monitoring (interval: 12 hours)
+[2025-10-23T02:59:49.203Z] [INFO] IntervalManager initialized successfully
+[2025-10-23T02:59:49.204Z] [INFO] Interval Manager initialized with all monitoring systems
+[2025-10-23T02:59:49.207Z] [INFO] PPPoE monitoring auto-started on initialization
+[2025-10-23T02:59:49.209Z] [INFO] PPPoE monitoring initialized
+[2025-10-23T03:07:33.905Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-23T03:07:34.098Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-23T03:07:34.099Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-23T03:07:34.106Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-23T03:07:34.114Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-23T03:07:34.125Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-23T03:07:34.133Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-23T03:07:34.148Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-23T03:07:34.154Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-23T03:07:35.072Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-23T03:07:35.073Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-23T03:07:35.074Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-23T03:07:35.075Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-23T03:07:35.080Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-23T03:07:35.082Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-23T03:07:35.082Z] [INFO] Environment: development
+[2025-10-23T03:07:35.360Z] [INFO] WhatsApp socket set in pppoe-notifications module
+[2025-10-23T03:07:35.369Z] [INFO] WhatsApp socket set in pppoe-commands module
+[2025-10-23T03:07:35.370Z] [INFO] WhatsApp socket set in genieacs-commands module
+[2025-10-23T03:07:35.376Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-23T03:07:35.379Z] [INFO] Starting RX Power Warning monitoring (interval: 10 hours)
+[2025-10-23T03:07:35.381Z] [INFO] Starting RX Power Recap monitoring (interval: 6 hours)
+[2025-10-23T03:07:35.383Z] [INFO] Starting Offline Notification monitoring (interval: 12 hours)
+[2025-10-23T03:07:35.384Z] [INFO] IntervalManager initialized successfully
+[2025-10-23T03:07:35.386Z] [INFO] Interval Manager initialized with all monitoring systems
+[2025-10-23T03:07:35.387Z] [INFO] PPPoE monitoring auto-started on initialization
+[2025-10-23T03:07:35.388Z] [INFO] PPPoE monitoring initialized
+[2025-10-23T03:07:58.192Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-23T03:07:58.194Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-23T03:08:35.191Z] [INFO] PPPoE LOGIN:
+[
+  "darim",
+  "iman@",
+  "brohim",
+  "wiwin@seblak",
+  "nurudin",
+  "nina@kesin",
+  "aldo",
+  "antony@ps",
+  "suliwa",
+  "kandar",
+  "codet",
+  "koriya",
+  "rasta",
+  "eva",
+  "kus",
+  "raeni",
+  "abibah",
+  "dhea_tile@rawagunda",
+  "dasta",
+  "elis@rawagunda",
+  "Uchi",
+  "sanyo",
+  "nadiva",
+  "junanto@rawagunda",
+  "adiiman",
+  "lisan@banteng",
+  "sandi@rajan",
+  "winata",
+  "yudi",
+  "server_umi",
+  "server@ilik",
+  "ooh",
+  "daruni@rawagunda",
+  "dayuni",
+  "tariman",
+  "kasdi@rawagunda",
+  "kanu",
+  "yuni@rawagunda",
+  "fajar",
+  "ejun",
+  "newok",
+  "toko@sayur",
+  "jami@sut",
+  "karsih",
+  "kama@",
+  "sarwan",
+  "sumi",
+  "wardi",
+  "eka",
+  "atam",
+  "wakeng",
+  "kendo@tanjungpura",
+  "hany@tarsiti",
+  "nuriyah",
+  "salsa",
+  "wendy@tanjungpura",
+  "tibil",
+  "yudi@rawagunda",
+  "memble@",
+  "damar",
+  "rudi_",
+  "indah@tanjungpura",
+  "cecep",
+  "rom@lah",
+  "aqiel",
+  "coyih",
+  "pandi@tanjungpura",
+  "suminih@rawagunda",
+  "lussy",
+  "tarci",
+  "darim@lor",
+  "erul",
+  "toax",
+  "dedi@aira",
+  "yohan@rawagunda",
+  "alan@pentud",
+  "juanda",
+  "durta",
+  "elvano1",
+  "seka",
+  "gadel",
+  "nesa",
+  "santo",
+  "yuyun",
+  "aang2",
+  "runaeni",
+  "nana",
+  "mardi",
+  "rintem",
+  "maktub",
+  "warungyuni@laut",
+  "andi",
+  "server@arep",
+  "murba",
+  "karban",
+  "dedy@sarkim",
+  "winata@laut",
+  "opang@tanjungpura",
+  "test",
+  "tinih",
+  "tinih_toko",
+  "Tarci@lor",
+  "warung_elisa@laut",
+  "muktar@ompong",
+  "erni",
+  "memble2",
+  "rangdu",
+  "server",
+  "gunawan",
+  "Zea",
+  "wiranto",
+  "ajri",
+  "aang",
+  "talita",
+  "darmini",
+  "toyinah",
+  "RT-KARONI",
+  "icha",
+  "server@yayan",
+  "warsana",
+  "mella",
+  "kincling",
+  "bunga",
+  "handoko",
+  "kasmuri",
+  "wadi@rawagunda",
+  "windah",
+  "karmanda",
+  "alam",
+  "walong@asep",
+  "yogi",
+  "luwih@",
+  "SDNUG1",
+  "waran",
+  "surminih@pegagan",
+  "yusuf",
+  "waidah@pegagan",
+  "wendy@genjong",
+  "leha",
+  "Endra@genjong1",
+  "linah@ujungmulya",
+  "khofik@janggar",
+  "eva@pegagan",
+  "intan@ujungmulya",
+  "indra@plentong",
+  "F663",
+  "dadang@genjong",
+  "sang",
+  "gemblung",
+  "nani",
+  "pabudi@genjong",
+  "opang@pegagan",
+  "murdani",
+  "ety@pegagan",
+  "uung@pegagan",
+  "umikulsum@janggar",
+  "turidah",
+  "durniyah@pegagan",
+  "sutara@pegagan",
+  "mangasep@janggar",
+  "novita",
+  "sudini@pegagan",
+  "nalda@pegagan",
+  "denihamdani@pegagan",
+  "soleh@pegagan",
+  "adineasep",
+  "yuni@ujungmulya",
+  "abas@pegagan",
+  "anwar@janggar",
+  "sarna@pegagan",
+  "kurnati",
+  "eryanto@pegagan",
+  "mastobari@",
+  "h.juroh",
+  "astri@pegagan",
+  "sarjo"
+]
+[2025-10-23T03:08:35.198Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T03:09:35.163Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T03:10:39.419Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-23T03:10:39.728Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-23T03:10:39.809Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-23T03:10:39.849Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-23T03:10:39.933Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-23T03:10:39.977Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-23T03:10:39.996Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-23T03:10:40.010Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-23T03:10:40.030Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-23T03:10:41.721Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-23T03:10:41.727Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-23T03:10:41.730Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-23T03:10:41.732Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-23T03:10:41.775Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-23T03:10:41.781Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-23T03:10:41.800Z] [INFO] Environment: development
+[2025-10-23T03:10:42.301Z] [INFO] WhatsApp socket set in pppoe-notifications module
+[2025-10-23T03:10:42.357Z] [INFO] WhatsApp socket set in pppoe-commands module
+[2025-10-23T03:10:42.368Z] [INFO] WhatsApp socket set in genieacs-commands module
+[2025-10-23T03:10:42.501Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-23T03:10:42.584Z] [INFO] Starting RX Power Warning monitoring (interval: 10 hours)
+[2025-10-23T03:10:42.639Z] [INFO] Starting RX Power Recap monitoring (interval: 6 hours)
+[2025-10-23T03:10:42.642Z] [INFO] Starting Offline Notification monitoring (interval: 12 hours)
+[2025-10-23T03:10:42.668Z] [INFO] IntervalManager initialized successfully
+[2025-10-23T03:10:42.691Z] [INFO] Interval Manager initialized with all monitoring systems
+[2025-10-23T03:10:42.694Z] [INFO] PPPoE monitoring auto-started on initialization
+[2025-10-23T03:10:42.696Z] [INFO] PPPoE monitoring initialized
+[2025-10-23T03:10:50.618Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-23T03:11:41.872Z] [INFO] PPPoE LOGIN:
+[
+  "darim",
+  "iman@",
+  "brohim",
+  "wiwin@seblak",
+  "nurudin",
+  "nina@kesin",
+  "aldo",
+  "antony@ps",
+  "suliwa",
+  "kandar",
+  "codet",
+  "koriya",
+  "rasta",
+  "eva",
+  "kus",
+  "raeni",
+  "abibah",
+  "dhea_tile@rawagunda",
+  "dasta",
+  "elis@rawagunda",
+  "Uchi",
+  "sanyo",
+  "nadiva",
+  "junanto@rawagunda",
+  "adiiman",
+  "lisan@banteng",
+  "sandi@rajan",
+  "winata",
+  "yudi",
+  "server_umi",
+  "server@ilik",
+  "ooh",
+  "daruni@rawagunda",
+  "dayuni",
+  "tariman",
+  "kasdi@rawagunda",
+  "kanu",
+  "yuni@rawagunda",
+  "fajar",
+  "ejun",
+  "newok",
+  "toko@sayur",
+  "jami@sut",
+  "karsih",
+  "kama@",
+  "sarwan",
+  "sumi",
+  "wardi",
+  "eka",
+  "atam",
+  "wakeng",
+  "kendo@tanjungpura",
+  "hany@tarsiti",
+  "nuriyah",
+  "salsa",
+  "wendy@tanjungpura",
+  "tibil",
+  "yudi@rawagunda",
+  "memble@",
+  "damar",
+  "rudi_",
+  "indah@tanjungpura",
+  "cecep",
+  "rom@lah",
+  "aqiel",
+  "coyih",
+  "pandi@tanjungpura",
+  "suminih@rawagunda",
+  "lussy",
+  "tarci",
+  "darim@lor",
+  "erul",
+  "toax",
+  "dedi@aira",
+  "yohan@rawagunda",
+  "alan@pentud",
+  "juanda",
+  "durta",
+  "elvano1",
+  "seka",
+  "gadel",
+  "nesa",
+  "santo",
+  "yuyun",
+  "aang2",
+  "runaeni",
+  "nana",
+  "mardi",
+  "rintem",
+  "maktub",
+  "warungyuni@laut",
+  "andi",
+  "server@arep",
+  "murba",
+  "karban",
+  "dedy@sarkim",
+  "winata@laut",
+  "opang@tanjungpura",
+  "test",
+  "tinih",
+  "tinih_toko",
+  "Tarci@lor",
+  "warung_elisa@laut",
+  "muktar@ompong",
+  "erni",
+  "memble2",
+  "rangdu",
+  "server",
+  "gunawan",
+  "Zea",
+  "wiranto",
+  "ajri",
+  "aang",
+  "talita",
+  "darmini",
+  "toyinah",
+  "RT-KARONI",
+  "icha",
+  "server@yayan",
+  "warsana",
+  "mella",
+  "kincling",
+  "bunga",
+  "handoko",
+  "kasmuri",
+  "wadi@rawagunda",
+  "windah",
+  "karmanda",
+  "alam",
+  "walong@asep",
+  "yogi",
+  "luwih@",
+  "SDNUG1",
+  "waran",
+  "surminih@pegagan",
+  "yusuf",
+  "waidah@pegagan",
+  "wendy@genjong",
+  "leha",
+  "Endra@genjong1",
+  "linah@ujungmulya",
+  "khofik@janggar",
+  "eva@pegagan",
+  "intan@ujungmulya",
+  "indra@plentong",
+  "F663",
+  "dadang@genjong",
+  "sang",
+  "gemblung",
+  "nani",
+  "pabudi@genjong",
+  "opang@pegagan",
+  "murdani",
+  "ety@pegagan",
+  "uung@pegagan",
+  "umikulsum@janggar",
+  "turidah",
+  "durniyah@pegagan",
+  "sutara@pegagan",
+  "mangasep@janggar",
+  "novita",
+  "sudini@pegagan",
+  "nalda@pegagan",
+  "denihamdani@pegagan",
+  "soleh@pegagan",
+  "adineasep",
+  "yuni@ujungmulya",
+  "abas@pegagan",
+  "anwar@janggar",
+  "sarna@pegagan",
+  "kurnati",
+  "eryanto@pegagan",
+  "mastobari@",
+  "h.juroh",
+  "astri@pegagan",
+  "sarjo"
+]
+[2025-10-23T03:11:41.874Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T03:12:34.468Z] [INFO] Found 51 active hotspot users
+[2025-10-23T03:12:38.934Z] [INFO] Found 51 active hotspot users
+[2025-10-23T03:12:41.734Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-23T03:13:39.952Z] [INFO] Found 50 active hotspot users
+[2025-10-23T03:13:41.807Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:42:26.572Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-24T00:42:27.633Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-24T00:42:27.634Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-24T00:42:27.641Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-24T00:42:27.648Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T00:42:27.660Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-24T00:42:27.668Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-24T00:42:27.679Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-24T00:42:27.686Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T00:42:38.162Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T00:42:38.164Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-24T00:42:38.166Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-24T00:42:38.167Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-24T00:42:38.177Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-24T00:42:38.178Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-24T00:42:38.180Z] [INFO] Environment: development
+[2025-10-24T00:42:38.679Z] [INFO] WhatsApp socket set in pppoe-notifications module
+[2025-10-24T00:42:38.689Z] [INFO] WhatsApp socket set in pppoe-commands module
+[2025-10-24T00:42:38.690Z] [INFO] WhatsApp socket set in genieacs-commands module
+[2025-10-24T00:42:38.697Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T00:42:38.700Z] [INFO] Starting RX Power Warning monitoring (interval: 10 hours)
+[2025-10-24T00:42:38.702Z] [INFO] Starting RX Power Recap monitoring (interval: 6 hours)
+[2025-10-24T00:42:38.706Z] [INFO] Starting Offline Notification monitoring (interval: 12 hours)
+[2025-10-24T00:42:38.708Z] [INFO] IntervalManager initialized successfully
+[2025-10-24T00:42:38.708Z] [INFO] Interval Manager initialized with all monitoring systems
+[2025-10-24T00:42:38.710Z] [INFO] PPPoE monitoring auto-started on initialization
+[2025-10-24T00:42:38.711Z] [INFO] PPPoE monitoring initialized
+[2025-10-24T00:42:51.783Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-24T00:43:38.294Z] [INFO] PPPoE LOGIN:
+[
+  "darim",
+  "iman@",
+  "brohim",
+  "wiwin@seblak",
+  "nurudin",
+  "nina@kesin",
+  "aldo",
+  "antony@ps",
+  "suliwa",
+  "kandar",
+  "codet",
+  "koriya",
+  "rasta",
+  "eva",
+  "kus",
+  "raeni",
+  "abibah",
+  "dhea_tile@rawagunda",
+  "dasta",
+  "elis@rawagunda",
+  "Uchi",
+  "sanyo",
+  "nadiva",
+  "junanto@rawagunda",
+  "adiiman",
+  "lisan@banteng",
+  "winata",
+  "yudi",
+  "server@ilik",
+  "ooh",
+  "daruni@rawagunda",
+  "dayuni",
+  "kanu",
+  "yuni@rawagunda",
+  "fajar",
+  "ejun",
+  "newok",
+  "toko@sayur",
+  "jami@sut",
+  "karsih",
+  "kama@",
+  "sarwan",
+  "sumi",
+  "wardi",
+  "eka",
+  "atam",
+  "wakeng",
+  "kendo@tanjungpura",
+  "hany@tarsiti",
+  "salsa",
+  "wendy@tanjungpura",
+  "tibil",
+  "memble@",
+  "damar",
+  "rudi_",
+  "indah@tanjungpura",
+  "cecep",
+  "rom@lah",
+  "aqiel",
+  "suminih@rawagunda",
+  "lussy",
+  "tarci",
+  "darim@lor",
+  "erul",
+  "toax",
+  "dedi@aira",
+  "yohan@rawagunda",
+  "juanda",
+  "durta",
+  "elvano1",
+  "gadel",
+  "santo",
+  "yuyun",
+  "aang2",
+  "runaeni",
+  "mardi",
+  "rintem",
+  "maktub",
+  "warungyuni@laut",
+  "andi",
+  "server@arep",
+  "murba",
+  "karban",
+  "dedy@sarkim",
+  "winata@laut",
+  "opang@tanjungpura",
+  "test",
+  "tinih",
+  "tinih_toko",
+  "Tarci@lor",
+  "warung_elisa@laut",
+  "muktar@ompong",
+  "memble2",
+  "rangdu",
+  "Zea",
+  "wiranto",
+  "aang",
+  "toyinah",
+  "RT-KARONI",
+  "server@yayan",
+  "kincling",
+  "handoko",
+  "wadi@rawagunda",
+  "alam",
+  "yogi",
+  "luwih@",
+  "wendy@genjong",
+  "Endra@genjong1",
+  "khofik@janggar",
+  "F663",
+  "dadang@genjong",
+  "pabudi@genjong",
+  "umikulsum@janggar",
+  "mangasep@janggar",
+  "anwar@janggar",
+  "mastobari@",
+  "sarjo",
+  "nuriyah",
+  "denihamdani@pegagan",
+  "sudini@pegagan",
+  "intan@ujungmulya",
+  "sutara@pegagan",
+  "yuni@ujungmulya",
+  "soleh@pegagan",
+  "murdani",
+  "adineasep",
+  "durniyah@pegagan",
+  "indra@plentong",
+  "eva@pegagan",
+  "novita",
+  "gemblung",
+  "sang",
+  "turidah",
+  "leha",
+  "yusuf",
+  "ety@pegagan",
+  "nalda@pegagan",
+  "abas@pegagan",
+  "surminih@pegagan",
+  "eryanto@pegagan",
+  "nani",
+  "alan@pentud",
+  "kurnati",
+  "uung@pegagan",
+  "waidah@pegagan",
+  "sarna@pegagan",
+  "nana",
+  "kasdi@rawagunda",
+  "gunawan",
+  "linah@ujungmulya",
+  "nesa",
+  "talita",
+  "coyih",
+  "pandi@tanjungpura",
+  "yudi@rawagunda",
+  "astri@pegagan",
+  "tariman",
+  "karmanda",
+  "icha",
+  "h.juroh",
+  "setiyadi@genjong",
+  "sandi@rajan",
+  "opang@pegagan",
+  "walong@asep",
+  "server",
+  "darmini",
+  "windah",
+  "kasmuri",
+  "seka",
+  "waran",
+  "erni",
+  "mella",
+  "warsana",
+  "ajri",
+  "bunga",
+  "SDNUG1"
+]
+[2025-10-24T00:43:38.296Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:44:38.253Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:45:38.180Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:46:38.275Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:47:38.203Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:48:28.067Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-24T00:48:28.245Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-24T00:48:28.246Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-24T00:48:28.252Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-24T00:48:28.259Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T00:48:28.268Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-24T00:48:28.275Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-24T00:48:28.285Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-24T00:48:28.291Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T00:48:29.262Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T00:48:29.264Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-24T00:48:29.265Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-24T00:48:29.265Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-24T00:48:29.269Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-24T00:48:29.270Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-24T00:48:29.271Z] [INFO] Environment: development
+[2025-10-24T00:48:38.276Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:49:38.220Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:50:38.300Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:51:38.234Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:52:38.325Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:52:56.503Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-24T00:52:56.751Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-24T00:52:56.754Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-24T00:52:56.762Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-24T00:52:56.771Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T00:52:56.785Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-24T00:52:56.797Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-24T00:52:56.813Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-24T00:52:56.823Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T00:52:57.877Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T00:52:57.878Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-24T00:52:57.879Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-24T00:52:57.880Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-24T00:52:57.886Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-24T00:52:57.887Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-24T00:52:57.887Z] [INFO] Environment: development
+[2025-10-24T00:52:58.146Z] [INFO] WhatsApp socket set in pppoe-notifications module
+[2025-10-24T00:52:58.155Z] [INFO] WhatsApp socket set in pppoe-commands module
+[2025-10-24T00:52:58.156Z] [INFO] WhatsApp socket set in genieacs-commands module
+[2025-10-24T00:52:58.161Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T00:52:58.164Z] [INFO] Starting RX Power Warning monitoring (interval: 10 hours)
+[2025-10-24T00:52:58.166Z] [INFO] Starting RX Power Recap monitoring (interval: 6 hours)
+[2025-10-24T00:52:58.168Z] [INFO] Starting Offline Notification monitoring (interval: 12 hours)
+[2025-10-24T00:52:58.168Z] [INFO] IntervalManager initialized successfully
+[2025-10-24T00:52:58.169Z] [INFO] Interval Manager initialized with all monitoring systems
+[2025-10-24T00:52:58.170Z] [INFO] PPPoE monitoring auto-started on initialization
+[2025-10-24T00:52:58.171Z] [INFO] PPPoE monitoring initialized
+[2025-10-24T00:53:09.952Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-24T00:53:57.993Z] [INFO] PPPoE LOGIN:
+[
+  "darim",
+  "iman@",
+  "brohim",
+  "wiwin@seblak",
+  "nurudin",
+  "nina@kesin",
+  "aldo",
+  "antony@ps",
+  "suliwa",
+  "kandar",
+  "codet",
+  "koriya",
+  "rasta",
+  "eva",
+  "kus",
+  "raeni",
+  "abibah",
+  "dhea_tile@rawagunda",
+  "dasta",
+  "elis@rawagunda",
+  "Uchi",
+  "sanyo",
+  "nadiva",
+  "junanto@rawagunda",
+  "adiiman",
+  "lisan@banteng",
+  "winata",
+  "yudi",
+  "server@ilik",
+  "ooh",
+  "daruni@rawagunda",
+  "dayuni",
+  "kanu",
+  "yuni@rawagunda",
+  "fajar",
+  "ejun",
+  "newok",
+  "toko@sayur",
+  "jami@sut",
+  "karsih",
+  "kama@",
+  "sarwan",
+  "sumi",
+  "wardi",
+  "eka",
+  "atam",
+  "wakeng",
+  "kendo@tanjungpura",
+  "hany@tarsiti",
+  "salsa",
+  "wendy@tanjungpura",
+  "tibil",
+  "memble@",
+  "damar",
+  "rudi_",
+  "indah@tanjungpura",
+  "cecep",
+  "rom@lah",
+  "aqiel",
+  "suminih@rawagunda",
+  "lussy",
+  "tarci",
+  "darim@lor",
+  "erul",
+  "toax",
+  "dedi@aira",
+  "yohan@rawagunda",
+  "juanda",
+  "durta",
+  "elvano1",
+  "gadel",
+  "santo",
+  "yuyun",
+  "aang2",
+  "runaeni",
+  "mardi",
+  "rintem",
+  "maktub",
+  "warungyuni@laut",
+  "andi",
+  "server@arep",
+  "murba",
+  "karban",
+  "dedy@sarkim",
+  "winata@laut",
+  "opang@tanjungpura",
+  "test",
+  "tinih",
+  "tinih_toko",
+  "Tarci@lor",
+  "warung_elisa@laut",
+  "muktar@ompong",
+  "memble2",
+  "rangdu",
+  "Zea",
+  "wiranto",
+  "aang",
+  "toyinah",
+  "RT-KARONI",
+  "server@yayan",
+  "kincling",
+  "handoko",
+  "wadi@rawagunda",
+  "alam",
+  "yogi",
+  "luwih@",
+  "wendy@genjong",
+  "Endra@genjong1",
+  "khofik@janggar",
+  "F663",
+  "dadang@genjong",
+  "pabudi@genjong",
+  "umikulsum@janggar",
+  "mangasep@janggar",
+  "anwar@janggar",
+  "mastobari@",
+  "sarjo",
+  "nuriyah",
+  "denihamdani@pegagan",
+  "sudini@pegagan",
+  "intan@ujungmulya",
+  "sutara@pegagan",
+  "yuni@ujungmulya",
+  "soleh@pegagan",
+  "murdani",
+  "adineasep",
+  "durniyah@pegagan",
+  "indra@plentong",
+  "eva@pegagan",
+  "novita",
+  "gemblung",
+  "sang",
+  "turidah",
+  "leha",
+  "yusuf",
+  "ety@pegagan",
+  "nalda@pegagan",
+  "abas@pegagan",
+  "surminih@pegagan",
+  "eryanto@pegagan",
+  "nani",
+  "alan@pentud",
+  "kurnati",
+  "uung@pegagan",
+  "waidah@pegagan",
+  "sarna@pegagan",
+  "nana",
+  "kasdi@rawagunda",
+  "gunawan",
+  "linah@ujungmulya",
+  "nesa",
+  "talita",
+  "coyih",
+  "pandi@tanjungpura",
+  "yudi@rawagunda",
+  "astri@pegagan",
+  "tariman",
+  "karmanda",
+  "icha",
+  "h.juroh",
+  "setiyadi@genjong",
+  "sandi@rajan",
+  "opang@pegagan",
+  "walong@asep",
+  "server",
+  "darmini",
+  "windah",
+  "kasmuri",
+  "seka",
+  "waran",
+  "erni",
+  "mella",
+  "warsana",
+  "ajri",
+  "bunga",
+  "SDNUG1"
+]
+[2025-10-24T00:53:57.994Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:54:58.039Z] [INFO] PPPoE LOGOUT:
+[
+  "lisan@banteng"
+]
+[2025-10-24T00:54:58.040Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T00:55:38.113Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-24T00:55:38.293Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-24T00:55:38.294Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-24T00:55:38.299Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-24T00:55:38.305Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T00:55:38.313Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-24T00:55:38.321Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-24T00:55:38.332Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-24T00:55:38.340Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T00:55:39.248Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T00:55:39.249Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-24T00:55:39.250Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-24T00:55:39.251Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-24T00:55:39.261Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-24T00:55:39.262Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-24T00:55:39.263Z] [INFO] Environment: development
+[2025-10-24T00:55:39.509Z] [INFO] WhatsApp socket set in pppoe-notifications module
+[2025-10-24T00:55:39.518Z] [INFO] WhatsApp socket set in pppoe-commands module
+[2025-10-24T00:55:39.519Z] [INFO] WhatsApp socket set in genieacs-commands module
+[2025-10-24T00:55:39.527Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T00:55:39.530Z] [INFO] Starting RX Power Warning monitoring (interval: 10 hours)
+[2025-10-24T00:55:39.532Z] [INFO] Starting RX Power Recap monitoring (interval: 6 hours)
+[2025-10-24T00:55:39.534Z] [INFO] Starting Offline Notification monitoring (interval: 12 hours)
+[2025-10-24T00:55:39.535Z] [INFO] IntervalManager initialized successfully
+[2025-10-24T00:55:39.536Z] [INFO] Interval Manager initialized with all monitoring systems
+[2025-10-24T00:55:39.537Z] [INFO] PPPoE monitoring auto-started on initialization
+[2025-10-24T00:55:39.538Z] [INFO] PPPoE monitoring initialized
+[2025-10-24T00:55:46.601Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-24T00:55:46.602Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-24T00:56:39.336Z] [INFO] PPPoE LOGIN:
+[
+  "darim",
+  "iman@",
+  "brohim",
+  "wiwin@seblak",
+  "nurudin",
+  "nina@kesin",
+  "aldo",
+  "antony@ps",
+  "suliwa",
+  "kandar",
+  "codet",
+  "koriya",
+  "rasta",
+  "eva",
+  "kus",
+  "raeni",
+  "abibah",
+  "dhea_tile@rawagunda",
+  "dasta",
+  "elis@rawagunda",
+  "Uchi",
+  "sanyo",
+  "nadiva",
+  "junanto@rawagunda",
+  "adiiman",
+  "winata",
+  "yudi",
+  "server@ilik",
+  "ooh",
+  "daruni@rawagunda",
+  "dayuni",
+  "kanu",
+  "yuni@rawagunda",
+  "fajar",
+  "ejun",
+  "newok",
+  "toko@sayur",
+  "jami@sut",
+  "karsih",
+  "kama@",
+  "sarwan",
+  "sumi",
+  "wardi",
+  "eka",
+  "atam",
+  "wakeng",
+  "kendo@tanjungpura",
+  "hany@tarsiti",
+  "salsa",
+  "wendy@tanjungpura",
+  "tibil",
+  "memble@",
+  "damar",
+  "rudi_",
+  "indah@tanjungpura",
+  "cecep",
+  "rom@lah",
+  "aqiel",
+  "suminih@rawagunda",
+  "lussy",
+  "tarci",
+  "darim@lor",
+  "erul",
+  "toax",
+  "dedi@aira",
+  "yohan@rawagunda",
+  "juanda",
+  "durta",
+  "elvano1",
+  "gadel",
+  "santo",
+  "yuyun",
+  "aang2",
+  "runaeni",
+  "mardi",
+  "rintem",
+  "maktub",
+  "warungyuni@laut",
+  "andi",
+  "server@arep",
+  "murba",
+  "karban",
+  "dedy@sarkim",
+  "winata@laut",
+  "opang@tanjungpura",
+  "test",
+  "tinih",
+  "tinih_toko",
+  "Tarci@lor",
+  "warung_elisa@laut",
+  "muktar@ompong",
+  "memble2",
+  "rangdu",
+  "Zea",
+  "wiranto",
+  "aang",
+  "toyinah",
+  "RT-KARONI",
+  "server@yayan",
+  "kincling",
+  "handoko",
+  "wadi@rawagunda",
+  "alam",
+  "yogi",
+  "luwih@",
+  "wendy@genjong",
+  "Endra@genjong1",
+  "khofik@janggar",
+  "F663",
+  "dadang@genjong",
+  "pabudi@genjong",
+  "umikulsum@janggar",
+  "mangasep@janggar",
+  "anwar@janggar",
+  "mastobari@",
+  "sarjo",
+  "nuriyah",
+  "denihamdani@pegagan",
+  "sudini@pegagan",
+  "intan@ujungmulya",
+  "sutara@pegagan",
+  "yuni@ujungmulya",
+  "soleh@pegagan",
+  "murdani",
+  "adineasep",
+  "durniyah@pegagan",
+  "indra@plentong",
+  "eva@pegagan",
+  "novita",
+  "gemblung",
+  "sang",
+  "turidah",
+  "leha",
+  "yusuf",
+  "ety@pegagan",
+  "nalda@pegagan",
+  "abas@pegagan",
+  "surminih@pegagan",
+  "eryanto@pegagan",
+  "nani",
+  "alan@pentud",
+  "kurnati",
+  "uung@pegagan",
+  "waidah@pegagan",
+  "sarna@pegagan",
+  "nana",
+  "kasdi@rawagunda",
+  "gunawan",
+  "linah@ujungmulya",
+  "nesa",
+  "talita",
+  "coyih",
+  "pandi@tanjungpura",
+  "yudi@rawagunda",
+  "astri@pegagan",
+  "tariman",
+  "karmanda",
+  "icha",
+  "h.juroh",
+  "setiyadi@genjong",
+  "sandi@rajan",
+  "opang@pegagan",
+  "walong@asep",
+  "server",
+  "darmini",
+  "windah",
+  "kasmuri",
+  "seka",
+  "waran",
+  "erni",
+  "mella",
+  "warsana",
+  "ajri",
+  "bunga",
+  "SDNUG1",
+  "lisan@banteng"
+]
+[2025-10-24T00:56:39.338Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T00:57:39.398Z] [INFO] PPPoE LOGOUT:
+[
+  "h.juroh"
+]
+[2025-10-24T00:57:39.398Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T00:58:39.258Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T00:59:39.358Z] [INFO] PPPoE LOGIN:
+[
+  "h.juroh"
+]
+[2025-10-24T00:59:39.358Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T01:00:39.347Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T01:01:39.267Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T01:10:21.164Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-24T01:10:21.349Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-24T01:10:21.350Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-24T01:10:21.356Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-24T01:10:21.362Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T01:10:21.374Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-24T01:10:21.381Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-24T01:10:21.391Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-24T01:10:21.398Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T01:10:22.445Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T01:10:22.446Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-24T01:10:22.447Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-24T01:10:22.448Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-24T01:10:22.453Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-24T01:10:22.455Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-24T01:10:22.455Z] [INFO] Environment: development
+[2025-10-24T01:10:22.713Z] [INFO] WhatsApp socket set in pppoe-notifications module
+[2025-10-24T01:10:22.725Z] [INFO] WhatsApp socket set in pppoe-commands module
+[2025-10-24T01:10:22.726Z] [INFO] WhatsApp socket set in genieacs-commands module
+[2025-10-24T01:10:22.731Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T01:10:22.734Z] [INFO] Starting RX Power Warning monitoring (interval: 10 hours)
+[2025-10-24T01:10:22.736Z] [INFO] Starting RX Power Recap monitoring (interval: 6 hours)
+[2025-10-24T01:10:22.737Z] [INFO] Starting Offline Notification monitoring (interval: 12 hours)
+[2025-10-24T01:10:22.739Z] [INFO] IntervalManager initialized successfully
+[2025-10-24T01:10:22.741Z] [INFO] Interval Manager initialized with all monitoring systems
+[2025-10-24T01:10:22.742Z] [INFO] PPPoE monitoring auto-started on initialization
+[2025-10-24T01:10:22.743Z] [INFO] PPPoE monitoring initialized
+[2025-10-24T01:10:34.764Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-24T01:11:22.542Z] [INFO] PPPoE LOGIN:
+[
+  "darim",
+  "iman@",
+  "brohim",
+  "wiwin@seblak",
+  "nurudin",
+  "nina@kesin",
+  "aldo",
+  "antony@ps",
+  "suliwa",
+  "kandar",
+  "codet",
+  "koriya",
+  "rasta",
+  "eva",
+  "kus",
+  "raeni",
+  "abibah",
+  "dhea_tile@rawagunda",
+  "dasta",
+  "elis@rawagunda",
+  "Uchi",
+  "sanyo",
+  "nadiva",
+  "junanto@rawagunda",
+  "adiiman",
+  "winata",
+  "yudi",
+  "server@ilik",
+  "ooh",
+  "daruni@rawagunda",
+  "dayuni",
+  "kanu",
+  "yuni@rawagunda",
+  "fajar",
+  "ejun",
+  "newok",
+  "toko@sayur",
+  "jami@sut",
+  "karsih",
+  "kama@",
+  "sarwan",
+  "sumi",
+  "wardi",
+  "eka",
+  "atam",
+  "wakeng",
+  "kendo@tanjungpura",
+  "hany@tarsiti",
+  "salsa",
+  "wendy@tanjungpura",
+  "tibil",
+  "memble@",
+  "damar",
+  "rudi_",
+  "indah@tanjungpura",
+  "cecep",
+  "rom@lah",
+  "aqiel",
+  "suminih@rawagunda",
+  "lussy",
+  "tarci",
+  "darim@lor",
+  "erul",
+  "toax",
+  "dedi@aira",
+  "yohan@rawagunda",
+  "juanda",
+  "durta",
+  "elvano1",
+  "gadel",
+  "santo",
+  "yuyun",
+  "aang2",
+  "runaeni",
+  "mardi",
+  "rintem",
+  "maktub",
+  "warungyuni@laut",
+  "andi",
+  "server@arep",
+  "murba",
+  "karban",
+  "dedy@sarkim",
+  "winata@laut",
+  "opang@tanjungpura",
+  "test",
+  "tinih",
+  "tinih_toko",
+  "Tarci@lor",
+  "warung_elisa@laut",
+  "muktar@ompong",
+  "memble2",
+  "rangdu",
+  "Zea",
+  "wiranto",
+  "aang",
+  "toyinah",
+  "RT-KARONI",
+  "server@yayan",
+  "kincling",
+  "handoko",
+  "wadi@rawagunda",
+  "alam",
+  "yogi",
+  "luwih@",
+  "wendy@genjong",
+  "Endra@genjong1",
+  "khofik@janggar",
+  "F663",
+  "dadang@genjong",
+  "pabudi@genjong",
+  "umikulsum@janggar",
+  "mangasep@janggar",
+  "anwar@janggar",
+  "mastobari@",
+  "sarjo",
+  "nuriyah",
+  "denihamdani@pegagan",
+  "sudini@pegagan",
+  "intan@ujungmulya",
+  "sutara@pegagan",
+  "yuni@ujungmulya",
+  "soleh@pegagan",
+  "murdani",
+  "adineasep",
+  "durniyah@pegagan",
+  "indra@plentong",
+  "eva@pegagan",
+  "novita",
+  "gemblung",
+  "sang",
+  "turidah",
+  "leha",
+  "yusuf",
+  "ety@pegagan",
+  "nalda@pegagan",
+  "abas@pegagan",
+  "surminih@pegagan",
+  "eryanto@pegagan",
+  "nani",
+  "alan@pentud",
+  "kurnati",
+  "uung@pegagan",
+  "waidah@pegagan",
+  "sarna@pegagan",
+  "nana",
+  "kasdi@rawagunda",
+  "gunawan",
+  "linah@ujungmulya",
+  "nesa",
+  "talita",
+  "coyih",
+  "pandi@tanjungpura",
+  "yudi@rawagunda",
+  "astri@pegagan",
+  "tariman",
+  "karmanda",
+  "icha",
+  "setiyadi@genjong",
+  "sandi@rajan",
+  "opang@pegagan",
+  "walong@asep",
+  "server",
+  "darmini",
+  "windah",
+  "kasmuri",
+  "seka",
+  "waran",
+  "erni",
+  "mella",
+  "warsana",
+  "ajri",
+  "bunga",
+  "SDNUG1",
+  "lisan@banteng",
+  "h.juroh"
+]
+[2025-10-24T01:11:22.543Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T01:12:04.464Z] [INFO] Package created: Paket Internet Menengah with tax_rate: 0
+[2025-10-24T01:12:22.523Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T01:12:37.909Z] [INFO] Package updated: Paket Dasar with tax_rate: 0
+[2025-10-24T01:13:17.153Z] [INFO] Package created: Paket Internet Atas with tax_rate: 0
+[2025-10-24T01:13:22.470Z] [INFO] Monitoring PPPoE connections: 176 active connections
+[2025-10-24T01:14:22.616Z] [INFO] PPPoE LOGOUT:
+[
+  "abas@pegagan"
+]
+[2025-10-24T01:14:22.616Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:15:22.485Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:16:22.556Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:17:22.496Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:18:22.578Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:19:22.959Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:20:22.682Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:21:22.752Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:22:22.697Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:22:35.566Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-24T01:22:35.756Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-24T01:22:35.757Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-24T01:22:35.763Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-24T01:22:35.769Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T01:22:35.779Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-24T01:22:35.786Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-24T01:22:35.797Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-24T01:22:35.802Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T01:22:36.706Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T01:22:36.707Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-24T01:22:36.708Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-24T01:22:36.710Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-24T01:22:36.716Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-24T01:22:36.717Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-24T01:22:36.718Z] [INFO] Environment: development
+[2025-10-24T01:22:36.975Z] [INFO] WhatsApp socket set in pppoe-notifications module
+[2025-10-24T01:22:36.986Z] [INFO] WhatsApp socket set in pppoe-commands module
+[2025-10-24T01:22:36.986Z] [INFO] WhatsApp socket set in genieacs-commands module
+[2025-10-24T01:22:36.994Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T01:22:36.997Z] [INFO] Starting RX Power Warning monitoring (interval: 10 hours)
+[2025-10-24T01:22:36.999Z] [INFO] Starting RX Power Recap monitoring (interval: 6 hours)
+[2025-10-24T01:22:37.002Z] [INFO] Starting Offline Notification monitoring (interval: 12 hours)
+[2025-10-24T01:22:37.003Z] [INFO] IntervalManager initialized successfully
+[2025-10-24T01:22:37.004Z] [INFO] Interval Manager initialized with all monitoring systems
+[2025-10-24T01:22:37.005Z] [INFO] PPPoE monitoring auto-started on initialization
+[2025-10-24T01:22:37.006Z] [INFO] PPPoE monitoring initialized
+[2025-10-24T01:23:36.750Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-24T01:23:36.938Z] [INFO] PPPoE LOGIN:
+[
+  "darim",
+  "iman@",
+  "brohim",
+  "wiwin@seblak",
+  "nurudin",
+  "nina@kesin",
+  "aldo",
+  "antony@ps",
+  "suliwa",
+  "kandar",
+  "codet",
+  "koriya",
+  "rasta",
+  "eva",
+  "kus",
+  "raeni",
+  "abibah",
+  "dhea_tile@rawagunda",
+  "dasta",
+  "elis@rawagunda",
+  "Uchi",
+  "sanyo",
+  "nadiva",
+  "junanto@rawagunda",
+  "adiiman",
+  "winata",
+  "yudi",
+  "server@ilik",
+  "ooh",
+  "daruni@rawagunda",
+  "dayuni",
+  "kanu",
+  "yuni@rawagunda",
+  "fajar",
+  "ejun",
+  "newok",
+  "toko@sayur",
+  "jami@sut",
+  "karsih",
+  "kama@",
+  "sarwan",
+  "sumi",
+  "wardi",
+  "eka",
+  "atam",
+  "wakeng",
+  "kendo@tanjungpura",
+  "hany@tarsiti",
+  "salsa",
+  "wendy@tanjungpura",
+  "tibil",
+  "memble@",
+  "damar",
+  "rudi_",
+  "indah@tanjungpura",
+  "cecep",
+  "rom@lah",
+  "aqiel",
+  "suminih@rawagunda",
+  "lussy",
+  "tarci",
+  "darim@lor",
+  "erul",
+  "toax",
+  "dedi@aira",
+  "yohan@rawagunda",
+  "juanda",
+  "durta",
+  "elvano1",
+  "gadel",
+  "santo",
+  "yuyun",
+  "aang2",
+  "runaeni",
+  "mardi",
+  "rintem",
+  "maktub",
+  "warungyuni@laut",
+  "andi",
+  "server@arep",
+  "murba",
+  "karban",
+  "dedy@sarkim",
+  "winata@laut",
+  "opang@tanjungpura",
+  "test",
+  "tinih",
+  "tinih_toko",
+  "Tarci@lor",
+  "warung_elisa@laut",
+  "muktar@ompong",
+  "memble2",
+  "rangdu",
+  "Zea",
+  "wiranto",
+  "aang",
+  "toyinah",
+  "RT-KARONI",
+  "server@yayan",
+  "kincling",
+  "handoko",
+  "wadi@rawagunda",
+  "alam",
+  "yogi",
+  "luwih@",
+  "wendy@genjong",
+  "Endra@genjong1",
+  "khofik@janggar",
+  "F663",
+  "dadang@genjong",
+  "pabudi@genjong",
+  "umikulsum@janggar",
+  "mangasep@janggar",
+  "anwar@janggar",
+  "mastobari@",
+  "sarjo",
+  "nuriyah",
+  "denihamdani@pegagan",
+  "sudini@pegagan",
+  "intan@ujungmulya",
+  "sutara@pegagan",
+  "yuni@ujungmulya",
+  "soleh@pegagan",
+  "murdani",
+  "adineasep",
+  "durniyah@pegagan",
+  "indra@plentong",
+  "eva@pegagan",
+  "novita",
+  "gemblung",
+  "sang",
+  "turidah",
+  "leha",
+  "yusuf",
+  "ety@pegagan",
+  "nalda@pegagan",
+  "surminih@pegagan",
+  "eryanto@pegagan",
+  "nani",
+  "alan@pentud",
+  "kurnati",
+  "uung@pegagan",
+  "waidah@pegagan",
+  "sarna@pegagan",
+  "nana",
+  "kasdi@rawagunda",
+  "gunawan",
+  "linah@ujungmulya",
+  "nesa",
+  "talita",
+  "coyih",
+  "pandi@tanjungpura",
+  "yudi@rawagunda",
+  "astri@pegagan",
+  "tariman",
+  "karmanda",
+  "icha",
+  "setiyadi@genjong",
+  "sandi@rajan",
+  "opang@pegagan",
+  "walong@asep",
+  "server",
+  "darmini",
+  "windah",
+  "kasmuri",
+  "seka",
+  "waran",
+  "erni",
+  "mella",
+  "warsana",
+  "ajri",
+  "bunga",
+  "SDNUG1",
+  "lisan@banteng",
+  "h.juroh"
+]
+[2025-10-24T01:23:36.939Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:24:36.714Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:25:36.798Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:26:36.733Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:27:36.826Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:28:36.755Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:29:36.858Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:30:36.779Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:31:36.853Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:32:36.795Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:33:32.446Z] [INFO] 🚀 CacheManager initialized with default TTL: 5 minutes
+[2025-10-24T01:33:32.637Z] [INFO] Invoice scheduler initialized - will run on 1st of every month at 08:00
+[2025-10-24T01:33:32.638Z] [INFO] Daily invoice-by-billing_day scheduler is DISABLED (only monthly on the 1st)
+[2025-10-24T01:33:32.644Z] [INFO] Due date reminder scheduler initialized - will run daily at 09:00
+[2025-10-24T01:33:32.651Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T01:33:32.664Z] [INFO] Monthly summary scheduler initialized - will run on 1st of every month at 23:59
+[2025-10-24T01:33:32.671Z] [INFO] Monthly reset scheduler initialized - will run on 1st of every month at 00:01
+[2025-10-24T01:33:32.682Z] [INFO] Service suspension/restoration scheduler initialized - will run daily at 10:00 and 11:00
+[2025-10-24T01:33:32.690Z] [INFO] Voucher cleanup scheduler initialized - will run every 6 hours
+[2025-10-24T01:33:33.658Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T01:33:33.659Z] [INFO] Attempting to start server on configured port: 3003
+[2025-10-24T01:33:33.659Z] [INFO] Memulai server pada port yang dikonfigurasi: 3003
+[2025-10-24T01:33:33.660Z] [INFO] Port diambil dari settings.json - tidak ada fallback ke port alternatif
+[2025-10-24T01:33:33.671Z] [INFO] ✅ Server berhasil berjalan pada port 3003
+[2025-10-24T01:33:33.673Z] [INFO] 🌐 Web Portal tersedia di: http://localhost:3003
+[2025-10-24T01:33:33.673Z] [INFO] Environment: development
+[2025-10-24T01:33:33.934Z] [INFO] WhatsApp socket set in pppoe-notifications module
+[2025-10-24T01:33:33.942Z] [INFO] WhatsApp socket set in pppoe-commands module
+[2025-10-24T01:33:33.943Z] [INFO] WhatsApp socket set in genieacs-commands module
+[2025-10-24T01:33:33.949Z] [INFO] PPPoE monitoring started with interval 60000ms
+[2025-10-24T01:33:33.952Z] [INFO] Starting RX Power Warning monitoring (interval: 10 hours)
+[2025-10-24T01:33:33.955Z] [INFO] Starting RX Power Recap monitoring (interval: 6 hours)
+[2025-10-24T01:33:33.956Z] [INFO] Starting Offline Notification monitoring (interval: 12 hours)
+[2025-10-24T01:33:33.957Z] [INFO] IntervalManager initialized successfully
+[2025-10-24T01:33:33.957Z] [INFO] Interval Manager initialized with all monitoring systems
+[2025-10-24T01:33:33.960Z] [INFO] PPPoE monitoring auto-started on initialization
+[2025-10-24T01:33:33.964Z] [INFO] PPPoE monitoring initialized
+[2025-10-24T01:33:42.269Z] [INFO] Connected to Mikrotik at 192.168.8.1:8700
+[2025-10-24T01:33:56.942Z] [INFO] Customer deleted: 0000000000
+[2025-10-24T01:34:04.431Z] [INFO] API: Loading customer data for editing phone: 081321960222
+[2025-10-24T01:34:17.432Z] [INFO] [BILLING] Package changed for alijayanet2_231025, updating Mikrotik PPPoE profile...
+[2025-10-24T01:34:17.433Z] [INFO] Restoring service for customer: alijayanet2_231025 (Package changed)
+[2025-10-24T01:34:17.525Z] [INFO] Mikrotik: Restored profile to '5MB' for server@yayan (by .id)
+[2025-10-24T01:34:17.604Z] [INFO] Mikrotik: Disconnected 1 active session(s) for server@yayan to apply new profile
+[2025-10-24T01:34:17.605Z] [INFO] Mikrotik: Successfully restored PPPoE user server@yayan with 5MB profile
+[2025-10-24T01:34:17.658Z] [INFO] [RESTORE] Updating billing status by id=1024 to 'active' (username=alijayanet2_231025)
+[2025-10-24T01:34:17.660Z] [INFO] [BILLING] setCustomerStatusById: id=1024, username=alijayanet2_231025, from=active -> to=active
+[2025-10-24T01:34:17.666Z] [INFO] [BILLING] Mikrotik PPPoE profile updated successfully for alijayanet2_231025
+[2025-10-24T01:34:33.758Z] [INFO] PPPoE LOGIN:
+[
+  "darim",
+  "iman@",
+  "brohim",
+  "wiwin@seblak",
+  "nurudin",
+  "nina@kesin",
+  "aldo",
+  "antony@ps",
+  "suliwa",
+  "kandar",
+  "codet",
+  "koriya",
+  "rasta",
+  "eva",
+  "kus",
+  "raeni",
+  "abibah",
+  "dhea_tile@rawagunda",
+  "dasta",
+  "elis@rawagunda",
+  "Uchi",
+  "sanyo",
+  "nadiva",
+  "junanto@rawagunda",
+  "adiiman",
+  "winata",
+  "yudi",
+  "server@ilik",
+  "ooh",
+  "daruni@rawagunda",
+  "dayuni",
+  "kanu",
+  "yuni@rawagunda",
+  "fajar",
+  "ejun",
+  "newok",
+  "toko@sayur",
+  "jami@sut",
+  "karsih",
+  "kama@",
+  "sarwan",
+  "sumi",
+  "wardi",
+  "eka",
+  "atam",
+  "wakeng",
+  "kendo@tanjungpura",
+  "hany@tarsiti",
+  "salsa",
+  "wendy@tanjungpura",
+  "tibil",
+  "memble@",
+  "damar",
+  "rudi_",
+  "indah@tanjungpura",
+  "cecep",
+  "rom@lah",
+  "aqiel",
+  "suminih@rawagunda",
+  "lussy",
+  "tarci",
+  "darim@lor",
+  "erul",
+  "toax",
+  "dedi@aira",
+  "yohan@rawagunda",
+  "juanda",
+  "durta",
+  "elvano1",
+  "gadel",
+  "santo",
+  "yuyun",
+  "aang2",
+  "runaeni",
+  "mardi",
+  "rintem",
+  "maktub",
+  "warungyuni@laut",
+  "andi",
+  "server@arep",
+  "murba",
+  "karban",
+  "dedy@sarkim",
+  "winata@laut",
+  "opang@tanjungpura",
+  "test",
+  "tinih",
+  "tinih_toko",
+  "Tarci@lor",
+  "warung_elisa@laut",
+  "muktar@ompong",
+  "memble2",
+  "rangdu",
+  "Zea",
+  "wiranto",
+  "aang",
+  "toyinah",
+  "RT-KARONI",
+  "server@yayan",
+  "kincling",
+  "handoko",
+  "wadi@rawagunda",
+  "alam",
+  "yogi",
+  "luwih@",
+  "wendy@genjong",
+  "Endra@genjong1",
+  "khofik@janggar",
+  "F663",
+  "dadang@genjong",
+  "pabudi@genjong",
+  "umikulsum@janggar",
+  "mangasep@janggar",
+  "anwar@janggar",
+  "mastobari@",
+  "sarjo",
+  "nuriyah",
+  "denihamdani@pegagan",
+  "sudini@pegagan",
+  "intan@ujungmulya",
+  "sutara@pegagan",
+  "yuni@ujungmulya",
+  "soleh@pegagan",
+  "murdani",
+  "adineasep",
+  "durniyah@pegagan",
+  "indra@plentong",
+  "eva@pegagan",
+  "novita",
+  "gemblung",
+  "sang",
+  "turidah",
+  "leha",
+  "yusuf",
+  "ety@pegagan",
+  "nalda@pegagan",
+  "surminih@pegagan",
+  "eryanto@pegagan",
+  "nani",
+  "alan@pentud",
+  "kurnati",
+  "uung@pegagan",
+  "waidah@pegagan",
+  "sarna@pegagan",
+  "nana",
+  "kasdi@rawagunda",
+  "gunawan",
+  "linah@ujungmulya",
+  "nesa",
+  "talita",
+  "coyih",
+  "pandi@tanjungpura",
+  "yudi@rawagunda",
+  "astri@pegagan",
+  "tariman",
+  "karmanda",
+  "icha",
+  "setiyadi@genjong",
+  "sandi@rajan",
+  "opang@pegagan",
+  "walong@asep",
+  "server",
+  "darmini",
+  "windah",
+  "kasmuri",
+  "seka",
+  "waran",
+  "erni",
+  "mella",
+  "warsana",
+  "ajri",
+  "bunga",
+  "SDNUG1",
+  "lisan@banteng",
+  "h.juroh"
+]
+[2025-10-24T01:34:33.759Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:35:33.814Z] [INFO] PPPoE LOGOUT:
+[
+  "server@yayan"
+]
+[2025-10-24T01:35:33.814Z] [INFO] Monitoring PPPoE connections: 174 active connections
+[2025-10-24T01:36:33.681Z] [INFO] Monitoring PPPoE connections: 174 active connections
+[2025-10-24T01:37:33.769Z] [INFO] Monitoring PPPoE connections: 174 active connections
+[2025-10-24T01:37:50.706Z] [INFO] Sending admin notifications to 1 admins
+[2025-10-24T01:37:50.708Z] [INFO] New agent registration: ALIJAYA JURAGAN PULSA (alijaya) - 087828060111
+[2025-10-24T01:38:33.703Z] [INFO] Monitoring PPPoE connections: 174 active connections
+[2025-10-24T01:39:33.782Z] [INFO] Monitoring PPPoE connections: 174 active connections
+[2025-10-24T01:40:33.719Z] [INFO] Monitoring PPPoE connections: 174 active connections
+[2025-10-24T01:41:33.796Z] [INFO] Monitoring PPPoE connections: 174 active connections
+[2025-10-24T01:42:33.728Z] [INFO] Monitoring PPPoE connections: 174 active connections
+[2025-10-24T01:43:33.805Z] [INFO] Monitoring PPPoE connections: 174 active connections
+[2025-10-24T01:44:33.744Z] [INFO] Monitoring PPPoE connections: 174 active connections
+[2025-10-24T01:45:33.874Z] [INFO] PPPoE LOGIN:
+[
+  "server@yayan"
+]
+[2025-10-24T01:45:33.875Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:46:33.758Z] [INFO] Monitoring PPPoE connections: 175 active connections
+[2025-10-24T01:47:33.907Z] [INFO] PPPoE LOGOUT:
+[
+  "setiyadi@genjong"
+]
+[2025-10-24T01:47:33.908Z] [INFO] Monitoring PPPoE connections: 174 active connections

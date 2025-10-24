@@ -10965,3 +10965,25 @@
 [2025-10-04T03:38:05.811Z] [WARN] No technician group configured for PPPoE notifications
 [2025-10-04T03:54:02.599Z] [WARN] No technician group configured for PPPoE notifications
 [2025-10-04T04:08:02.633Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-23T02:35:32.295Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-23T02:39:39.976Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-23T03:08:35.151Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-23T03:11:41.840Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T00:43:38.231Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T00:53:57.975Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T00:54:58.038Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T00:56:39.309Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T00:57:39.397Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T00:59:39.356Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T01:11:22.527Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T01:14:22.615Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T01:23:36.926Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T01:34:17.628Z] [WARN] Device not found by phone 081321960222, trying PPPoE...
+[2025-10-24T01:34:17.657Z] [WARN] Device not found by PPPoE server@yayan
+[2025-10-24T01:34:17.658Z] [WARN] GenieACS: No device found for customer alijayanet2_231025
+[2025-10-24T01:34:33.739Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T01:35:33.813Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T01:37:50.707Z] [WARN] WhatsApp socket not available for admin notification
+[2025-10-24T01:37:50.708Z] [WARN] WhatsApp socket not available for agent notification
+[2025-10-24T01:45:33.872Z] [WARN] No technician group configured for PPPoE notifications
+[2025-10-24T01:47:33.906Z] [WARN] No technician group configured for PPPoE notifications
