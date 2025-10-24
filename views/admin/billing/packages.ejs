@@ -68,6 +68,9 @@
                                             <tr>
                                                 <td>
                                                     <span class="text-body fw-bold"><%= package.name %></span>
+                                                    <% if (package.image_filename) { %>
+                                                        <br><img src="/img/packages/<%= package.image_filename %>" alt="<%= package.name %>" style="width: 50px; height: 50px; object-fit: cover; margin-top: 5px; border-radius: 5px;">
+                                                    <% } %>
                                                 </td>
                                                 <td><%= package.speed %></td>
                                                 <td>Rp <%= parseFloat(package.price).toLocaleString('id-ID') %></td>
@@ -177,6 +180,11 @@
                             </div>
                             <small class="form-text text-muted">Pilih profile PPPoE dari Mikrotik. Klik Reload bila daftar belum muncul.</small>
                         </div>
+                        <div class="mb-3">
+                            <label for="package_image" class="form-label">Gambar Paket (Opsional)</label>
+                            <input type="file" class="form-control" id="package_image" name="package_image" accept="image/png, image/jpeg, image/jpg">
+                            <small class="form-text text-muted">Format yang didukung: PNG, JPG, JPEG. Maksimal 2MB.</small>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -244,6 +252,12 @@
                                 <button class="btn btn-outline-secondary" type="button" id="reloadProfilesEdit">Reload</button>
                             </div>
                             <small class="form-text text-muted">Pilih profile PPPoE dari Mikrotik. Klik Reload bila daftar belum muncul.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_package_image" class="form-label">Gambar Paket (Opsional)</label>
+                            <input type="file" class="form-control" id="edit_package_image" name="package_image" accept="image/png, image/jpeg, image/jpg">
+                            <small class="form-text text-muted">Format yang didukung: PNG, JPG, JPEG. Maksimal 2MB.</small>
+                            <div id="current_image_preview" class="mt-2"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -467,32 +481,38 @@
         $('#addPackageForm').on('submit', function(e) {
             e.preventDefault();
             
+            // Get form data
+            const formData = new FormData();
+            
+            // Add text fields
+            formData.append('name', $('#name').val().trim());
+            formData.append('speed', $('#speed').val().trim());
+            formData.append('price', parseFloat($('#price').val()));
+            formData.append('tax_rate', $('#enable_tax').is(':checked') ? parseFloat($('#tax_rate').val()) : 0);
+            formData.append('description', $('#description').val().trim());
+            formData.append('pppoe_profile', $('#pppoe_profile').val().trim() || 'default');
+            
+            // Add image file if selected
+            const imageFile = $('#package_image')[0].files[0];
+            if (imageFile) {
+                formData.append('package_image', imageFile);
+            }
+            
             // Debug logging
             console.log('🔍 Form submission debug:');
             console.log('   - Checkbox checked:', $('#enable_tax').is(':checked'));
             console.log('   - Tax rate input value:', $('#tax_rate').val());
             console.log('   - Tax rate input disabled:', $('#tax_rate').prop('disabled'));
-            
-            // Get form data
-            const formData = {
-                name: $('#name').val().trim(),
-                speed: $('#speed').val().trim(),
-                price: parseFloat($('#price').val()),
-                tax_rate: $('#enable_tax').is(':checked') ? parseFloat($('#tax_rate').val()) : 0,
-                description: $('#description').val().trim(),
-                pppoe_profile: $('#pppoe_profile').val().trim() || 'default'
-            };
-            
-            console.log('   - Calculated tax_rate:', formData.tax_rate);
+            console.log('   - Calculated tax_rate:', formData.get('tax_rate'));
             
             // Validate required fields
-            if (!formData.name || !formData.speed || !formData.price || formData.price <= 0) {
+            if (!formData.get('name') || !formData.get('speed') || !formData.get('price') || formData.get('price') <= 0) {
                 showAlert('danger', 'Nama, kecepatan, dan harga harus diisi dengan benar');
                 return;
             }
             
             // Validate tax rate if enabled
-            if ($('#enable_tax').is(':checked') && (formData.tax_rate < 0 || formData.tax_rate > 100)) {
+            if ($('#enable_tax').is(':checked') && (parseFloat(formData.get('tax_rate')) < 0 || parseFloat(formData.get('tax_rate')) > 100)) {
                 showAlert('danger', 'PPN harus antara 0% dan 100%');
                 return;
             }
@@ -504,10 +524,7 @@
             
             fetch('/admin/billing/packages', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
+                body: formData
             })
             .then(response => response.json())
             .then(data => {
@@ -563,6 +580,16 @@
                         // Calculate and display price with tax
                         calculatePriceWithTax('edit_price', 'edit_tax_rate', 'edit_price_with_tax');
                         
+                        // Show current image preview if exists
+                        if (package.image_filename) {
+                            const imagePreview = `<p><strong>Gambar Saat Ini:</strong></p>
+                                                  <img src="/img/packages/${package.image_filename}" alt="${package.name}" style="max-width: 150px; height: auto; border-radius: 5px;">
+                                                  <p class="text-muted mt-2">Biarkan kosong jika tidak ingin mengganti gambar</p>`;
+                            $('#current_image_preview').html(imagePreview);
+                        } else {
+                            $('#current_image_preview').html('<p class="text-muted">Tidak ada gambar saat ini</p>');
+                        }
+                        
                         // Load profiles then set selection and show modal
                         const selected = package.pppoe_profile || 'default';
                         loadPPPoEProfiles('#edit_pppoe_profile', selected);
@@ -583,23 +610,30 @@
             
             // Get form data
             const packageId = $('#edit_package_id').val();
-            const formData = {
-                name: $('#edit_name').val().trim(),
-                speed: $('#edit_speed').val().trim(),
-                price: parseFloat($('#edit_price').val()),
-                tax_rate: $('#edit_enable_tax').is(':checked') ? parseFloat($('#edit_tax_rate').val()) : 0,
-                description: $('#edit_description').val().trim(),
-                pppoe_profile: $('#edit_pppoe_profile').val().trim() || 'default'
-            };
+            const formData = new FormData();
+            
+            // Add text fields
+            formData.append('name', $('#edit_name').val().trim());
+            formData.append('speed', $('#edit_speed').val().trim());
+            formData.append('price', parseFloat($('#edit_price').val()));
+            formData.append('tax_rate', $('#edit_enable_tax').is(':checked') ? parseFloat($('#edit_tax_rate').val()) : 0);
+            formData.append('description', $('#edit_description').val().trim());
+            formData.append('pppoe_profile', $('#edit_pppoe_profile').val().trim() || 'default');
+            
+            // Add image file if selected
+            const imageFile = $('#edit_package_image')[0].files[0];
+            if (imageFile) {
+                formData.append('package_image', imageFile);
+            }
             
             // Validate required fields
-            if (!formData.name || !formData.speed || !formData.price || formData.price <= 0) {
+            if (!formData.get('name') || !formData.get('speed') || !formData.get('price') || formData.get('price') <= 0) {
                 showAlert('danger', 'Nama, kecepatan, dan harga harus diisi dengan benar');
                 return;
             }
             
             // Validate tax rate if enabled
-            if ($('#edit_enable_tax').is(':checked') && (formData.tax_rate < 0 || formData.tax_rate > 100)) {
+            if ($('#edit_enable_tax').is(':checked') && (parseFloat(formData.get('tax_rate')) < 0 || parseFloat(formData.get('tax_rate')) > 100)) {
                 showAlert('danger', 'PPN harus antara 0% dan 100%');
                 return;
             }
@@ -611,10 +645,7 @@
             
             fetch(`/admin/billing/packages/${packageId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
+                body: formData
             })
             .then(response => response.json())
             .then(data => {
@@ -649,6 +680,12 @@
                         const taxRate = package.tax_rate || 11;
                         const isNoTax = taxRate === 0;
                         
+                        let imageHtml = '';
+                        if (package.image_filename) {
+                            imageHtml = `<p><strong>Gambar Paket:</strong></p>
+                                         <img src="/img/packages/${package.image_filename}" alt="${package.name}" style="max-width: 200px; height: auto; border-radius: 5px;">`;
+                        }
+                        
                         const detailsHtml = `
                             <div class="row">
                                 <div class="col-md-6">
@@ -672,6 +709,7 @@
                                 <div class="col-md-6">
                                     <p><strong>Deskripsi:</strong></p>
                                     <p>${package.description || 'Tidak ada deskripsi'}</p>
+                                    ${imageHtml}
                                 </div>
                             </div>
                         `;
