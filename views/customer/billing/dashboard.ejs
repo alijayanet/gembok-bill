@@ -433,6 +433,11 @@
                         <span class="badge bg-info">
                           <%= customer.package_name %> - Rp <%= parseFloat(customer.package_price).toLocaleString('id-ID') %>
                         </span>
+                        <% if (customer.package_image) { %>
+                          <div class="mt-2">
+                            <img src="/img/packages/<%= customer.package_image %>" alt="<%= customer.package_name %>" style="max-width: 80px; height: auto; border-radius: 5px; border: 1px solid #e9ecef;">
+                          </div>
+                        <% } %>
                       <% } else { %>
                         <span class="text-muted">Belum ada paket</span>
                       <% } %>
@@ -608,6 +613,11 @@
                                       qrFile = 'basic.jpg';
                                     }
                                   }
+                                  
+                                  // Jika paket memiliki gambar khusus, gunakan itu sebagai gantinya
+                                  if (customer && customer.package_image) {
+                                    qrFile = 'packages/' + customer.package_image;
+                                  }
                                 %>
                                 <img id="qr-image" src="/img/<%= qrFile %>" alt="QR Code Pembayaran <%= customer ? customer.package_name : '' %>" style="max-width: 150px; height: auto; border-radius: 8px; border: 2px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" class="mb-2">
                                 <br><small class="text-muted">Scan QR Code untuk pembayaran paket <%= customer ? customer.package_name : '' %></small>
@@ -631,6 +641,9 @@
                                 <% } %>
                               </small>
                             </div>
+                            
+                            <% if (customer && customer.package_image) { %>
+                            <% } %>
                           </div>
                         </div>
                       </div>

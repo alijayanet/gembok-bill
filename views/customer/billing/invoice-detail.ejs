@@ -91,7 +91,14 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Paket:</strong></td>
-                                        <td><%= invoice.package_name %></td>
+                                        <td>
+                                            <%= invoice.package_name %>
+                                            <% if (invoice.package_image) { %>
+                                                <div class="mt-2">
+                                                    <img src="/img/packages/<%= invoice.package_image %>" alt="<%= invoice.package_name %>" style="max-width: 80px; height: auto; border-radius: 5px; border: 1px solid #e9ecef;">
+                                                </div>
+                                            <% } %>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td><strong>Kecepatan:</strong></td>
@@ -399,7 +406,7 @@
             
             methods.forEach(method => {
                 // Check if amount meets minimum requirement
-                const invoiceAmount = <%= invoice.amount %>;
+                const invoiceAmount = parseFloat('<%= invoice.amount %>');
                 const isDisabled = method.minimum_amount && invoiceAmount < method.minimum_amount;
                 const disabledClass = isDisabled ? 'disabled' : '';
                 const disabledTitle = isDisabled ? `Minimal pembayaran: Rp ${method.minimum_amount?.toLocaleString('id-ID')}` : '';
@@ -448,7 +455,7 @@
                     
                 const gateway = this.dataset.gateway;
                 const method = this.dataset.method;
-                const invoiceId = <%= invoice.id %>;
+                const invoiceId = parseInt('<%= invoice.id %>');
                 
                 // Show loading
                 document.getElementById('payment-processing').style.display = 'block';
@@ -497,11 +504,13 @@
         }
         
         // Load payment methods when page loads
-        <% if (invoice.status === 'unpaid') { %>
         document.addEventListener('DOMContentLoaded', function() {
-            loadPaymentMethods();
+            // Check if invoice status is unpaid
+            const invoiceStatus = '<%= invoice.status %>';
+            if (invoiceStatus === 'unpaid') {
+                loadPaymentMethods();
+            }
         });
-        <% } %>
     </script>
 </body>
 </html> 
