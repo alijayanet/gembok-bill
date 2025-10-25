@@ -1,4 +1,4 @@
-<!-- Improved modern README with better structure and visuals -->
+<!-- Improved modern README with vibrant colors and enhanced structure -->
 <div align="center">
   <img src="public/img/logo.png" alt="Gembok Bill Logo" width="120" height="120">
   
@@ -64,6 +64,17 @@ npm install
 npm run setup
 ```
 
+### 4. Jalankan Migrasi Database (Penting untuk Server Baru)
+Untuk memastikan semua tabel dan kolom yang diperlukan ada di database, jalankan perintah migrasi:
+
+```bash
+# Jalankan semua migrasi database
+node scripts/run-all-migrations.js
+
+# Verifikasi struktur database
+node scripts/verify-production-database.js
+```
+
 ### 5. Jalankan Aplikasi
 ```bash
 # Untuk production
@@ -98,6 +109,7 @@ gembok-bill/
 | [DATA_README.md](DATA_README.md) | Informasi tentang manajemen data |
 | [WHATSAPP_SETUP.md](WHATSAPP_SETUP.md) | Konfigurasi WhatsApp Gateway |
 | [WHATSAPP_FIX_SUMMARY.md](WHATSAPP_FIX_SUMMARY.md) | Ringkasan perbaikan WhatsApp |
+| [DATABASE_MIGRATION_SUMMARY.md](DATABASE_MIGRATION_SUMMARY.md) | Ringkasan migrasi database |
 
 ## 🎯 Cara Kontribusi
 
