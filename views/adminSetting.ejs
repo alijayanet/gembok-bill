@@ -1872,16 +1872,12 @@ $(document).ready(function() {
         
         btn.prop('disabled', true).html('<i class="mdi mdi-loading mdi-spin me-2"></i>Restoring...');
         
-        // Create form data for file upload
-        const formData = new FormData();
-        formData.append('backup_file', selectedFile);
-        
+        // Send filename as JSON data
         $.ajax({
             url: '/admin/settings/restore',
             method: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
+            contentType: 'application/json',
+            data: JSON.stringify({ backup_file: selectedFile }),
             success: function(response) {
                 if (response.success) {
                     showNotification('success', response.message + '\nHalaman akan dimuat ulang...');
@@ -1942,12 +1938,17 @@ $(document).ready(function() {
         }
         
         backups.forEach(backup => {
-            const size = formatFileSize(backup.size);
+            const size = formatFileSize(backup.size || 0);
             const date = new Date(backup.created).toLocaleString('id-ID');
+            const fileCount = backup.file_count || 1;
+            const filesInfo = backup.files ? backup.files.map(f => f.type.toUpperCase()).join(', ') : 'DB';
             
             tbody.append(`
                 <tr>
-                    <td><i class="mdi mdi-database me-2"></i>${backup.filename}</td>
+                    <td>
+                        <i class="mdi mdi-database me-2"></i>${backup.filename}
+                        ${fileCount > 1 ? `<br><small class="text-muted">(${fileCount} files: ${filesInfo})</small>` : ''}
+                    </td>
                     <td>${size}</td>
                     <td>${date}</td>
                     <td>
@@ -2008,11 +2009,11 @@ $(document).ready(function() {
                         <thead>
                             <tr>
                                 <th>Waktu</th>
-                                <th>User</th>
-                                <th>Tipe</th>
-                                <th>Aksi</th>
-                                <th>Deskripsi</th>
-                                <th>IP Address</th>
+                                <th>Type</th>
+                                <th>Level</th>
+                                <th>Log Type</th>
+                                <th>Message</th>
+                                <th>Data</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2381,19 +2382,40 @@ $(document).ready(function() {
         }
         
         logs.forEach(log => {
-            const date = new Date(log.created_at).toLocaleString('id-ID');
-            const userType = log.user_type === 'admin' ? 'Admin' : 'Customer';
-            
-            tbody.append(`
-                <tr>
-                    <td><small>${date}</small></td>
-                    <td><strong>${log.user_id || '-'}</strong></td>
-                    <td><span class="badge bg-${log.user_type === 'admin' ? 'primary' : 'info'}">${userType}</span></td>
-                    <td><code>${log.action}</code></td>
-                    <td>${log.description}</td>
-                    <td><small>${log.ip_address || '-'}</small></td>
-                </tr>
-            `);
+            try {
+                const date = new Date(log.created_at).toLocaleString('id-ID');
+                
+                // Determine badge color based on level
+                let badgeClass = 'bg-secondary';
+                if (log.level === 'error') badgeClass = 'bg-danger';
+                else if (log.level === 'warn') badgeClass = 'bg-warning';
+                else if (log.level === 'info') badgeClass = 'bg-info';
+                else if (log.level === 'debug') badgeClass = 'bg-secondary';
+                
+                // Get type badge
+                let typeBadgeClass = 'bg-primary';
+                if (log.type === 'error') typeBadgeClass = 'bg-danger';
+                else if (log.type === 'warn') typeBadgeClass = 'bg-warning';
+                else if (log.type === 'info') typeBadgeClass = 'bg-info';
+                
+                // Truncate long messages
+                const message = log.message && log.message.length > 100 
+                    ? log.message.substring(0, 100) + '...' 
+                    : (log.message || '-');
+                
+                tbody.append(`
+                    <tr>
+                        <td><small>${date || '-'}</small></td>
+                        <td><span class="badge ${typeBadgeClass}">${log.type || '-'}</span></td>
+                        <td><span class="badge ${badgeClass}">${(log.level || 'info').toUpperCase()}</span></td>
+                        <td><code>${log.type || '-'}</code></td>
+                        <td title="${log.message || ''}">${message}</td>
+                        <td><small>${log.data ? JSON.stringify(log.data).substring(0, 50) + '...' : '-'}</small></td>
+                    </tr>
+                `);
+            } catch (e) {
+                console.error('Error rendering log row:', e, log);
+            }
         });
     }
     
@@ -2401,19 +2423,40 @@ $(document).ready(function() {
         const tbody = $('#activityLogsTable tbody');
         
         logs.forEach(log => {
-            const date = new Date(log.created_at).toLocaleString('id-ID');
-            const userType = log.user_type === 'admin' ? 'Admin' : 'Customer';
-            
-            tbody.append(`
-                <tr>
-                    <td><small>${date}</small></td>
-                    <td><strong>${log.user_id || '-'}</strong></td>
-                    <td><span class="badge bg-${log.user_type === 'admin' ? 'primary' : 'info'}">${userType}</span></td>
-                    <td><code>${log.action}</code></td>
-                    <td>${log.description}</td>
-                    <td><small>${log.ip_address || '-'}</small></td>
-                </tr>
-            `);
+            try {
+                const date = new Date(log.created_at).toLocaleString('id-ID');
+                
+                // Determine badge color based on level
+                let badgeClass = 'bg-secondary';
+                if (log.level === 'error') badgeClass = 'bg-danger';
+                else if (log.level === 'warn') badgeClass = 'bg-warning';
+                else if (log.level === 'info') badgeClass = 'bg-info';
+                else if (log.level === 'debug') badgeClass = 'bg-secondary';
+                
+                // Get type badge
+                let typeBadgeClass = 'bg-primary';
+                if (log.type === 'error') typeBadgeClass = 'bg-danger';
+                else if (log.type === 'warn') typeBadgeClass = 'bg-warning';
+                else if (log.type === 'info') typeBadgeClass = 'bg-info';
+                
+                // Truncate long messages
+                const message = log.message && log.message.length > 100 
+                    ? log.message.substring(0, 100) + '...' 
+                    : (log.message || '-');
+                
+                tbody.append(`
+                    <tr>
+                        <td><small>${date || '-'}</small></td>
+                        <td><span class="badge ${typeBadgeClass}">${log.type || '-'}</span></td>
+                        <td><span class="badge ${badgeClass}">${(log.level || 'info').toUpperCase()}</span></td>
+                        <td><code>${log.type || '-'}</code></td>
+                        <td title="${log.message || ''}">${message}</td>
+                        <td><small>${log.data ? JSON.stringify(log.data).substring(0, 50) + '...' : '-'}</small></td>
+                    </tr>
+                `);
+            } catch (e) {
+                console.error('Error rendering log row:', e, log);
+            }
         });
     }
 

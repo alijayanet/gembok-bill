@@ -486,8 +486,10 @@ router.post('/wa-delete', async (req, res) => {
     }
 });
 
-// Backup database
+// Backup database - Create 3 files: .db, .db-wal, .db-shm
 router.post('/backup', async (req, res) => {
+    const sqlite3 = require('sqlite3').verbose();
+    
     try {
         const dbPath = path.join(__dirname, '../data/billing.db');
         const backupPath = path.join(__dirname, '../data/backup');
@@ -498,32 +500,107 @@ router.post('/backup', async (req, res) => {
         }
         
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const backupFile = path.join(backupPath, `billing_backup_${timestamp}.db`);
+        const backupBaseName = `billing_backup_${timestamp}`;
+        const backupFile = path.join(backupPath, `${backupBaseName}.db`);
+        const backupWalFile = path.join(backupPath, `${backupBaseName}.db-wal`);
+        const backupShmFile = path.join(backupPath, `${backupBaseName}.db-shm`);
         
-        // Copy database file
-        fs.copyFileSync(dbPath, backupFile);
+        // Open database connection
+        const db = new sqlite3.Database(dbPath);
         
-        logger.info(`Database backup created: ${backupFile}`);
+        try {
+            // 1. WAL Checkpoint untuk memastikan data konsisten sebelum backup
+            logger.info('Performing WAL checkpoint before backup...');
+            await new Promise((resolve, reject) => {
+                db.run('PRAGMA wal_checkpoint(FULL)', (err) => {
+                    if (err) {
+                        logger.warn('WAL checkpoint warning:', err.message);
+                        // Don't reject, continue with backup
+                        resolve();
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+            
+            // 2. Close database connection
+            await new Promise((resolve, reject) => {
+                db.close((err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+            });
+            
+            // 3. Copy database file (.db)
+            logger.info(`Copying database file: ${backupFile}`);
+            fs.copyFileSync(dbPath, backupFile);
+            
+            // 4. Copy WAL file (.db-wal) jika ada
+            const walFile = dbPath + '-wal';
+            if (fs.existsSync(walFile)) {
+                logger.info(`Copying WAL file: ${backupWalFile}`);
+                fs.copyFileSync(walFile, backupWalFile);
+            }
+            
+            // 5. Copy SHM file (.db-shm) jika ada
+            const shmFile = dbPath + '-shm';
+            if (fs.existsSync(shmFile)) {
+                logger.info(`Copying SHM file: ${backupShmFile}`);
+                fs.copyFileSync(shmFile, backupShmFile);
+            }
+            
+            // 6. Hitung total size
+            let totalSize = fs.statSync(backupFile).size;
+            if (fs.existsSync(backupWalFile)) {
+                totalSize += fs.statSync(backupWalFile).size;
+            }
+            if (fs.existsSync(backupShmFile)) {
+                totalSize += fs.statSync(backupShmFile).size;
+            }
+            
+            const backupFiles = [path.basename(backupFile)];
+            if (fs.existsSync(backupWalFile)) backupFiles.push(path.basename(backupWalFile));
+            if (fs.existsSync(backupShmFile)) backupFiles.push(path.basename(backupShmFile));
+            
+            logger.info(`Database backup created successfully: ${backupBaseName} (${backupFiles.length} files)`);
+            
+            res.json({
+                success: true,
+                message: `Database backup berhasil dibuat (${backupFiles.length} files: .db, .db-wal, .db-shm)`,
+                backup_file: path.basename(backupFile),
+                backup_base: backupBaseName,
+                backup_files: backupFiles,
+                total_size: totalSize
+            });
+            
+        } catch (dbError) {
+            // Ensure database is closed even on error
+            try {
+                db.close();
+            } catch (closeErr) {
+                logger.error('Error closing database:', closeErr);
+            }
+            throw dbError;
+        }
         
-        res.json({
-            success: true,
-            message: 'Database backup berhasil dibuat',
-            backup_file: path.basename(backupFile)
-        });
     } catch (error) {
         logger.error('Error creating backup:', error);
         res.status(500).json({
             success: false,
-            message: 'Error creating backup',
+            message: 'Error creating backup: ' + error.message,
             error: error.message
         });
     }
 });
 
-// Restore database
-router.post('/restore', upload.single('backup_file'), async (req, res) => {
+// Restore database - Restore hanya data pelanggan, paket billing, dan ODP management
+router.post('/restore', async (req, res) => {
+    const sqlite3 = require('sqlite3').verbose();
+    
     try {
-        if (!req.file) {
+        const { backup_file: backupFilename } = req.body;
+        
+        if (!backupFilename) {
             return res.status(400).json({
                 success: false,
                 message: 'File backup tidak ditemukan'
@@ -531,34 +608,291 @@ router.post('/restore', upload.single('backup_file'), async (req, res) => {
         }
         
         const dbPath = path.join(__dirname, '../data/billing.db');
-        const backupPath = path.join(__dirname, '../data/backup', req.file.filename);
+        const backupPath = path.join(__dirname, '../data/backup', backupFilename);
+        
+        // Validasi file backup exists
+        if (!fs.existsSync(backupPath)) {
+            return res.status(400).json({
+                success: false,
+                message: 'File backup tidak ditemukan: ' + backupFilename
+            });
+        }
         
         // Backup database saat ini sebelum restore
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const currentBackup = path.join(__dirname, '../data/backup', `pre_restore_${timestamp}.db`);
         fs.copyFileSync(dbPath, currentBackup);
         
-        // Restore database
-        fs.copyFileSync(backupPath, dbPath);
+        logger.info(`Starting selective restore from: ${backupFilename}`);
         
-        logger.info(`Database restored from: ${req.file.filename}`);
+        // Cek apakah ada file WAL dan SHM untuk backup
+        const backupBaseName = backupFilename.replace(/\.db$/, '');
+        const backupWalPath = path.join(__dirname, '../data/backup', `${backupBaseName}.db-wal`);
+        const backupShmPath = path.join(__dirname, '../data/backup', `${backupBaseName}.db-shm`);
         
-        res.json({
-            success: true,
-            message: 'Database berhasil di-restore',
-            restored_file: req.file.filename
-        });
+        // Buat temporary database untuk merge WAL jika ada
+        const tempDbPath = path.join(__dirname, '../data/backup', `temp_restore_${timestamp}.db`);
+        const tempWalPath = tempDbPath + '-wal';
+        const tempShmPath = tempDbPath + '-shm';
+        
+        // Copy backup database ke temporary location
+        fs.copyFileSync(backupPath, tempDbPath);
+        
+        // Copy WAL dan SHM files jika ada
+        if (fs.existsSync(backupWalPath)) {
+            logger.info('WAL file ditemukan, akan di-merge ke database');
+            fs.copyFileSync(backupWalPath, tempWalPath);
+        }
+        if (fs.existsSync(backupShmPath)) {
+            fs.copyFileSync(backupShmPath, tempShmPath);
+        }
+        
+        // Buka temporary database untuk merge WAL
+        const tempDb = new sqlite3.Database(tempDbPath);
+        
+        try {
+            // Lakukan WAL checkpoint untuk merge data dari WAL ke database utama
+            if (fs.existsSync(tempWalPath)) {
+                logger.info('Melakukan WAL checkpoint untuk merge data...');
+                await new Promise((resolve, reject) => {
+                    tempDb.run('PRAGMA wal_checkpoint(FULL)', (err) => {
+                        if (err) {
+                            logger.warn('WAL checkpoint warning:', err.message);
+                            // Continue even if checkpoint fails
+                            resolve();
+                        } else {
+                            resolve();
+                        }
+                    });
+                });
+            }
+            
+            // Tutup temporary database
+            await new Promise((resolve, reject) => {
+                tempDb.close((err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+            });
+            
+            // Buka database backup yang sudah di-merge (gunakan temporary database)
+            const backupDb = new sqlite3.Database(tempDbPath);
+            const activeDb = new sqlite3.Database(dbPath);
+            
+            // Daftar tabel yang akan di-restore
+            const tablesToRestore = [
+                'packages',      // Paket billing
+                'customers',     // Pelanggan
+                'odps',          // ODP management
+                'cable_routes',  // ODP management - cable routes
+                'network_segments' // ODP management - network segments
+            ];
+            
+            const restoreResults = {};
+            
+            // Restore setiap tabel
+            for (const tableName of tablesToRestore) {
+                try {
+                    // Cek apakah tabel ada di backup database
+                    const tableExists = await new Promise((resolve, reject) => {
+                        backupDb.get(
+                            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                            [tableName],
+                            (err, row) => {
+                                if (err) reject(err);
+                                else resolve(!!row);
+                            }
+                        );
+                    });
+                    
+                    if (!tableExists) {
+                        logger.warn(`Table ${tableName} tidak ditemukan di backup database, dilewati`);
+                        restoreResults[tableName] = { success: false, message: 'Tabel tidak ditemukan di backup' };
+                        continue;
+                    }
+                    
+                    // Hapus data lama dari tabel aktif
+                    await new Promise((resolve, reject) => {
+                        activeDb.run(`DELETE FROM ${tableName}`, (err) => {
+                            if (err) reject(err);
+                            else resolve();
+                        });
+                    });
+                    
+                    // Ambil semua data dari backup database
+                    const backupData = await new Promise((resolve, reject) => {
+                        backupDb.all(`SELECT * FROM ${tableName}`, [], (err, rows) => {
+                            if (err) reject(err);
+                            else resolve(rows || []);
+                        });
+                    });
+                    
+                    if (backupData.length === 0) {
+                        restoreResults[tableName] = { success: true, count: 0, message: 'Tidak ada data untuk di-restore' };
+                        continue;
+                    }
+                    
+                    // Dapatkan kolom dari backup database
+                    const backupColumns = await new Promise((resolve, reject) => {
+                        backupDb.all(`PRAGMA table_info(${tableName})`, [], (err, rows) => {
+                            if (err) reject(err);
+                            else resolve(rows || []);
+                        });
+                    });
+                    
+                    // Dapatkan kolom dari database aktif
+                    const activeColumns = await new Promise((resolve, reject) => {
+                        activeDb.all(`PRAGMA table_info(${tableName})`, [], (err, rows) => {
+                            if (err) reject(err);
+                            else resolve(rows || []);
+                        });
+                    });
+                    
+                    // Buat set nama kolom dari database aktif untuk fast lookup
+                    const activeColumnNames = new Set(activeColumns.map(col => col.name.toLowerCase()));
+                    
+                    // Filter kolom: hanya gunakan kolom yang ada di kedua database
+                    const commonColumns = backupColumns.filter(col => 
+                        activeColumnNames.has(col.name.toLowerCase())
+                    );
+                    
+                    if (commonColumns.length === 0) {
+                        logger.warn(`Tidak ada kolom yang sama antara backup dan database aktif untuk tabel ${tableName}`);
+                        restoreResults[tableName] = { 
+                            success: false, 
+                            count: 0, 
+                            message: 'Tidak ada kolom yang kompatibel antara backup dan database aktif' 
+                        };
+                        continue;
+                    }
+                    
+                    // Log kolom yang akan di-restore dan yang di-skip
+                    const skippedColumns = backupColumns.filter(col => 
+                        !activeColumnNames.has(col.name.toLowerCase())
+                    );
+                    if (skippedColumns.length > 0) {
+                        logger.info(`Table ${tableName}: Skipping ${skippedColumns.length} columns not in active DB: ${skippedColumns.map(c => c.name).join(', ')}`);
+                    }
+                    logger.info(`Table ${tableName}: Restoring ${commonColumns.length} common columns: ${commonColumns.map(c => c.name).join(', ')}`);
+                    
+                    const columnNames = commonColumns.map(col => col.name).join(', ');
+                    const placeholders = commonColumns.map(() => '?').join(', ');
+                    
+                    // Insert data ke database aktif
+                    let insertedCount = 0;
+                    let skippedCount = 0;
+                    
+                    for (const row of backupData) {
+                        try {
+                            const values = commonColumns.map(col => {
+                                // Handle NULL values
+                                if (row[col.name] === null || row[col.name] === undefined) {
+                                    return null;
+                                }
+                                return row[col.name];
+                            });
+                            
+                            await new Promise((resolve, reject) => {
+                                activeDb.run(
+                                    `INSERT OR REPLACE INTO ${tableName} (${columnNames}) VALUES (${placeholders})`,
+                                    values,
+                                    function(err) {
+                                        if (err) reject(err);
+                                        else {
+                                            insertedCount++;
+                                            resolve();
+                                        }
+                                    }
+                                );
+                            });
+                        } catch (insertError) {
+                            skippedCount++;
+                            logger.warn(`Error inserting row into ${tableName}: ${insertError.message}`);
+                            // Continue with next row
+                        }
+                    }
+                    
+                    if (skippedCount > 0) {
+                        logger.warn(`Table ${tableName}: Skipped ${skippedCount} rows due to errors`);
+                    }
+                    
+                    restoreResults[tableName] = {
+                        success: true,
+                        count: insertedCount,
+                        message: `Berhasil restore ${insertedCount} data`
+                    };
+                    
+                    logger.info(`Table ${tableName}: Restored ${insertedCount} records`);
+                    
+                } catch (tableError) {
+                    logger.error(`Error restoring table ${tableName}:`, tableError);
+                    restoreResults[tableName] = {
+                        success: false,
+                        message: tableError.message
+                    };
+                }
+            }
+            
+            // Tutup koneksi database
+            backupDb.close();
+            activeDb.close();
+            
+            // Hapus temporary database files
+            try {
+                if (fs.existsSync(tempDbPath)) {
+                    fs.unlinkSync(tempDbPath);
+                }
+                if (fs.existsSync(tempWalPath)) {
+                    fs.unlinkSync(tempWalPath);
+                }
+                if (fs.existsSync(tempShmPath)) {
+                    fs.unlinkSync(tempShmPath);
+                }
+            } catch (cleanupError) {
+                logger.warn('Error cleaning up temporary files:', cleanupError.message);
+            }
+            
+            const totalRestored = Object.values(restoreResults)
+                .filter(r => r.success)
+                .reduce((sum, r) => sum + (r.count || 0), 0);
+            
+            logger.info(`Database restore completed. Total records restored: ${totalRestored}`);
+            
+            // Log detail hasil restore
+            Object.keys(restoreResults).forEach(tableName => {
+                const result = restoreResults[tableName];
+                logger.info(`Table ${tableName}: ${result.success ? 'SUCCESS' : 'FAILED'} - ${result.count || 0} records - ${result.message}`);
+            });
+            
+            res.json({
+                success: true,
+                message: `Database berhasil di-restore. Total ${totalRestored} data telah di-restore dari tabel: packages, customers, odps, cable_routes, network_segments`,
+                restored_file: backupFilename,
+                results: restoreResults,
+                total_restored: totalRestored
+            });
+            
+        } catch (tempDbError) {
+            // Ensure temp database is closed
+            try {
+                tempDb.close();
+            } catch (e) {
+                // Ignore
+            }
+            throw tempDbError;
+        }
+        
     } catch (error) {
         logger.error('Error restoring database:', error);
         res.status(500).json({
             success: false,
-            message: 'Error restoring database',
+            message: 'Error restoring database: ' + error.message,
             error: error.message
         });
     }
 });
 
-// Get backup files list
+// Get backup files list - Group 3 files (.db, .db-wal, .db-shm) as one backup set
 router.get('/backups', async (req, res) => {
     try {
         const backupPath = path.join(__dirname, '../data/backup');
@@ -570,22 +904,85 @@ router.get('/backups', async (req, res) => {
             });
         }
         
-        const files = fs.readdirSync(backupPath)
-            .filter(file => file.endsWith('.db'))
-            .map(file => {
-                const filePath = path.join(backupPath, file);
-                const stats = fs.statSync(filePath);
+        const allFiles = fs.readdirSync(backupPath);
+        
+        // Group files by base name (without extension)
+        const backupGroups = {};
+        
+        for (const file of allFiles) {
+            // Extract base name from files like:
+            // billing_backup_TIMESTAMP.db -> billing_backup_TIMESTAMP
+            // billing_backup_TIMESTAMP.db-wal -> billing_backup_TIMESTAMP
+            // billing_backup_TIMESTAMP.db-shm -> billing_backup_TIMESTAMP
+            let baseName = null;
+            let fileType = null;
+            
+            if (file.endsWith('.db')) {
+                baseName = file.replace(/\.db$/, '');
+                fileType = 'db';
+            } else if (file.endsWith('.db-wal')) {
+                baseName = file.replace(/\.db-wal$/, '');
+                fileType = 'wal';
+            } else if (file.endsWith('.db-shm')) {
+                baseName = file.replace(/\.db-shm$/, '');
+                fileType = 'shm';
+            }
+            
+            // Skip files that don't match backup pattern
+            if (!baseName || !fileType) {
+                continue;
+            }
+            
+            // Initialize group if not exists
+            if (!backupGroups[baseName]) {
+                backupGroups[baseName] = {
+                    base_name: baseName,
+                    files: [],
+                    total_size: 0,
+                    created: null
+                };
+            }
+            
+            // Add file to group
+            const filePath = path.join(backupPath, file);
+            const stats = fs.statSync(filePath);
+            backupGroups[baseName].files.push({
+                filename: file,
+                size: stats.size,
+                type: fileType
+            });
+            backupGroups[baseName].total_size += stats.size;
+            
+            // Update created time (use oldest file time as backup creation time)
+            if (!backupGroups[baseName].created || stats.birthtime < backupGroups[baseName].created) {
+                backupGroups[baseName].created = stats.birthtime;
+            }
+        }
+        
+        // Convert to array and format
+        const backups = Object.values(backupGroups)
+            .filter(group => group.files.length > 0)
+            .map(group => {
+                // Find main .db file
+                const dbFile = group.files.find(f => f.type === 'db');
                 return {
-                    filename: file,
-                    size: stats.size,
-                    created: stats.birthtime
+                    filename: dbFile ? dbFile.filename : `${group.base_name}.db`,
+                    base_name: group.base_name,
+                    size: group.total_size,
+                    created: group.created,
+                    file_count: group.files.length,
+                    files: group.files.map(f => ({
+                        filename: f.filename,
+                        size: f.size,
+                        type: f.type
+                    }))
                 };
             })
             .sort((a, b) => new Date(b.created) - new Date(a.created));
         
         res.json({
             success: true,
-            backups: files
+            backups: backups
         });
     } catch (error) {
         res.status(500).json({
@@ -596,20 +993,170 @@ router.get('/backups', async (req, res) => {
     }
 });
 
-// Get activity logs - Temporarily disabled due to logger refactoring
+// Get activity logs - Read from log files
 router.get('/activity-logs', async (req, res) => {
-    res.status(501).json({
-        success: false,
-        message: 'Activity logs feature temporarily disabled'
-    });
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const logTypes = req.query.types ? req.query.types.split(',') : ['info', 'error', 'warn'];
+        
+        const logsDir = path.join(__dirname, '../logs');
+        const allLogs = [];
+        
+        // Baca dari setiap file log
+        for (const logType of logTypes) {
+            const logFile = path.join(logsDir, `${logType}.log`);
+            
+            if (fs.existsSync(logFile)) {
+                try {
+                    // Read file content
+                    const fileContent = fs.readFileSync(logFile, 'utf8');
+                    let lines = fileContent.split('\n').filter(line => line.trim());
+                    
+                    // Limit to last 5000 lines per file to avoid memory issues
+                    if (lines.length > 5000) {
+                        lines = lines.slice(-5000);
+                        logger.warn(`Log file ${logFile} has ${lines.length} lines, limiting to last 5000`);
+                    }
+                    
+                    // Process lines - each line is a separate log entry
+                    for (const line of lines) {
+                        // Parse log format: [timestamp] [LEVEL] message
+                        // Example: [2025-08-19T08:41:29.101Z] [INFO] Invoice scheduler initialized
+                        const match = line.match(/^\[([^\]]+)\] \[([^\]]+)\] (.+)$/);
+                        
+                        if (match) {
+                            const [, timestamp, level, message] = match;
+                            
+                            // Try to extract JSON data from message if present
+                            let cleanMessage = message;
+                            let data = null;
+                            
+                            // Check if message contains JSON object
+                            const jsonMatch = message.match(/\n(\{[\s\S]*\})$/);
+                            if (jsonMatch) {
+                                try {
+                                    data = JSON.parse(jsonMatch[1]);
+                                    // Remove JSON from message
+                                    cleanMessage = message.replace(/\n\{[\s\S]*\}$/, '').trim();
+                                } catch (e) {
+                                    // Not valid JSON, keep original message
+                                }
+                            }
+                            
+                            allLogs.push({
+                                timestamp: timestamp,
+                                level: level.toLowerCase(),
+                                message: cleanMessage,
+                                data: data,
+                                type: logType,
+                                created_at: timestamp
+                            });
+                        }
+                    }
+                } catch (fileError) {
+                    logger.error(`Error reading log file ${logFile}:`, fileError);
+                }
+            }
+        }
+        
+        // Sort by timestamp (newest first)
+        allLogs.sort((a, b) => {
+            const dateA = new Date(a.timestamp);
+            const dateB = new Date(b.timestamp);
+            return dateB - dateA;
+        });
+        
+        // Paginate
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedLogs = allLogs.slice(startIndex, endIndex);
+        
+        // Format logs for display
+        const formattedLogs = paginatedLogs.map(log => ({
+            id: `${log.timestamp}-${log.type}-${Math.random()}`,
+            created_at: log.timestamp,
+            level: log.level,
+            message: log.message,
+            type: log.type,
+            data: log.data
+        }));
+        
+        res.json({
+            success: true,
+            logs: formattedLogs,
+            total: allLogs.length,
+            page: page,
+            limit: limit,
+            total_pages: Math.ceil(allLogs.length / limit)
+        });
+        
+    } catch (error) {
+        logger.error('Error getting activity logs:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error getting activity logs: ' + error.message,
+            logs: []
+        });
+    }
 });
 
-// Clear old activity logs - Temporarily disabled due to logger refactoring
+// Clear old activity logs
 router.post('/clear-logs', async (req, res) => {
-    res.status(501).json({
-        success: false,
-        message: 'Clear logs feature temporarily disabled'
-    });
+    try {
+        const { days = 30 } = req.body;
+        const logsDir = path.join(__dirname, '../logs');
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - days);
+        
+        const logTypes = ['info', 'error', 'warn', 'debug'];
+        let clearedCount = 0;
+        
+        for (const logType of logTypes) {
+            const logFile = path.join(logsDir, `${logType}.log`);
+            
+            if (fs.existsSync(logFile)) {
+                try {
+                    const fileContent = fs.readFileSync(logFile, 'utf8');
+                    const lines = fileContent.split('\n');
+                    
+                    // Filter logs that are newer than cutoff date
+                    const filteredLines = lines.filter(line => {
+                        if (!line.trim()) return false;
+                        
+                        const match = line.match(/\[([^\]]+)\]/);
+                        if (match) {
+                            const logDate = new Date(match[1]);
+                            return logDate >= cutoffDate;
+                        }
+                        return true; // Keep lines that don't match format
+                    });
+                    
+                    // Write filtered content back
+                    fs.writeFileSync(logFile, filteredLines.join('\n'));
+                    clearedCount += (lines.length - filteredLines.length);
+                    
+                } catch (fileError) {
+                    logger.error(`Error clearing log file ${logFile}:`, fileError);
+                }
+            }
+        }
+        
+        logger.info(`Cleared ${clearedCount} old log entries (older than ${days} days)`);
+        
+        res.json({
+            success: true,
+            message: `Berhasil menghapus ${clearedCount} log entries yang lebih dari ${days} hari`,
+            cleared_count: clearedCount
+        });
+        
+    } catch (error) {
+        logger.error('Error clearing logs:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error clearing logs: ' + error.message
+        });
+    }
 });
 
 // GET: Test endpoint untuk upload logo (tanpa auth)
