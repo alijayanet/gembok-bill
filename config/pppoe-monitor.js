@@ -194,15 +194,33 @@ async function checkPPPoEChanges() {
         if (changes && changes.length > 0) {
             console.log(`[PPPoE-MONITOR] Ditemukan ${changes.length} perubahan PPPoE`);
             
-            // Kirim notifikasi untuk setiap perubahan dengan penanganan error individual
-            for (const change of changes) {
+            // Kumpulkan semua perubahan login dan logout
+            const loginChanges = changes.filter(c => c.type === 'login' || c.type === 'new');
+            const logoutChanges = changes.filter(c => c.type === 'logout');
+            
+            // Kirim notifikasi batch untuk login jika ada
+            if (loginChanges.length > 0) {
                 try {
-                    console.log('[PPPoE-MONITOR] Memproses perubahan:', JSON.stringify(change, null, 2));
-                    await withTimeout(processPPPoEChange(change), 15000, 'Timeout saat memproses perubahan PPPoE');
-                } catch (processError) {
-                    console.error('[PPPoE-MONITOR] Error saat memproses perubahan:', processError.message);
-                    // Lanjutkan ke perubahan berikutnya meskipun ada error
-                    continue;
+                    console.log(`[PPPoE-MONITOR] Mengirim notifikasi batch login untuk ${loginChanges.length} user`);
+                    await pppoeNotifications.sendBatchLoginNotification(
+                        loginChanges.map(c => c.connection),
+                        currentPPPoEData
+                    );
+                } catch (batchError) {
+                    console.error('[PPPoE-MONITOR] Error saat mengirim notifikasi batch login:', batchError.message);
+                }
+            }
+            
+            // Kirim notifikasi batch untuk logout jika ada
+            if (logoutChanges.length > 0) {
+                try {
+                    console.log(`[PPPoE-MONITOR] Mengirim notifikasi batch logout untuk ${logoutChanges.length} user`);
+                    await pppoeNotifications.sendBatchLogoutNotification(
+                        logoutChanges.map(c => c.connection),
+                        currentPPPoEData
+                    );
+                } catch (batchError) {
+                    console.error('[PPPoE-MONITOR] Error saat mengirim notifikasi batch logout:', batchError.message);
                 }
             }
         } else {

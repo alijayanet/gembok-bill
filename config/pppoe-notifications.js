@@ -143,8 +143,11 @@ async function getTechnicianNumbers() {
                     return;
                 }
                 
-                // Extract phone numbers
-                const technicianNumbers = rows.map(row => row.phone);
+                // Extract phone numbers, filter out null/undefined/empty values
+                const technicianNumbers = rows
+                    .map(row => row.phone)
+                    .filter(phone => phone && phone.trim() !== '');
+                
                 logger.info(`Found ${technicianNumbers.length} active technicians in database`);
                 
                 resolve(technicianNumbers);
@@ -411,16 +414,32 @@ async function getActivePPPoEConnections() {
 }
 
 // Get offline PPPoE users
-async function getOfflinePPPoEUsers(activeUsers) {
+async function getOfflinePPPoEUsers(activeConnections) {
     try {
         const conn = await getMikrotikConnection();
         if (!conn) {
             return [];
         }
         
+        // Extract active user names from connections (can be array of objects or array of strings)
+        let activeUserNames = [];
+        if (Array.isArray(activeConnections)) {
+            activeUserNames = activeConnections.map(conn => {
+                if (typeof conn === 'string') {
+                    return conn;
+                } else if (conn && conn.name) {
+                    return conn.name;
+                }
+                return null;
+            }).filter(name => name);
+        }
+        
         const pppSecrets = await conn.write('/ppp/secret/print');
-        const offlineUsers = pppSecrets.filter(secret => !activeUsers.includes(secret.name));
-        return offlineUsers.map(user => user.name);
+        const offlineUsers = pppSecrets
+            .filter(secret => secret.name && !activeUserNames.includes(secret.name))
+            .map(user => user.name);
+        
+        return offlineUsers;
     } catch (error) {
         logger.error(`Error getting offline PPPoE users: ${error.message}`);
         return [];
@@ -428,23 +447,36 @@ async function getOfflinePPPoEUsers(activeUsers) {
 }
 
 // Format login notification message
-function formatLoginMessage(loginUsers, connections, offlineUsers) {
+function formatLoginMessage(loginUsers, loginConnections, offlineUsers) {
     const settings = getPPPoENotificationSettings();
     let message = `🔔 *PPPoE LOGIN NOTIFICATION*\n\n`;
     
     message += `📊 *User Login (${loginUsers.length}):*\n`;
     loginUsers.forEach((username, index) => {
-        const connection = connections.find(c => c.name === username);
+        // Cari connection object yang sesuai dengan username
+        let connection = null;
+        if (Array.isArray(loginConnections)) {
+            connection = loginConnections.find(c => {
+                if (!c) return false;
+                if (typeof c === 'string') return c === username;
+                return c.name === username;
+            });
+        }
+        
         message += `${index + 1}. *${username}*\n`;
-        if (connection) {
-            message += `   • IP: ${connection.address || 'N/A'}\n`;
-            message += `   • Uptime: ${connection.uptime || 'N/A'}\n`;
+        if (connection && typeof connection === 'object') {
+            if (connection.address) {
+                message += `   • IP: ${connection.address}\n`;
+            }
+            if (connection.uptime) {
+                message += `   • Uptime: ${connection.uptime}\n`;
+            }
         }
         message += '\n';
     });
     
-    if (settings.includeOfflineList && offlineUsers.length > 0) {
-        const maxCount = settings.maxOfflineListCount;
+    if (settings.includeOfflineList && offlineUsers && offlineUsers.length > 0) {
+        const maxCount = settings.maxOfflineListCount || 20;
         const displayCount = Math.min(offlineUsers.length, maxCount);
         
         message += `🚫 *User Offline (${offlineUsers.length}):*\n`;
@@ -457,7 +489,7 @@ function formatLoginMessage(loginUsers, connections, offlineUsers) {
         }
     }
     
-    message += `\n⏰ ${new Date().toLocaleString()}`;
+    message += `\n⏰ ${new Date().toLocaleString('id-ID')}`;
     return message;
 }
 
@@ -485,8 +517,186 @@ function formatLogoutMessage(logoutUsers, offlineUsers) {
         }
     }
     
-    message += `\n⏰ ${new Date().toLocaleString()}`;
+    message += `\n⏰ ${new Date().toLocaleString('id-ID')}`;
     return message;
+}
+
+// Fungsi untuk mengirim notifikasi batch login (semua login dalam satu notifikasi)
+async function sendBatchLoginNotification(loginConnections, allActiveConnections) {
+    try {
+        console.log('[PPPoE-NOTIFICATION] Mengirim notifikasi batch login untuk', loginConnections.length, 'user');
+        
+        // Dapatkan pengaturan notifikasi
+        const settings = getPPPoENotificationSettings();
+        
+        // Jika notifikasi dinonaktifkan, hentikan proses
+        if (!settings.enabled || !settings.loginNotifications) {
+            console.log('[PPPoE-NOTIFICATION] Notifikasi login dinonaktifkan');
+            return { success: false, message: 'Notifikasi login dinonaktifkan' };
+        }
+        
+        if (!loginConnections || loginConnections.length === 0) {
+            console.log('[PPPoE-NOTIFICATION] Tidak ada koneksi login untuk dikirim');
+            return { success: false, message: 'Tidak ada koneksi login' };
+        }
+        
+        // Ambil daftar user yang login
+        const loginUsers = loginConnections.map(c => c && c.name ? c.name : c).filter(name => name);
+        
+        // Ambil daftar user offline
+        const activeUserNames = allActiveConnections || [];
+        const offlineUsers = await getOfflinePPPoEUsers(activeUserNames);
+        
+        // Buat pesan notifikasi
+        const message = formatLoginMessage(loginUsers, loginConnections, offlineUsers);
+        
+        // Dapatkan daftar nomor admin dan teknisi
+        const adminNumbers = getAdminNumbers() || [];
+        let technicianNumbers = [];
+        
+        try {
+            technicianNumbers = await getTechnicianNumbers();
+        } catch (error) {
+            console.error('[PPPoE-NOTIFICATION] Error getting technician numbers:', error.message);
+            technicianNumbers = [];
+        }
+        
+        // Pastikan technicianNumbers adalah array dan filter null/empty values
+        const techNumbers = Array.isArray(technicianNumbers) 
+            ? technicianNumbers.filter(num => num && num.trim() !== '') 
+            : [];
+        
+        // Pastikan adminNumbers juga array
+        const adminNums = Array.isArray(adminNumbers) 
+            ? adminNumbers.filter(num => num && num.trim() !== '') 
+            : [];
+        
+        // Combine dan remove duplicates
+        const allRecipients = [...new Set([...adminNums, ...techNumbers])];
+        
+        console.log(`[PPPoE-NOTIFICATION] Admin numbers: ${adminNums.length}, Technician numbers: ${techNumbers.length}, Total recipients: ${allRecipients.length}`);
+        
+        // Jika tidak ada penerima, hentikan proses
+        if (allRecipients.length === 0) {
+            console.log('[PPPoE-NOTIFICATION] Tidak ada penerima notifikasi');
+            return { success: false, message: 'Tidak ada penerima notifikasi' };
+        }
+        
+        // Kirim notifikasi ke semua penerima dengan delay antar pengiriman
+        const results = [];
+        for (let i = 0; i < allRecipients.length; i++) {
+            const phoneNumber = allRecipients[i];
+            try {
+                // Delay antar pengiriman untuk menghindari rate limiting (kecuali untuk nomor pertama)
+                if (i > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // 1 detik delay
+                }
+                
+                const result = await sendNotificationToNumber(phoneNumber, message, 3);
+                results.push({ phoneNumber, success: result.success, message: result.message });
+            } catch (sendError) {
+                console.error(`[PPPoE-NOTIFICATION] Gagal mengirim notifikasi batch login ke ${phoneNumber}:`, sendError.message);
+                results.push({ phoneNumber, success: false, message: sendError.message });
+            }
+        }
+        
+        const successCount = results.filter(r => r.success).length;
+        console.log(`[PPPoE-NOTIFICATION] Notifikasi batch login terkirim ke ${successCount} dari ${results.length} penerima`);
+        return { success: true, results, successCount, totalRecipients: results.length };
+        
+    } catch (error) {
+        console.error('[PPPoE-NOTIFICATION] Error saat mengirim notifikasi batch login:', error.message);
+        return { success: false, message: error.message };
+    }
+}
+
+// Fungsi untuk mengirim notifikasi batch logout (semua logout dalam satu notifikasi)
+async function sendBatchLogoutNotification(logoutConnections, allActiveConnections) {
+    try {
+        console.log('[PPPoE-NOTIFICATION] Mengirim notifikasi batch logout untuk', logoutConnections.length, 'user');
+        
+        // Dapatkan pengaturan notifikasi
+        const settings = getPPPoENotificationSettings();
+        
+        // Jika notifikasi dinonaktifkan, hentikan proses
+        if (!settings.enabled || !settings.logoutNotifications) {
+            console.log('[PPPoE-NOTIFICATION] Notifikasi logout dinonaktifkan');
+            return { success: false, message: 'Notifikasi logout dinonaktifkan' };
+        }
+        
+        if (!logoutConnections || logoutConnections.length === 0) {
+            console.log('[PPPoE-NOTIFICATION] Tidak ada koneksi logout untuk dikirim');
+            return { success: false, message: 'Tidak ada koneksi logout' };
+        }
+        
+        // Ambil daftar user yang logout
+        const logoutUsers = logoutConnections.map(c => c && c.name ? c.name : c).filter(name => name);
+        
+        // Ambil daftar user offline setelah logout
+        const activeUserNames = allActiveConnections || [];
+        const offlineUsers = await getOfflinePPPoEUsers(activeUserNames);
+        
+        // Buat pesan notifikasi
+        const message = formatLogoutMessage(logoutUsers, offlineUsers);
+        
+        // Dapatkan daftar nomor admin dan teknisi
+        const adminNumbers = getAdminNumbers() || [];
+        let technicianNumbers = [];
+        
+        try {
+            technicianNumbers = await getTechnicianNumbers();
+        } catch (error) {
+            console.error('[PPPoE-NOTIFICATION] Error getting technician numbers:', error.message);
+            technicianNumbers = [];
+        }
+        
+        // Pastikan technicianNumbers adalah array dan filter null/empty values
+        const techNumbers = Array.isArray(technicianNumbers) 
+            ? technicianNumbers.filter(num => num && num.trim() !== '') 
+            : [];
+        
+        // Pastikan adminNumbers juga array
+        const adminNums = Array.isArray(adminNumbers) 
+            ? adminNumbers.filter(num => num && num.trim() !== '') 
+            : [];
+        
+        // Combine dan remove duplicates
+        const allRecipients = [...new Set([...adminNums, ...techNumbers])];
+        
+        console.log(`[PPPoE-NOTIFICATION] Admin numbers: ${adminNums.length}, Technician numbers: ${techNumbers.length}, Total recipients: ${allRecipients.length}`);
+        
+        // Jika tidak ada penerima, hentikan proses
+        if (allRecipients.length === 0) {
+            console.log('[PPPoE-NOTIFICATION] Tidak ada penerima notifikasi');
+            return { success: false, message: 'Tidak ada penerima notifikasi' };
+        }
+        
+        // Kirim notifikasi ke semua penerima dengan delay antar pengiriman
+        const results = [];
+        for (let i = 0; i < allRecipients.length; i++) {
+            const phoneNumber = allRecipients[i];
+            try {
+                // Delay antar pengiriman untuk menghindari rate limiting (kecuali untuk nomor pertama)
+                if (i > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // 1 detik delay
+                }
+                
+                const result = await sendNotificationToNumber(phoneNumber, message, 3);
+                results.push({ phoneNumber, success: result.success, message: result.message });
+            } catch (sendError) {
+                console.error(`[PPPoE-NOTIFICATION] Gagal mengirim notifikasi batch logout ke ${phoneNumber}:`, sendError.message);
+                results.push({ phoneNumber, success: false, message: sendError.message });
+            }
+        }
+        
+        const successCount = results.filter(r => r.success).length;
+        console.log(`[PPPoE-NOTIFICATION] Notifikasi batch logout terkirim ke ${successCount} dari ${results.length} penerima`);
+        return { success: true, results, successCount, totalRecipients: results.length };
+        
+    } catch (error) {
+        console.error('[PPPoE-NOTIFICATION] Error saat mengirim notifikasi batch logout:', error.message);
+        return { success: false, message: error.message };
+    }
 }
 
 // Fungsi untuk mengirim notifikasi login PPPoE
@@ -510,9 +720,30 @@ async function sendLoginNotification(connection) {
         }
         
         // Dapatkan daftar nomor admin dan teknisi
-        const adminNumbers = getAdminNumbers();
-        const technicianNumbers = getTechnicianNumbers();
-        const allRecipients = [...new Set([...adminNumbers, ...technicianNumbers])];
+        const adminNumbers = getAdminNumbers() || [];
+        let technicianNumbers = [];
+        
+        try {
+            technicianNumbers = await getTechnicianNumbers();
+        } catch (error) {
+            console.error('[PPPoE-NOTIFICATION] Error getting technician numbers:', error.message);
+            technicianNumbers = [];
+        }
+        
+        // Pastikan technicianNumbers adalah array dan filter null/empty values
+        const techNumbers = Array.isArray(technicianNumbers) 
+            ? technicianNumbers.filter(num => num && num.trim() !== '') 
+            : [];
+        
+        // Pastikan adminNumbers juga array
+        const adminNums = Array.isArray(adminNumbers) 
+            ? adminNumbers.filter(num => num && num.trim() !== '') 
+            : [];
+        
+        // Combine dan remove duplicates
+        const allRecipients = [...new Set([...adminNums, ...techNumbers])];
+        
+        console.log(`[PPPoE-NOTIFICATION] Admin numbers: ${adminNums.length}, Technician numbers: ${techNumbers.length}, Total recipients: ${allRecipients.length}`);
         
         // Jika tidak ada penerima, hentikan proses
         if (allRecipients.length === 0) {
@@ -530,11 +761,17 @@ async function sendLoginNotification(connection) {
         }
         message += `\n⏰ *Waktu:* ${new Date().toLocaleString('id-ID')}`;
         
-        // Kirim notifikasi ke semua penerima
+        // Kirim notifikasi ke semua penerima dengan delay antar pengiriman
         const results = [];
-        for (const phoneNumber of allRecipients) {
+        for (let i = 0; i < allRecipients.length; i++) {
+            const phoneNumber = allRecipients[i];
             try {
-                const result = await sendNotificationToNumber(phoneNumber, message);
+                // Delay antar pengiriman untuk menghindari rate limiting (kecuali untuk nomor pertama)
+                if (i > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // 1 detik delay
+                }
+                
+                const result = await sendNotificationToNumber(phoneNumber, message, 3);
                 results.push({ phoneNumber, success: result.success, message: result.message });
             } catch (sendError) {
                 console.error(`[PPPoE-NOTIFICATION] Gagal mengirim notifikasi ke ${phoneNumber}:`, sendError.message);
@@ -572,9 +809,30 @@ async function sendLogoutNotification(connection) {
         }
         
         // Dapatkan daftar nomor admin dan teknisi
-        const adminNumbers = getAdminNumbers();
-        const technicianNumbers = getTechnicianNumbers();
-        const allRecipients = [...new Set([...adminNumbers, ...technicianNumbers])];
+        const adminNumbers = getAdminNumbers() || [];
+        let technicianNumbers = [];
+        
+        try {
+            technicianNumbers = await getTechnicianNumbers();
+        } catch (error) {
+            console.error('[PPPoE-NOTIFICATION] Error getting technician numbers:', error.message);
+            technicianNumbers = [];
+        }
+        
+        // Pastikan technicianNumbers adalah array dan filter null/empty values
+        const techNumbers = Array.isArray(technicianNumbers) 
+            ? technicianNumbers.filter(num => num && num.trim() !== '') 
+            : [];
+        
+        // Pastikan adminNumbers juga array
+        const adminNums = Array.isArray(adminNumbers) 
+            ? adminNumbers.filter(num => num && num.trim() !== '') 
+            : [];
+        
+        // Combine dan remove duplicates
+        const allRecipients = [...new Set([...adminNums, ...techNumbers])];
+        
+        console.log(`[PPPoE-NOTIFICATION] Admin numbers: ${adminNums.length}, Technician numbers: ${techNumbers.length}, Total recipients: ${allRecipients.length}`);
         
         // Jika tidak ada penerima, hentikan proses
         if (allRecipients.length === 0) {
@@ -590,11 +848,17 @@ async function sendLogoutNotification(connection) {
         }
         message += `\n⏰ *Waktu:* ${new Date().toLocaleString('id-ID')}`;
         
-        // Kirim notifikasi ke semua penerima
+        // Kirim notifikasi ke semua penerima dengan delay antar pengiriman
         const results = [];
-        for (const phoneNumber of allRecipients) {
+        for (let i = 0; i < allRecipients.length; i++) {
+            const phoneNumber = allRecipients[i];
             try {
-                const result = await sendNotificationToNumber(phoneNumber, message);
+                // Delay antar pengiriman untuk menghindari rate limiting (kecuali untuk nomor pertama)
+                if (i > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // 1 detik delay
+                }
+                
+                const result = await sendNotificationToNumber(phoneNumber, message, 3);
                 results.push({ phoneNumber, success: result.success, message: result.message });
             } catch (sendError) {
                 console.error(`[PPPoE-NOTIFICATION] Gagal mengirim notifikasi ke ${phoneNumber}:`, sendError.message);
@@ -611,31 +875,101 @@ async function sendLogoutNotification(connection) {
     }
 }
 
-// Fungsi untuk mengirim notifikasi ke nomor tertentu
-async function sendNotificationToNumber(phoneNumber, message) {
-    try {
-        // Cek apakah WhatsApp socket tersedia
-        if (!global.whatsappSocket || !global.whatsappStatus || !global.whatsappStatus.connected) {
-            console.warn('[PPPoE-NOTIFICATION] WhatsApp tidak terhubung');
-            return { success: false, message: 'WhatsApp tidak terhubung' };
-        }
-        
-        // Format nomor telepon
-        const formattedPhone = formatWhatsAppNumber(phoneNumber);
-        if (!formattedPhone) {
-            console.warn('[PPPoE-NOTIFICATION] Format nomor telepon tidak valid:', phoneNumber);
-            return { success: false, message: 'Format nomor telepon tidak valid' };
-        }
-        
-        // Kirim pesan
-        await global.whatsappSocket.sendMessage(formattedPhone, { text: message });
-        console.log('[PPPoE-NOTIFICATION] Pesan terkirim ke:', phoneNumber);
-        return { success: true, message: 'Pesan terkirim' };
-        
-    } catch (error) {
-        console.error('[PPPoE-NOTIFICATION] Gagal mengirim pesan ke:', phoneNumber, error.message);
-        return { success: false, message: error.message };
+// Fungsi untuk mengirim notifikasi ke nomor tertentu dengan retry
+async function sendNotificationToNumber(phoneNumber, message, maxRetries = 3) {
+    // Validasi input
+    if (!phoneNumber) {
+        console.warn('[PPPoE-NOTIFICATION] Nomor telepon tidak valid:', phoneNumber);
+        return { success: false, message: 'Nomor telepon tidak valid' };
     }
+    
+    // Normalize nomor telepon - hapus spasi dan karakter non-digit
+    let cleanNumber = phoneNumber.toString().replace(/[^0-9]/g, '');
+    
+    // Jika nomor dimulai dengan 0, ganti dengan 62
+    if (cleanNumber.startsWith('0')) {
+        cleanNumber = '62' + cleanNumber.substring(1);
+    } else if (!cleanNumber.startsWith('62')) {
+        cleanNumber = '62' + cleanNumber;
+    }
+    
+    // Format untuk WhatsApp
+    const formattedPhone = cleanNumber + '@s.whatsapp.net';
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            // Cek apakah WhatsApp socket tersedia dan terhubung
+            if (!global.whatsappSocket) {
+                console.warn(`[PPPoE-NOTIFICATION] Attempt ${attempt}/${maxRetries}: WhatsApp socket tidak tersedia`);
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt)); // Exponential backoff
+                    continue;
+                }
+                return { success: false, message: 'WhatsApp socket tidak tersedia' };
+            }
+            
+            // Cek status koneksi
+            if (!global.whatsappStatus || !global.whatsappStatus.connected) {
+                console.warn(`[PPPoE-NOTIFICATION] Attempt ${attempt}/${maxRetries}: WhatsApp tidak terhubung`);
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt)); // Exponential backoff
+                    continue;
+                }
+                return { success: false, message: 'WhatsApp tidak terhubung' };
+            }
+            
+            // Cek apakah fungsi sendMessage tersedia
+            if (typeof global.whatsappSocket.sendMessage !== 'function') {
+                console.warn(`[PPPoE-NOTIFICATION] Attempt ${attempt}/${maxRetries}: Fungsi sendMessage tidak tersedia`);
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+                    continue;
+                }
+                return { success: false, message: 'Fungsi sendMessage tidak tersedia' };
+            }
+            
+            // Kirim pesan dengan timeout
+            try {
+                const sendPromise = global.whatsappSocket.sendMessage(formattedPhone, { text: message });
+                await withTimeout(sendPromise, 15000, 'Pengiriman pesan WhatsApp timeout');
+                console.log(`[PPPoE-NOTIFICATION] Pesan berhasil terkirim ke: ${cleanNumber} (attempt ${attempt})`);
+                return { success: true, message: 'Pesan terkirim' };
+            } catch (sendError) {
+                const errorMessage = sendError.message || sendError.toString();
+                console.warn(`[PPPoE-NOTIFICATION] Attempt ${attempt}/${maxRetries}: Error sending to ${cleanNumber}: ${errorMessage}`);
+                
+                // Jika error "Connection Closed", tunggu lebih lama sebelum retry
+                if (errorMessage.includes('Connection Closed') || errorMessage.toLowerCase().includes('connection') || errorMessage.toLowerCase().includes('close')) {
+                    if (attempt < maxRetries) {
+                        const waitTime = 3000 * attempt; // Wait longer for connection issues (3s, 6s, 9s)
+                        console.log(`[PPPoE-NOTIFICATION] Connection error detected, waiting ${waitTime/1000}s before retry...`);
+                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                        continue;
+                    }
+                } else if (attempt < maxRetries) {
+                    // For other errors, use shorter wait time
+                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+                    continue;
+                }
+                
+                // Last attempt failed
+                return { success: false, message: errorMessage };
+            }
+            
+        } catch (error) {
+            const errorMessage = error.message || error.toString();
+            console.error(`[PPPoE-NOTIFICATION] Attempt ${attempt}/${maxRetries}: Unexpected error sending to ${cleanNumber}:`, errorMessage);
+            
+            if (attempt < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+                continue;
+            }
+            
+            return { success: false, message: errorMessage };
+        }
+    }
+    
+    return { success: false, message: 'Gagal mengirim setelah semua percobaan' };
 }
 
 module.exports = {
@@ -655,6 +989,8 @@ module.exports = {
     sendNotification,
     sendLoginNotification,
     sendLogoutNotification,
+    sendBatchLoginNotification,
+    sendBatchLogoutNotification,
     getActivePPPoEConnections,
     getOfflinePPPoEUsers,
     formatLoginMessage,
