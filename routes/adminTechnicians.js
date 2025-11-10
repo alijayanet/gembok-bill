@@ -124,11 +124,8 @@ router.post('/add', adminAuth, async (req, res) => {
             });
         }
 
-        // Clean phone number
+        // Clean phone number - hanya hapus karakter non-digit, tetap pertahankan format yang dimasukkan user
         let cleanPhone = phone.replace(/\D/g, '');
-        if (cleanPhone.startsWith('62')) {
-            cleanPhone = '0' + cleanPhone.slice(2);
-        }
 
         // Check if phone already exists
         const existingTechnician = await new Promise((resolve, reject) => {
@@ -248,11 +245,8 @@ router.put('/:id/update', adminAuth, async (req, res) => {
             });
         }
 
-        // Clean phone number
+        // Clean phone number - hanya hapus karakter non-digit, tetap pertahankan format yang dimasukkan user
         let cleanPhone = phone.replace(/\D/g, '');
-        if (cleanPhone.startsWith('62')) {
-            cleanPhone = '0' + cleanPhone.slice(2);
-        }
 
         // Check if phone already exists for other technicians
         const existingTechnician = await new Promise((resolve, reject) => {
