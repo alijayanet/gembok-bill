@@ -19,7 +19,7 @@ class BillingManager {
             const result = this.paymentGateway.reload();
             return result;
         } catch (e) {
-            try { logger.error('[BILLING] Failed to reload payment gateways:', e.message); } catch (_) {}
+            try { logger.error('[BILLING] Failed to reload payment gateways:', e.message); } catch (_) { }
             return { error: true, message: e.message };
         }
     }
@@ -30,11 +30,11 @@ class BillingManager {
                 const existing = await this.getCustomerById(id);
                 if (!existing) return reject(new Error('Customer not found'));
                 const sql = `UPDATE customers SET status = ? WHERE id = ?`;
-                this.db.run(sql, [status, id], function(err) {
+                this.db.run(sql, [status, id], function (err) {
                     if (err) return reject(err);
                     try {
                         logger.info(`[BILLING] setCustomerStatusById: id=${id}, username=${existing.username}, from=${existing.status} -> to=${status}`);
-                    } catch (_) {}
+                    } catch (_) { }
                     resolve({ id, status });
                 });
             } catch (e) {
@@ -54,7 +54,7 @@ class BillingManager {
         try {
             this.db = new sqlite3.Database(this.dbPath);
             console.log('Billing database connected');
-            
+
             // Enable foreign key constraints for cascade delete
             this.db.run("PRAGMA foreign_keys = ON", (err) => {
                 if (err) {
@@ -63,7 +63,7 @@ class BillingManager {
                     console.log('✅ Foreign keys enabled for cascade delete');
                 }
             });
-            
+
             this.createTables();
         } catch (err) {
             console.error('Error opening billing database:', err);
@@ -101,7 +101,7 @@ class BillingManager {
                     cable_status !== undefined ? cable_status : oldCustomer.cable_status,
                     cable_notes !== undefined ? cable_notes : oldCustomer.cable_notes,
                     id
-                ], async function(err) {
+                ], async function (err) {
                     if (err) {
                         reject(err);
                     } else {
@@ -111,7 +111,7 @@ class BillingManager {
                             try {
                                 const db = this.db;
                                 const customerId = id;
-                                
+
                                 // Cek apakah sudah ada cable route untuk customer ini
                                 const existingRoute = await new Promise((resolve, reject) => {
                                     db.get('SELECT * FROM cable_routes WHERE customer_id = ?', [customerId], (err, row) => {
@@ -119,7 +119,7 @@ class BillingManager {
                                         else resolve(row);
                                     });
                                 });
-                                
+
                                 if (existingRoute) {
                                     // Update cable route yang ada
                                     console.log(`📝 Found existing cable route for customer ${oldCustomer.username}, updating...`);
@@ -129,7 +129,7 @@ class BillingManager {
                                         SET odp_id = ?, cable_type = ?, cable_length = ?, port_number = ?, status = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
                                         WHERE customer_id = ?
                                     `;
-                                    
+
                                     db.run(updateSql, [
                                         odp_id !== undefined ? odp_id : existingRoute.odp_id,
                                         cable_type !== undefined ? cable_type : existingRoute.cable_type,
@@ -138,7 +138,7 @@ class BillingManager {
                                         cable_status !== undefined ? cable_status : existingRoute.status,
                                         cable_notes !== undefined ? cable_notes : existingRoute.notes,
                                         customerId
-                                    ], function(err) {
+                                    ], function (err) {
                                         if (err) {
                                             console.error(`❌ Error updating cable route for customer ${oldCustomer.username}:`, err.message);
                                         } else {
@@ -152,7 +152,7 @@ class BillingManager {
                                         INSERT INTO cable_routes (customer_id, odp_id, cable_type, cable_length, port_number, status, notes)
                                         VALUES (?, ?, ?, ?, ?, ?, ?)
                                     `;
-                                    
+
                                     db.run(cableRouteSql, [
                                         customerId,
                                         odp_id,
@@ -161,7 +161,7 @@ class BillingManager {
                                         port_number || 1,
                                         cable_status || 'connected',
                                         cable_notes || `Auto-created for customer ${oldCustomer.name}`
-                                    ], function(err) {
+                                    ], function (err) {
                                         if (err) {
                                             console.error(`❌ Error creating cable route for customer ${oldCustomer.username}:`, err.message);
                                         } else {
@@ -174,7 +174,7 @@ class BillingManager {
                                 // Jangan reject, karena customer sudah berhasil diupdate di billing
                             }
                         }
-                        
+
                         resolve({ username: oldCustomer.username, id, ...customerData });
                     }
                 });
@@ -188,13 +188,13 @@ class BillingManager {
     async updateCustomerCoordinates(id, coordinates) {
         return new Promise((resolve, reject) => {
             const { latitude, longitude } = coordinates;
-            
+
             if (latitude === undefined || longitude === undefined) {
                 return reject(new Error('Latitude dan longitude wajib diisi'));
             }
 
             const sql = `UPDATE customers SET latitude = ?, longitude = ? WHERE id = ?`;
-            this.db.run(sql, [latitude, longitude, id], function(err) {
+            this.db.run(sql, [latitude, longitude, id], function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -253,6 +253,7 @@ class BillingManager {
                 username TEXT UNIQUE NOT NULL,
                 name TEXT NOT NULL,
                 phone TEXT UNIQUE NOT NULL,
+                whatsapp_lid TEXT UNIQUE,
                 pppoe_username TEXT,
                 email TEXT,
                 address TEXT,
@@ -384,7 +385,7 @@ class BillingManager {
                 FOREIGN KEY (start_odp_id) REFERENCES odps(id) ON DELETE CASCADE,
                 FOREIGN KEY (end_odp_id) REFERENCES odps(id) ON DELETE CASCADE
             )`,
-            
+
             // Tabel ODP Connections (Backbone Network)
             `CREATE TABLE IF NOT EXISTS odp_connections (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -546,14 +547,14 @@ class BillingManager {
 
     createTablesSequentially(tables) {
         let currentIndex = 0;
-        
+
         const createNextTable = () => {
             if (currentIndex >= tables.length) {
                 // All tables created, now add columns and create indexes/triggers
                 this.addColumnsAndCreateIndexes();
                 return;
             }
-            
+
             const tableSQL = tables[currentIndex];
             this.db.run(tableSQL, (err) => {
                 if (err) {
@@ -563,7 +564,7 @@ class BillingManager {
                 createNextTable();
             });
         };
-        
+
         createNextTable();
     }
 
@@ -598,7 +599,7 @@ class BillingManager {
 
         // Buat index untuk tabel ODP dan Cable Network
         this.createODPIndexes();
-        
+
         // Buat trigger untuk tabel ODP dan Cable Network
         this.createODPTriggers();
     }
@@ -637,28 +638,28 @@ class BillingManager {
             BEGIN
                 UPDATE odps SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
             END`,
-            
+
             `CREATE TRIGGER IF NOT EXISTS update_cable_routes_updated_at 
                 AFTER UPDATE ON cable_routes
                 FOR EACH ROW
             BEGIN
                 UPDATE cable_routes SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
             END`,
-            
+
             `CREATE TRIGGER IF NOT EXISTS update_network_segments_updated_at 
                 AFTER UPDATE ON network_segments
                 FOR EACH ROW
             BEGIN
                 UPDATE network_segments SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
             END`,
-            
+
             `CREATE TRIGGER IF NOT EXISTS update_odp_connections_updated_at 
                 AFTER UPDATE ON odp_connections
                 FOR EACH ROW
             BEGIN
                 UPDATE odp_connections SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
             END`,
-            
+
             // Triggers untuk update used_ports di ODP
             `CREATE TRIGGER IF NOT EXISTS update_odp_used_ports_insert
                 AFTER INSERT ON cable_routes
@@ -666,7 +667,7 @@ class BillingManager {
             BEGIN
                 UPDATE odps SET used_ports = used_ports + 1 WHERE id = NEW.odp_id;
             END`,
-            
+
             `CREATE TRIGGER IF NOT EXISTS update_odp_used_ports_delete
                 AFTER DELETE ON cable_routes
                 FOR EACH ROW
@@ -699,8 +700,8 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             const { name, speed, price, tax_rate, description, pppoe_profile, image_filename } = packageData;
             const sql = `INSERT INTO packages (name, speed, price, tax_rate, description, pppoe_profile, image_filename) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-            
-            this.db.run(sql, [name, speed, price, tax_rate !== undefined ? tax_rate : 11.00, description, pppoe_profile || 'default', image_filename || null], function(err) {
+
+            this.db.run(sql, [name, speed, price, tax_rate !== undefined ? tax_rate : 11.00, description, pppoe_profile || 'default', image_filename || null], function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -713,7 +714,7 @@ class BillingManager {
     async getPackages() {
         return new Promise((resolve, reject) => {
             const sql = `SELECT * FROM packages WHERE is_active = 1 ORDER BY price ASC`;
-            
+
             this.db.all(sql, [], (err, rows) => {
                 if (err) {
                     reject(err);
@@ -727,7 +728,7 @@ class BillingManager {
     async getPackageById(id) {
         return new Promise((resolve, reject) => {
             const sql = `SELECT * FROM packages WHERE id = ?`;
-            
+
             this.db.get(sql, [id], (err, row) => {
                 if (err) {
                     reject(err);
@@ -742,8 +743,8 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             const { name, speed, price, tax_rate, description, pppoe_profile, image_filename } = packageData;
             const sql = `UPDATE packages SET name = ?, speed = ?, price = ?, tax_rate = ?, description = ?, pppoe_profile = ?, image_filename = ? WHERE id = ?`;
-            
-            this.db.run(sql, [name, speed, price, tax_rate || 0, description, pppoe_profile || 'default', image_filename || null, id], function(err) {
+
+            this.db.run(sql, [name, speed, price, tax_rate || 0, description, pppoe_profile || 'default', image_filename || null, id], function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -756,8 +757,8 @@ class BillingManager {
     async deletePackage(id) {
         return new Promise((resolve, reject) => {
             const sql = `UPDATE packages SET is_active = 0 WHERE id = ?`;
-            
-            this.db.run(sql, [id], function(err) {
+
+            this.db.run(sql, [id], function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -775,31 +776,31 @@ class BillingManager {
                 console.error('❌ Database not initialized');
                 return reject(new Error('Database not initialized'));
             }
-            
+
             // Simpan reference database untuk digunakan di callback
             const db = this.db;
-            
+
             const { name, username, phone, pppoe_username, email, address, package_id, odp_id, pppoe_profile, status, auto_suspension, billing_day, static_ip, assigned_ip, mac_address, latitude, longitude, cable_type, cable_length, port_number, cable_status, cable_notes } = customerData;
-            
+
             // Use provided username, fallback to auto-generate if not provided
             const finalUsername = username || this.generateUsername(phone);
             const autoPPPoEUsername = pppoe_username || this.generatePPPoEUsername(phone);
-            
+
             // Normalisasi billing_day (1-28)
             const normBillingDay = Math.min(Math.max(parseInt(billing_day ?? 15, 10) || 15, 1), 28);
-            
+
             const sql = `INSERT INTO customers (username, name, phone, pppoe_username, email, address, package_id, odp_id, pppoe_profile, status, auto_suspension, billing_day, static_ip, assigned_ip, mac_address, latitude, longitude, cable_type, cable_length, port_number, cable_status, cable_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-            
+
             // Default coordinates untuk Jakarta jika tidak ada koordinat
             const finalLatitude = latitude !== undefined ? parseFloat(latitude) : -6.2088;
             const finalLongitude = longitude !== undefined ? parseFloat(longitude) : 106.8456;
-            
-            db.run(sql, [finalUsername, name, phone, autoPPPoEUsername, email, address, package_id, customerData.odp_id || null, pppoe_profile, status || 'active', auto_suspension !== undefined ? auto_suspension : 1, normBillingDay, static_ip || null, assigned_ip || null, mac_address || null, finalLatitude, finalLongitude, cable_type || null, cable_length || null, port_number || null, cable_status || 'connected', cable_notes || null], async function(err) {
+
+            db.run(sql, [finalUsername, name, phone, autoPPPoEUsername, email, address, package_id, customerData.odp_id || null, pppoe_profile, status || 'active', auto_suspension !== undefined ? auto_suspension : 1, normBillingDay, static_ip || null, assigned_ip || null, mac_address || null, finalLatitude, finalLongitude, cable_type || null, cable_length || null, port_number || null, cable_status || 'connected', cable_notes || null], async function (err) {
                 if (err) {
                     reject(err);
                 } else {
                     const customer = { id: this.lastID, ...customerData };
-                    
+
                     // Jika ada data ODP, buat cable route otomatis
                     if (odp_id) {
                         console.log(`🔧 Creating cable route for new customer ${finalUsername}, odp_id: ${odp_id}, cable_type: ${cable_type}`);
@@ -809,7 +810,7 @@ class BillingManager {
                                 INSERT INTO cable_routes (customer_id, odp_id, cable_type, cable_length, port_number, status, notes)
                                 VALUES (?, ?, ?, ?, ?, ?, ?)
                             `;
-                            
+
                             db.run(cableRouteSql, [
                                 this.lastID,
                                 odp_id,
@@ -818,7 +819,7 @@ class BillingManager {
                                 port_number || 1,
                                 cable_status || 'connected',
                                 cable_notes || `Auto-created for customer ${name}`
-                            ], function(err) {
+                            ], function (err) {
                                 if (err) {
                                     console.error(`❌ Error creating cable route for customer ${finalUsername}:`, err.message);
                                 } else {
@@ -830,7 +831,7 @@ class BillingManager {
                             // Jangan reject, karena customer sudah berhasil dibuat di billing
                         }
                     }
-                    
+
                     // Jika ada nomor telepon dan PPPoE username, coba tambahkan tag ke GenieACS
                     // Tambahkan timeout dan error handling untuk mencegah delay
                     if (phone && autoPPPoEUsername) {
@@ -838,12 +839,12 @@ class BillingManager {
                             // Timeout untuk operasi GenieACS
                             const genieacsPromise = new Promise(async (resolve, reject) => {
                                 const timeout = setTimeout(() => reject(new Error('GenieACS operation timeout')), 3000); // 3 second timeout
-                                
+
                                 try {
                                     const genieacs = require('./genieacs');
                                     // Cari device berdasarkan PPPoE Username
                                     const device = await genieacs.findDeviceByPPPoE(autoPPPoEUsername);
-                                    
+
                                     if (device) {
                                         // Tambahkan tag nomor telepon ke device
                                         await genieacs.addTagToDevice(device._id, phone);
@@ -858,7 +859,7 @@ class BillingManager {
                                     reject(genieacsError);
                                 }
                             });
-                            
+
                             await genieacsPromise;
                         } catch (genieacsError) {
                             console.log(`⚠️ GenieACS integration skipped for customer ${finalUsername} (timeout or error): ${genieacsError.message}`);
@@ -870,11 +871,11 @@ class BillingManager {
                             // Timeout untuk operasi GenieACS
                             const genieacsPromise = new Promise(async (resolve, reject) => {
                                 const timeout = setTimeout(() => reject(new Error('GenieACS operation timeout')), 3000); // 3 second timeout
-                                
+
                                 try {
                                     const genieacs = require('./genieacs');
                                     const device = await genieacs.findDeviceByPPPoE(finalUsername);
-                                    
+
                                     if (device) {
                                         await genieacs.addTagToDevice(device._id, phone);
                                         console.log(`✅ Successfully added phone tag ${phone} to device ${device._id} for customer ${finalUsername} (using username as PPPoE)`);
@@ -888,13 +889,13 @@ class BillingManager {
                                     reject(genieacsError);
                                 }
                             });
-                            
+
                             await genieacsPromise;
                         } catch (genieacsError) {
                             console.log(`⚠️ GenieACS integration skipped for customer ${finalUsername} (timeout or error): ${genieacsError.message}`);
                         }
                     }
-                    
+
                     resolve(customer);
                 }
             });
@@ -929,7 +930,7 @@ class BillingManager {
                 LEFT JOIN packages p ON c.package_id = p.id 
                 ORDER BY c.name ASC
             `;
-            
+
             this.db.all(sql, [], (err, rows) => {
                 if (err) {
                     reject(err);
@@ -948,7 +949,7 @@ class BillingManager {
                 LEFT JOIN packages p ON c.package_id = p.id 
                 WHERE c.username = ?
             `;
-            
+
             this.db.get(sql, [username], (err, row) => {
                 if (err) {
                     reject(err);
@@ -963,7 +964,7 @@ class BillingManager {
     async searchCustomers(searchTerm) {
         return new Promise((resolve, reject) => {
             const searchPattern = `%${searchTerm}%`;
-            
+
             const sql = `
                 SELECT id, username, name, phone, email, address, pppoe_username, 
                        package_id, status, created_at, updated_at
@@ -972,7 +973,7 @@ class BillingManager {
                 ORDER BY name ASC
                 LIMIT 20
             `;
-            
+
             this.db.all(sql, [searchPattern, searchPattern, searchPattern, searchPattern], (err, rows) => {
                 if (err) {
                     reject(err);
@@ -992,7 +993,7 @@ class BillingManager {
                 LEFT JOIN packages p ON c.package_id = p.id
                 WHERE c.id = ?
             `;
-            
+
             this.db.get(sql, [id], (err, row) => {
                 if (err) {
                     reject(err);
@@ -1055,11 +1056,97 @@ class BillingManager {
         });
     }
 
+    async getCustomerByWhatsAppLid(lid) {
+        return new Promise((resolve, reject) => {
+            try {
+                if (!lid) {
+                    return resolve(null);
+                }
+
+                const sql = `
+                SELECT c.*, p.name as package_name, p.price as package_price, p.speed as package_speed, p.image_filename as package_image,
+                       CASE 
+                           WHEN EXISTS (
+                               SELECT 1 FROM invoices i 
+                               WHERE i.customer_id = c.id 
+                               AND i.status = 'unpaid' 
+                               AND i.due_date < date('now')
+                           ) THEN 'overdue'
+                           WHEN EXISTS (
+                               SELECT 1 FROM invoices i 
+                               WHERE i.customer_id = c.id 
+                               AND i.status = 'unpaid'
+                           ) THEN 'unpaid'
+                           WHEN EXISTS (
+                               SELECT 1 FROM invoices i 
+                               WHERE i.customer_id = c.id 
+                               AND i.status = 'paid'
+                           ) THEN 'paid'
+                           ELSE 'no_invoice'
+                       END as payment_status
+                FROM customers c 
+                LEFT JOIN packages p ON c.package_id = p.id 
+                WHERE c.whatsapp_lid = ?
+            `;
+
+                this.db.get(sql, [lid], (err, row) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(row || null);
+                    }
+                });
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+
+    async updateCustomerWhatsAppLid(customerId, lid) {
+        return new Promise((resolve, reject) => {
+            try {
+                if (!customerId || !lid) {
+                    return reject(new Error('Customer ID and WhatsApp LID are required'));
+                }
+
+                // First check if LID is already used by another customer
+                const checkSql = `SELECT id, name FROM customers WHERE whatsapp_lid = ? AND id != ?`;
+
+                this.db.get(checkSql, [lid, customerId], (err, existingCustomer) => {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    if (existingCustomer) {
+                        return reject(new Error(`WhatsApp LID sudah terdaftar untuk pelanggan: ${existingCustomer.name}`));
+                    }
+
+                    // Update the customer's WhatsApp LID
+                    const updateSql = `UPDATE customers SET whatsapp_lid = ? WHERE id = ?`;
+
+                    this.db.run(updateSql, [lid, customerId], function (err) {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve({
+                                id: customerId,
+                                whatsapp_lid: lid,
+                                updated: this.changes > 0
+                            });
+                        }
+                    });
+                });
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+
     async getCustomerByNameOrPhone(searchTerm) {
         return new Promise((resolve, reject) => {
             // Bersihkan nomor telefon (hapus karakter non-digit)
             const cleanPhone = searchTerm.replace(/\D/g, '');
-            
+
             const sql = `
                 SELECT c.*, p.name as package_name, p.price as package_price, p.speed as package_speed, p.image_filename as package_image,
                        CASE 
@@ -1096,7 +1183,7 @@ class BillingManager {
                     END
                 LIMIT 1
             `;
-            
+
             const likeTerm = `%${searchTerm}%`;
             const params = [
                 cleanPhone,           // Exact phone match
@@ -1107,7 +1194,7 @@ class BillingManager {
                 `${searchTerm}%`,    // ORDER BY name starts with
                 likeTerm             // ORDER BY username LIKE
             ];
-            
+
             this.db.get(sql, params, (err, row) => {
                 if (err) {
                     reject(err);
@@ -1122,7 +1209,7 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             // Bersihkan nomor telefon (hapus karakter non-digit) 
             const cleanPhone = searchTerm.replace(/\D/g, '');
-            
+
             const sql = `
                 SELECT c.*, p.name as package_name, p.price as package_price, p.speed as package_speed,
                        CASE 
@@ -1159,7 +1246,7 @@ class BillingManager {
                     END
                 LIMIT 5
             `;
-            
+
             const likeTerm = `%${searchTerm}%`;
             const params = [
                 cleanPhone,           // Exact phone match
@@ -1170,7 +1257,7 @@ class BillingManager {
                 `${searchTerm}%`,    // ORDER BY name starts with
                 likeTerm             // ORDER BY username LIKE
             ];
-            
+
             this.db.all(sql, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -1192,38 +1279,38 @@ class BillingManager {
                 console.error('Database not initialized');
                 return reject(new Error('Database not initialized'));
             }
-            
+
             // Simpan reference database untuk digunakan di callback
             const db = this.db;
-            
+
             const { name, username, phone, pppoe_username, email, address, package_id, odp_id, pppoe_profile, status, auto_suspension, billing_day, latitude, longitude, cable_type, cable_length, port_number, cable_status, cable_notes } = customerData;
-            
+
             // Dapatkan data customer lama untuk membandingkan nomor telepon
             try {
                 const oldCustomer = await this.getCustomerByPhone(oldPhone);
                 if (!oldCustomer) {
                     return reject(new Error('Pelanggan tidak ditemukan'));
                 }
-                
+
                 const oldPPPoE = oldCustomer ? oldCustomer.pppoe_username : null;
-                
+
                 // Normalisasi billing_day (1-28) dengan fallback ke nilai lama atau 15
                 const normBillingDay = Math.min(Math.max(parseInt(billing_day !== undefined ? billing_day : (oldCustomer?.billing_day ?? 15), 10) || 15, 1), 28);
-                
+
                 const sql = `UPDATE customers SET name = ?, username = ?, phone = ?, pppoe_username = ?, email = ?, address = ?, package_id = ?, odp_id = ?, pppoe_profile = ?, status = ?, auto_suspension = ?, billing_day = ?, latitude = ?, longitude = ?, cable_type = ?, cable_length = ?, port_number = ?, cable_status = ?, cable_notes = ? WHERE id = ?`;
-                
+
                 db.run(sql, [
-                    name, 
-                    username || oldCustomer.username, 
-                    phone || oldPhone, 
-                    pppoe_username, 
-                    email, 
-                    address, 
-                    package_id, 
+                    name,
+                    username || oldCustomer.username,
+                    phone || oldPhone,
+                    pppoe_username,
+                    email,
+                    address,
+                    package_id,
                     odp_id !== undefined ? odp_id : oldCustomer.odp_id,
-                    pppoe_profile, 
-                    status, 
-                    auto_suspension !== undefined ? auto_suspension : oldCustomer.auto_suspension, 
+                    pppoe_profile,
+                    status,
+                    auto_suspension !== undefined ? auto_suspension : oldCustomer.auto_suspension,
                     normBillingDay,
                     latitude !== undefined ? parseFloat(latitude) : oldCustomer.latitude,
                     longitude !== undefined ? parseFloat(longitude) : oldCustomer.longitude,
@@ -1233,7 +1320,7 @@ class BillingManager {
                     cable_status !== undefined ? cable_status : oldCustomer.cable_status,
                     cable_notes !== undefined ? cable_notes : oldCustomer.cable_notes,
                     oldCustomer.id
-                ], async function(err) {
+                ], async function (err) {
                     if (err) {
                         reject(err);
                     } else {
@@ -1244,10 +1331,10 @@ class BillingManager {
                                 // Timeout untuk operasi GenieACS
                                 const genieacsPromise = new Promise(async (resolve, reject) => {
                                     const timeout = setTimeout(() => reject(new Error('GenieACS operation timeout')), 3000); // 3 second timeout
-                                    
+
                                     try {
                                         const genieacs = require('./genieacs');
-                                        
+
                                         // Hapus tag lama jika ada
                                         if (oldPhone && oldPPPoE) {
                                             try {
@@ -1260,11 +1347,11 @@ class BillingManager {
                                                 console.warn(`Error removing old phone tag for customer ${oldCustomer.username}:`, error.message);
                                             }
                                         }
-                                        
+
                                         // Tambahkan tag baru
                                         const pppoeToUse = pppoe_username || oldCustomer.username; // Fallback ke username jika pppoe_username kosong
                                         const device = await genieacs.findDeviceByPPPoE(pppoeToUse);
-                                        
+
                                         if (device) {
                                             await genieacs.addTagToDevice(device._id, newPhone);
                                             console.log(`Successfully updated phone tag to ${newPhone} for device ${device._id} and customer ${oldCustomer.username} (PPPoE: ${pppoeToUse})`);
@@ -1278,14 +1365,14 @@ class BillingManager {
                                         reject(genieacsError);
                                     }
                                 });
-                                
+
                                 await genieacsPromise;
                             } catch (genieacsError) {
                                 console.error(`Error updating phone tag in GenieACS for customer ${oldCustomer.username} (timeout or error):`, genieacsError.message);
                                 // Jangan reject, karena customer sudah berhasil diupdate di billing
                             }
                         }
-                        
+
                         // Jika ada data ODP atau field kabel yang berubah, update cable route
                         if (
                             odp_id !== undefined ||
@@ -1298,7 +1385,7 @@ class BillingManager {
                             console.log(`🔧 Updating cable route for customer ${oldCustomer.username}, odp_id: ${odp_id}, cable_type: ${cable_type}`);
                             try {
                                 const customerId = oldCustomer.id;
-                                
+
                                 // Cari cable route yang ada
                                 const existingRoute = await new Promise((resolve, reject) => {
                                     db.get('SELECT * FROM cable_routes WHERE customer_id = ?', [customerId], (err, row) => {
@@ -1306,7 +1393,7 @@ class BillingManager {
                                         else resolve(row);
                                     });
                                 });
-                                
+
                                 if (existingRoute) {
                                     // Update cable route yang ada
                                     console.log(`📝 Found existing cable route for customer ${oldCustomer.username}, updating...`);
@@ -1316,7 +1403,7 @@ class BillingManager {
                                         SET odp_id = ?, cable_type = ?, cable_length = ?, port_number = ?, status = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
                                         WHERE customer_id = ?
                                     `;
-                                    
+
                                     db.run(updateSql, [
                                         odp_id !== undefined ? odp_id : existingRoute.odp_id,
                                         cable_type !== undefined ? cable_type : existingRoute.cable_type,
@@ -1325,7 +1412,7 @@ class BillingManager {
                                         cable_status !== undefined ? cable_status : existingRoute.status,
                                         cable_notes !== undefined ? cable_notes : existingRoute.notes,
                                         customerId
-                                    ], function(err) {
+                                    ], function (err) {
                                         if (err) {
                                             console.error(`❌ Error updating cable route for customer ${oldCustomer.username}:`, err.message);
                                         } else {
@@ -1339,7 +1426,7 @@ class BillingManager {
                                         INSERT INTO cable_routes (customer_id, odp_id, cable_type, cable_length, port_number, status, notes)
                                         VALUES (?, ?, ?, ?, ?, ?, ?)
                                     `;
-                                    
+
                                     db.run(cableRouteSql, [
                                         customerId,
                                         odp_id,
@@ -1348,7 +1435,7 @@ class BillingManager {
                                         port_number || 1,
                                         cable_status || 'connected',
                                         cable_notes || `Auto-created for customer ${name}`
-                                    ], function(err) {
+                                    ], function (err) {
                                         if (err) {
                                             console.error(`❌ Error creating cable route for customer ${oldCustomer.username}:`, err.message);
                                         } else {
@@ -1361,7 +1448,7 @@ class BillingManager {
                                 // Jangan reject, karena customer sudah berhasil diupdate di billing
                             }
                         }
-                        
+
                         resolve({ username: oldCustomer.username, ...customerData });
                     }
                 });
@@ -1391,7 +1478,7 @@ class BillingManager {
                 // Hapus cable routes terlebih dahulu (akan dihapus otomatis karena CASCADE)
                 // Tapi kita hapus manual untuk memastikan trigger ODP used_ports berjalan
                 const deleteCableRoutesSql = `DELETE FROM cable_routes WHERE customer_id = ?`;
-                this.db.run(deleteCableRoutesSql, [customer.id], function(err) {
+                this.db.run(deleteCableRoutesSql, [customer.id], function (err) {
                     if (err) {
                         console.error(`❌ Error deleting cable routes for customer ${customer.username}:`, err.message);
                     } else {
@@ -1400,8 +1487,8 @@ class BillingManager {
                 });
 
                 const sql = `DELETE FROM customers WHERE phone = ?`;
-                
-                this.db.run(sql, [phone], async function(err) {
+
+                this.db.run(sql, [phone], async function (err) {
                     if (err) {
                         reject(err);
                     } else {
@@ -1411,7 +1498,7 @@ class BillingManager {
                                 const genieacs = require('./genieacs');
                                 const pppoeToUse = customer.pppoe_username || customer.username; // Fallback ke username jika pppoe_username kosong
                                 const device = await genieacs.findDeviceByPPPoE(pppoeToUse);
-                                
+
                                 if (device) {
                                     await genieacs.removeTagFromDevice(device._id, customer.phone);
                                     console.log(`Removed phone tag ${customer.phone} from device ${device._id} for deleted customer ${customer.username} (PPPoE: ${pppoeToUse})`);
@@ -1424,7 +1511,7 @@ class BillingManager {
                                 // Log error tapi lanjutkan proses
                             }
                         }
-                        
+
                         resolve({ username: customer.username, deleted: true });
                     }
                 });
@@ -1454,7 +1541,7 @@ class BillingManager {
                 // Hapus cable routes terlebih dahulu (akan dihapus otomatis karena CASCADE)
                 // Tapi kita hapus manual untuk memastikan trigger ODP used_ports berjalan
                 const deleteCableRoutesSql = `DELETE FROM cable_routes WHERE customer_id = ?`;
-                this.db.run(deleteCableRoutesSql, [customer.id], function(err) {
+                this.db.run(deleteCableRoutesSql, [customer.id], function (err) {
                     if (err) {
                         console.error(`❌ Error deleting cable routes for customer ${customer.username}:`, err.message);
                     } else {
@@ -1463,8 +1550,8 @@ class BillingManager {
                 });
 
                 const sql = `DELETE FROM customers WHERE id = ?`;
-                
-                this.db.run(sql, [id], async function(err) {
+
+                this.db.run(sql, [id], async function (err) {
                     if (err) {
                         reject(err);
                     } else {
@@ -1474,7 +1561,7 @@ class BillingManager {
                                 const genieacs = require('./genieacs');
                                 const pppoeToUse = customer.pppoe_username || customer.username; // Fallback ke username jika pppoe_username kosong
                                 const device = await genieacs.findDeviceByPPPoE(pppoeToUse);
-                                
+
                                 if (device) {
                                     await genieacs.removeTagFromDevice(device._id, customer.phone);
                                     console.log(`Removed phone tag ${customer.phone} from device ${device._id} for deleted customer ${customer.username} (PPPoE: ${pppoeToUse})`);
@@ -1487,7 +1574,7 @@ class BillingManager {
                                 // Log error tapi lanjutkan proses
                             }
                         }
-                        
+
                         resolve({ username: customer.username, deleted: true });
                     }
                 });
@@ -1511,7 +1598,7 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             const { customer_id, package_id, amount, due_date, notes, base_amount, tax_rate, invoice_type = 'monthly' } = invoiceData;
             const invoice_number = this.generateInvoiceNumber();
-            
+
             // Check if base_amount and tax_rate columns exist
             let sql, params;
             if (base_amount !== undefined && tax_rate !== undefined) {
@@ -1521,8 +1608,8 @@ class BillingManager {
                 sql = `INSERT INTO invoices (customer_id, package_id, invoice_number, amount, due_date, notes, invoice_type) VALUES (?, ?, ?, ?, ?, ?, ?)`;
                 params = [customer_id, package_id, invoice_number, amount, due_date, notes, invoice_type];
             }
-            
-            this.db.run(sql, params, function(err) {
+
+            this.db.run(sql, params, function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -1541,25 +1628,25 @@ class BillingManager {
                 JOIN customers c ON i.customer_id = c.id
                 JOIN packages p ON i.package_id = p.id
             `;
-            
+
             const params = [];
             if (customerUsername) {
                 sql += ` WHERE c.username = ?`;
                 params.push(customerUsername);
             }
-            
+
             sql += ` ORDER BY i.created_at DESC`;
-            
+
             if (limit) {
                 sql += ` LIMIT ?`;
                 params.push(limit);
-                
+
                 if (offset) {
                     sql += ` OFFSET ?`;
                     params.push(offset);
                 }
             }
-            
+
             this.db.all(sql, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -1620,12 +1707,12 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             let sql = 'SELECT COUNT(*) as count FROM invoices i';
             const params = [];
-            
+
             if (customerUsername) {
                 sql += ' JOIN customers c ON i.customer_id = c.id WHERE c.username = ?';
                 params.push(customerUsername);
             }
-            
+
             this.db.get(sql, params, (err, row) => {
                 if (err) {
                     reject(err);
@@ -1647,7 +1734,7 @@ class BillingManager {
                 WHERE i.customer_id = ?
                 ORDER BY i.created_at DESC
             `;
-            
+
             this.db.all(sql, [customerId], (err, rows) => {
                 if (err) {
                     reject(err);
@@ -1667,7 +1754,7 @@ class BillingManager {
                 WHERE c.package_id = ?
                 ORDER BY c.name ASC
             `;
-            
+
             this.db.all(sql, [packageId], (err, rows) => {
                 if (err) {
                     reject(err);
@@ -1690,13 +1777,13 @@ class BillingManager {
                 AND i.created_at BETWEEN ? AND ?
                 ORDER BY i.created_at DESC
             `;
-            
+
             const params = [
                 customerUsername,
                 startDate.toISOString(),
                 endDate.toISOString()
             ];
-            
+
             this.db.all(sql, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -1717,7 +1804,7 @@ class BillingManager {
                 JOIN packages p ON i.package_id = p.id
                 WHERE i.id = ?
             `;
-            
+
             this.db.get(sql, [id], (err, row) => {
                 if (err) {
                     reject(err);
@@ -1742,8 +1829,8 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             const paymentDate = status === 'paid' ? new Date().toISOString() : null;
             const sql = `UPDATE invoices SET status = ?, payment_date = ?, payment_method = ? WHERE id = ?`;
-            
-            this.db.run(sql, [status, paymentDate, paymentMethod, id], function(err) {
+
+            this.db.run(sql, [status, paymentDate, paymentMethod, id], function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -1757,7 +1844,7 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             const { customer_id, package_id, amount, due_date, notes } = invoiceData;
             const sql = `UPDATE invoices SET customer_id = ?, package_id = ?, amount = ?, due_date = ?, notes = ? WHERE id = ?`;
-            
+
             // Use arrow function to preserve class context (this)
             this.db.run(sql, [customer_id, package_id, amount, due_date, notes, id], (err) => {
                 if (err) {
@@ -1775,7 +1862,7 @@ class BillingManager {
             // First get the invoice details before deleting
             this.getInvoiceById(id).then(invoice => {
                 const sql = `DELETE FROM invoices WHERE id = ?`;
-                this.db.run(sql, [id], function(err) {
+                this.db.run(sql, [id], function (err) {
                     if (err) {
                         reject(err);
                     } else {
@@ -1791,15 +1878,15 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             const { invoice_id, amount, payment_method, reference_number, notes } = paymentData;
             const sql = `INSERT INTO payments (invoice_id, amount, payment_method, reference_number, notes) VALUES (?, ?, ?, ?, ?)`;
-            
-            this.db.run(sql, [invoice_id, amount, payment_method, reference_number, notes], function(err) {
+
+            this.db.run(sql, [invoice_id, amount, payment_method, reference_number, notes], function (err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve({ 
-                        success: true, 
-                        id: this.lastID, 
-                        ...paymentData 
+                    resolve({
+                        success: true,
+                        id: this.lastID,
+                        ...paymentData
                     });
                 }
             });
@@ -1810,37 +1897,37 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             const { invoice_id, amount, payment_method, reference_number, notes, collector_id, commission_amount } = paymentData;
             const self = this; // Store reference to this
-            
+
             // Set database timeout and WAL mode for better concurrency
             this.db.run('PRAGMA busy_timeout=30000', (err) => {
                 if (err) {
                     reject(err);
                     return;
                 }
-                
+
                 self.db.run('PRAGMA journal_mode=WAL', (err) => {
                     if (err) {
                         reject(err);
                         return;
                     }
-                    
+
                     // Mulai transaction untuk operasi kompleks
                     self.db.run('BEGIN IMMEDIATE TRANSACTION', (err) => {
                         if (err) {
                             reject(err);
                             return;
                         }
-                        
+
                         // Insert payment
                         const sql = `INSERT INTO payments (
                             invoice_id, amount, payment_method, reference_number, notes, 
                             collector_id, commission_amount, payment_type
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, 'collector')`;
-                        
+
                         self.db.run(sql, [
                             invoice_id, amount, payment_method, reference_number, notes,
                             collector_id, commission_amount || 0
-                        ], function(err) {
+                        ], function (err) {
                             if (err) {
                                 self.db.run('ROLLBACK', (rollbackErr) => {
                                     if (rollbackErr) console.error('Rollback error:', rollbackErr.message);
@@ -1848,9 +1935,9 @@ class BillingManager {
                                 });
                                 return;
                             }
-                            
+
                             const paymentId = this.lastID;
-                            
+
                             // Jika ada komisi, catat sebagai expense
                             if (commission_amount && commission_amount > 0) {
                                 // Get collector name untuk deskripsi
@@ -1862,22 +1949,22 @@ class BillingManager {
                                         });
                                         return;
                                     }
-                                    
+
                                     const collectorName = collector ? collector.name : 'Unknown Collector';
-                                    
+
                                     // Insert commission as expense
                                     const expenseSql = `INSERT INTO expenses (
                                         description, amount, category, expense_date, 
                                         payment_method, notes
                                     ) VALUES (?, ?, ?, DATE('now'), ?, ?)`;
-                                    
+
                                     self.db.run(expenseSql, [
                                         `Komisi Kolektor - ${collectorName}`,
                                         commission_amount,
                                         'Operasional',
                                         'Transfer Bank', // Default payment method for commission
                                         `Komisi ${commission_amount}% dari pembayaran invoice ${invoice_id} via kolektor ${collectorName}`
-                                    ], function(err) {
+                                    ], function (err) {
                                         if (err) {
                                             self.db.run('ROLLBACK', (rollbackErr) => {
                                                 if (rollbackErr) console.error('Rollback error:', rollbackErr.message);
@@ -1885,18 +1972,18 @@ class BillingManager {
                                             });
                                             return;
                                         }
-                                        
+
                                         // Commit transaction
                                         self.db.run('COMMIT', (err) => {
                                             if (err) {
                                                 reject(err);
                                             } else {
-                                                resolve({ 
-                                                    success: true, 
-                                                    id: paymentId, 
+                                                resolve({
+                                                    success: true,
+                                                    id: paymentId,
                                                     expenseId: this.lastID,
                                                     commissionRecorded: true,
-                                                    ...paymentData 
+                                                    ...paymentData
                                                 });
                                             }
                                         });
@@ -1908,11 +1995,11 @@ class BillingManager {
                                     if (err) {
                                         reject(err);
                                     } else {
-                                        resolve({ 
-                                            success: true, 
-                                            id: paymentId, 
+                                        resolve({
+                                            success: true,
+                                            id: paymentId,
                                             commissionRecorded: false,
-                                            ...paymentData 
+                                            ...paymentData
                                         });
                                     }
                                 });
@@ -1936,23 +2023,23 @@ class BillingManager {
     async recordCollectorPaymentRecord(paymentData) {
         return new Promise((resolve, reject) => {
             const { collector_id, customer_id, amount, payment_amount, commission_amount, payment_method, notes, status } = paymentData;
-            
+
             const sql = `INSERT INTO collector_payments (
                 collector_id, customer_id, amount, payment_amount, commission_amount,
                 payment_method, notes, status, collected_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
-            
+
             this.db.run(sql, [
                 collector_id, customer_id, amount, payment_amount, commission_amount,
                 payment_method, notes, status
-            ], function(err) {
+            ], function (err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve({ 
-                        success: true, 
+                    resolve({
+                        success: true,
                         id: this.lastID,
-                        ...paymentData 
+                        ...paymentData
                     });
                 }
             });
@@ -1980,7 +2067,7 @@ class BillingManager {
             const month = now.getMonth() + 1;
             const startDate = new Date(year, month - 1, 1).toISOString();
             const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
-            
+
             this.db.get(`
                 SELECT COALESCE(SUM(commission_amount), 0) as total
                 FROM collector_payments 
@@ -2000,7 +2087,7 @@ class BillingManager {
             const month = now.getMonth() + 1;
             const startDate = new Date(year, month - 1, 1).toISOString();
             const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
-            
+
             this.db.get(`
                 SELECT COUNT(*) as count
                 FROM collector_payments 
@@ -2065,7 +2152,7 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             const startDate = new Date(year, month - 1, 1).toISOString();
             const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
-            
+
             this.db.get(`
                 SELECT COALESCE(SUM(payment_amount), 0) as total
                 FROM collector_payments 
@@ -2081,7 +2168,7 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             const startDate = new Date(year, month - 1, 1).toISOString();
             const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
-            
+
             this.db.get(`
                 SELECT COALESCE(SUM(commission_amount), 0) as total
                 FROM collector_payments 
@@ -2097,7 +2184,7 @@ class BillingManager {
         return new Promise((resolve, reject) => {
             const startDate = new Date(year, month - 1, 1).toISOString();
             const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
-            
+
             this.db.get(`
                 SELECT COUNT(*) as count
                 FROM collector_payments 
@@ -2118,13 +2205,13 @@ class BillingManager {
                     payment_count, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
             `;
-            
+
             this.db.run(sql, [
-                collectorId, year, month, 
+                collectorId, year, month,
                 stats.total_payments || 0,
                 stats.total_commission || 0,
                 stats.payment_count || 0
-            ], function(err) {
+            ], function (err) {
                 if (err) reject(err);
                 else resolve({ id: this.lastID, collectorId, year, month });
             });
@@ -2174,15 +2261,15 @@ class BillingManager {
                 JOIN customers c ON i.customer_id = c.id
                 LEFT JOIN collectors col ON p.collector_id = col.id
             `;
-            
+
             const params = [];
             if (invoiceId) {
                 sql += ` WHERE p.invoice_id = ?`;
                 params.push(invoiceId);
             }
-            
+
             sql += ` ORDER BY p.payment_date DESC`;
-            
+
             this.db.all(sql, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -2209,15 +2296,15 @@ class BillingManager {
                 LEFT JOIN collectors col ON p.collector_id = col.id
                 WHERE p.collector_id IS NOT NULL AND col.id IS NOT NULL
             `;
-            
+
             const params = [];
             if (invoiceId) {
                 sql += ` AND p.invoice_id = ?`;
                 params.push(invoiceId);
             }
-            
+
             sql += ` ORDER BY p.payment_date DESC`;
-            
+
             this.db.all(sql, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -2244,7 +2331,7 @@ class BillingManager {
                 LEFT JOIN collectors col ON p.collector_id = col.id
                 WHERE p.id = ?
             `;
-            
+
             this.db.get(sql, [id], (err, row) => {
                 if (err) {
                     reject(err);
@@ -2332,7 +2419,7 @@ class BillingManager {
                     (SELECT COALESCE(SUM(amount), 0) FROM invoices WHERE invoice_type = 'monthly' AND status = 'unpaid') as monthly_unpaid,
                     (SELECT COALESCE(SUM(amount), 0) FROM invoices WHERE invoice_type = 'voucher' AND status = 'unpaid') as voucher_unpaid
             `;
-            
+
             this.db.get(sql, [], (err, row) => {
                 if (err) {
                     reject(err);
@@ -2342,27 +2429,27 @@ class BillingManager {
                         // Customer stats
                         total_customers: parseInt(row.total_customers) || 0,
                         active_customers: parseInt(row.active_customers) || 0,
-                        
+
                         // Invoice counts by type
                         monthly_invoices: parseInt(row.monthly_invoices) || 0,
                         voucher_invoices: parseInt(row.voucher_invoices) || 0,
-                        
+
                         // Paid invoices by type
                         paid_monthly_invoices: parseInt(row.paid_monthly_invoices) || 0,
                         paid_voucher_invoices: parseInt(row.paid_voucher_invoices) || 0,
-                        
+
                         // Unpaid invoices by type
                         unpaid_monthly_invoices: parseInt(row.unpaid_monthly_invoices) || 0,
                         unpaid_voucher_invoices: parseInt(row.unpaid_voucher_invoices) || 0,
-                        
+
                         // Revenue by type
                         monthly_revenue: parseFloat(row.monthly_revenue) || 0,
                         voucher_revenue: parseFloat(row.voucher_revenue) || 0,
-                        
+
                         // Unpaid amounts by type
                         monthly_unpaid: parseFloat(row.monthly_unpaid) || 0,
                         voucher_unpaid: parseFloat(row.voucher_unpaid) || 0,
-                        
+
                         // Legacy fields for backward compatibility
                         total_invoices: (parseInt(row.monthly_invoices) || 0) + (parseInt(row.voucher_invoices) || 0),
                         paid_invoices: (parseInt(row.paid_monthly_invoices) || 0) + (parseInt(row.paid_voucher_invoices) || 0),
@@ -2370,14 +2457,14 @@ class BillingManager {
                         total_revenue: (parseFloat(row.monthly_revenue) || 0) + (parseFloat(row.voucher_revenue) || 0),
                         total_unpaid: (parseFloat(row.monthly_unpaid) || 0) + (parseFloat(row.voucher_unpaid) || 0)
                     };
-                    
+
                     // Validasi logika: active_customers tidak boleh lebih dari total_customers
                     if (stats.active_customers > stats.total_customers) {
                         console.warn('Warning: Active customers count is higher than total customers. This indicates data inconsistency.');
                         // Set active_customers to total_customers as fallback
                         stats.active_customers = stats.total_customers;
                     }
-                    
+
                     resolve(stats);
                 }
             });
@@ -2395,36 +2482,36 @@ class BillingManager {
                      FROM customers 
                      GROUP BY phone
                  )`,
-                
+
                 // 2. Update status customers yang tidak valid
                 `UPDATE customers 
                  SET status = 'inactive' 
                  WHERE status NOT IN ('active', 'inactive', 'suspended')`,
-                
+
                 // 3. Update status invoices yang tidak valid
                 `UPDATE invoices 
                  SET status = 'unpaid' 
                  WHERE status NOT IN ('paid', 'unpaid', 'cancelled')`,
-                
+
                 // 4. Pastikan amount invoice tidak null atau negatif
                 `UPDATE invoices 
                  SET amount = 0 
                  WHERE amount IS NULL OR amount < 0`,
-                
+
                 // 5. Hapus invoices yang tidak memiliki customer
                 `DELETE FROM invoices 
                  WHERE customer_id NOT IN (SELECT id FROM customers)`
             ];
-            
+
             let completed = 0;
             const total = cleanupQueries.length;
-            
+
             cleanupQueries.forEach((query, index) => {
                 this.db.run(query, [], (err) => {
                     if (err) {
                         console.warn(`Cleanup query ${index + 1} failed:`, err.message);
                     }
-                    
+
                     completed++;
                     if (completed === total) {
                         console.log('Data consistency cleanup completed');
@@ -2447,7 +2534,7 @@ class BillingManager {
                 WHERE i.invoice_type = ?
                 ORDER BY i.created_at DESC
             `;
-            
+
             this.db.all(sql, [invoiceType], (err, rows) => {
                 if (err) {
                     reject(err);
@@ -2471,7 +2558,7 @@ class BillingManager {
                 FROM invoices 
                 WHERE invoice_type = ?
             `;
-            
+
             this.db.get(sql, [invoiceType], (err, row) => {
                 if (err) {
                     reject(err);
@@ -2496,21 +2583,21 @@ class BillingManager {
             const expiryHours = parseInt(getSetting('voucher_cleanup.expiry_hours', '24'));
             const deleteInvoices = getSetting('voucher_cleanup.delete_expired_invoices', true);
             const logActions = getSetting('voucher_cleanup.log_cleanup_actions', true);
-            
+
             if (!cleanupEnabled) {
                 resolve({ success: true, message: 'Voucher cleanup disabled', cleaned: 0 });
                 return;
             }
-            
+
             // Calculate expiry time
             const expiryTime = new Date();
             expiryTime.setHours(expiryTime.getHours() - expiryHours);
             const expiryTimeStr = expiryTime.toISOString();
-            
+
             if (logActions) {
                 console.log(`🧹 Starting voucher cleanup for invoices older than ${expiryHours} hours (before ${expiryTimeStr})`);
             }
-            
+
             // First, get expired invoices for logging
             const selectSql = `
                 SELECT i.id, i.invoice_number, i.amount, i.created_at, i.status, c.name as customer_name
@@ -2521,13 +2608,13 @@ class BillingManager {
                 AND i.created_at < ?
                 ORDER BY i.created_at ASC
             `;
-            
+
             this.db.all(selectSql, [expiryTimeStr], (err, expiredInvoices) => {
                 if (err) {
                     reject(err);
                     return;
                 }
-                
+
                 if (expiredInvoices.length === 0) {
                     if (logActions) {
                         console.log('✅ No expired voucher invoices found');
@@ -2535,14 +2622,14 @@ class BillingManager {
                     resolve({ success: true, message: 'No expired invoices found', cleaned: 0 });
                     return;
                 }
-                
+
                 if (logActions) {
                     console.log(`📋 Found ${expiredInvoices.length} expired voucher invoices:`);
                     expiredInvoices.forEach(invoice => {
                         console.log(`   - ${invoice.invoice_number} (${invoice.customer_name}) - ${invoice.amount} - ${invoice.created_at}`);
                     });
                 }
-                
+
                 if (deleteInvoices) {
                     // Delete expired invoices
                     const deleteSql = `
@@ -2551,8 +2638,8 @@ class BillingManager {
                         AND status = 'unpaid' 
                         AND created_at < ?
                     `;
-                    
-                    this.db.run(deleteSql, [expiryTimeStr], function(err) {
+
+                    this.db.run(deleteSql, [expiryTimeStr], function (err) {
                         if (err) {
                             reject(err);
                         } else {
@@ -2560,8 +2647,8 @@ class BillingManager {
                             if (logActions) {
                                 console.log(`🗑️  Deleted ${deletedCount} expired voucher invoices`);
                             }
-                            resolve({ 
-                                success: true, 
+                            resolve({
+                                success: true,
                                 message: `Cleaned up ${deletedCount} expired voucher invoices`,
                                 cleaned: deletedCount,
                                 expiredInvoices: expiredInvoices
@@ -2577,8 +2664,8 @@ class BillingManager {
                         AND status = 'unpaid' 
                         AND created_at < ?
                     `;
-                    
-                    this.db.run(updateSql, [expiryTimeStr], function(err) {
+
+                    this.db.run(updateSql, [expiryTimeStr], function (err) {
                         if (err) {
                             reject(err);
                         } else {
@@ -2586,8 +2673,8 @@ class BillingManager {
                             if (logActions) {
                                 console.log(`🏷️  Marked ${updatedCount} expired voucher invoices as expired`);
                             }
-                            resolve({ 
-                                success: true, 
+                            resolve({
+                                success: true,
                                 message: `Marked ${updatedCount} expired voucher invoices as expired`,
                                 cleaned: updatedCount,
                                 expiredInvoices: expiredInvoices
@@ -2598,16 +2685,16 @@ class BillingManager {
             });
         });
     }
-    
+
     async getExpiredVoucherInvoices() {
         return new Promise((resolve, reject) => {
             const { getSetting } = require('./settings');
             const expiryHours = parseInt(getSetting('voucher_cleanup.expiry_hours', '24'));
-            
+
             const expiryTime = new Date();
             expiryTime.setHours(expiryTime.getHours() - expiryHours);
             const expiryTimeStr = expiryTime.toISOString();
-            
+
             const sql = `
                 SELECT i.id, i.invoice_number, i.amount, i.created_at, i.status, i.notes,
                        c.name as customer_name, c.phone as customer_phone
@@ -2618,7 +2705,7 @@ class BillingManager {
                 AND i.created_at < ?
                 ORDER BY i.created_at ASC
             `;
-            
+
             this.db.all(sql, [expiryTimeStr], (err, rows) => {
                 if (err) {
                     reject(err);
@@ -2643,7 +2730,7 @@ class BillingManager {
                     total_revenue, total_unpaid, notes
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
-            
+
             const params = [
                 year, month,
                 stats.total_customers || 0,
@@ -2662,8 +2749,8 @@ class BillingManager {
                 stats.total_unpaid || 0,
                 notes
             ];
-            
-            this.db.run(sql, params, function(err) {
+
+            this.db.run(sql, params, function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -2679,7 +2766,7 @@ class BillingManager {
                 SELECT * FROM monthly_summary 
                 WHERE year = ? AND month = ?
             `;
-            
+
             this.db.get(sql, [year, month], (err, row) => {
                 if (err) {
                     reject(err);
@@ -2697,7 +2784,7 @@ class BillingManager {
                 ORDER BY year DESC, month DESC 
                 LIMIT ?
             `;
-            
+
             this.db.all(sql, [limit], (err, rows) => {
                 if (err) {
                     reject(err);
@@ -2713,16 +2800,16 @@ class BillingManager {
             const now = new Date();
             const year = now.getFullYear();
             const month = now.getMonth() + 1; // JavaScript months are 0-based
-            
+
             // Get current stats
             const stats = await this.getBillingStats();
-            
+
             // Save to monthly summary
             const notes = `Summary generated on ${now.toISOString().split('T')[0]}`;
             const result = await this.saveMonthlySummary(year, month, stats, notes);
-            
+
             logger.info(`Monthly summary saved for ${year}-${month}: ${JSON.stringify(stats)}`);
-            
+
             return {
                 success: true,
                 message: `Monthly summary saved for ${year}-${month}`,
@@ -2743,18 +2830,18 @@ class BillingManager {
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth() + 1;
-            
+
             // Get previous month for saving summary
             const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
             const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-            
+
             logger.info(`🔄 Starting monthly reset for ${currentYear}-${currentMonth}`);
-            
+
             // 1. Save admin monthly summary for previous month
             const adminStats = await this.getBillingStats();
             await this.saveMonthlySummary(prevYear, prevMonth, adminStats, `Auto-generated on ${now.toISOString().split('T')[0]}`);
             logger.info(`✅ Admin monthly summary saved for ${prevYear}-${prevMonth}`);
-            
+
             // 2. Save collector monthly summaries for previous month
             const collectors = await this.getAllCollectors();
             for (const collector of collectors) {
@@ -2763,16 +2850,16 @@ class BillingManager {
                     total_commission: await this.getCollectorMonthlyCommission(collector.id, prevYear, prevMonth),
                     payment_count: await this.getCollectorMonthlyCount(collector.id, prevYear, prevMonth)
                 };
-                
+
                 await this.saveCollectorMonthlySummary(collector.id, prevYear, prevMonth, collectorStats);
                 logger.info(`✅ Collector ${collector.name} monthly summary saved for ${prevYear}-${prevMonth}`);
             }
-            
+
             // 3. Create collector_monthly_summary table if not exists
             await this.ensureCollectorMonthlySummaryTable();
-            
+
             logger.info(`🎉 Monthly reset completed successfully for ${currentYear}-${currentMonth}`);
-            
+
             return {
                 success: true,
                 message: `Monthly reset completed for ${currentYear}-${currentMonth}`,
@@ -2782,7 +2869,7 @@ class BillingManager {
                 previousMonth: prevMonth,
                 collectorsProcessed: collectors.length
             };
-            
+
         } catch (error) {
             logger.error('Error performing monthly reset:', error);
             throw error;
@@ -2886,7 +2973,7 @@ class BillingManager {
                 WHERE i.status = 'unpaid' AND i.due_date < date('now')
                 ORDER BY i.due_date ASC
             `;
-            
+
             this.db.all(sql, [], (err, rows) => {
                 if (err) {
                     reject(err);
@@ -3068,135 +3155,135 @@ class BillingManager {
         });
     }
 
-async handlePaymentWebhook(payload, gateway) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            logger.info(`[WEBHOOK] Processing ${gateway} webhook:`, payload);
+    async handlePaymentWebhook(payload, gateway) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                logger.info(`[WEBHOOK] Processing ${gateway} webhook:`, payload);
 
-            // Normalize/parse from gateway
-            const result = await this.paymentGateway.handleWebhook(payload, gateway);
-            logger.info(`[WEBHOOK] Gateway result:`, result);
+                // Normalize/parse from gateway
+                const result = await this.paymentGateway.handleWebhook(payload, gateway);
+                logger.info(`[WEBHOOK] Gateway result:`, result);
 
-            // Find transaction by order_id
-            const txSql = `
+                // Find transaction by order_id
+                const txSql = `
                 SELECT * FROM payment_gateway_transactions
                 WHERE order_id = ? AND gateway = ?
             `;
 
-            this.db.get(txSql, [result.order_id, gateway], async (err, transaction) => {
-                if (err) {
-                    logger.error(`[WEBHOOK] Database error:`, err);
-                    return reject(err);
-                }
+                this.db.get(txSql, [result.order_id, gateway], async (err, transaction) => {
+                    if (err) {
+                        logger.error(`[WEBHOOK] Database error:`, err);
+                        return reject(err);
+                    }
 
-                // Fallback by invoice number
-                if (!transaction) {
-                    logger.warn(`[WEBHOOK] Transaction not found for order_id: ${result.order_id}`);
-                    const invoiceNumber = (result.order_id || '').replace('INV-', '');
-                    const fallbackSql = `
+                    // Fallback by invoice number
+                    if (!transaction) {
+                        logger.warn(`[WEBHOOK] Transaction not found for order_id: ${result.order_id}`);
+                        const invoiceNumber = (result.order_id || '').replace('INV-', '');
+                        const fallbackSql = `
                         SELECT i.*
                         FROM invoices i
                         WHERE i.invoice_number = ?
                     `;
-                    this.db.get(fallbackSql, [invoiceNumber], async (fbErr, invoice) => {
-                        if (fbErr || !invoice) {
-                            logger.error(`[WEBHOOK] Fallback search failed:`, fbErr);
-                            return reject(new Error('Transaction and invoice not found'));
-                        }
-                        await this.processDirectPayment(invoice, result, gateway);
-                        // Immediate restore for fallback path
-                        try {
-                            const customer = await this.getCustomerById(invoice.customer_id);
-                            if (customer && customer.status === 'suspended') {
-                                const invoices = await this.getInvoicesByCustomer(customer.id);
-                                const unpaid = invoices.filter(i => i.status === 'unpaid');
-                                if (unpaid.length === 0) {
-                                    const serviceSuspension = require('./serviceSuspension');
-                                    await serviceSuspension.restoreCustomerService(customer);
-                                }
+                        this.db.get(fallbackSql, [invoiceNumber], async (fbErr, invoice) => {
+                            if (fbErr || !invoice) {
+                                logger.error(`[WEBHOOK] Fallback search failed:`, fbErr);
+                                return reject(new Error('Transaction and invoice not found'));
                             }
-                        } catch (restoreErr) {
-                            logger.error('[WEBHOOK] Immediate restore (fallback) failed:', restoreErr);
-                        }
-                        return resolve({ success: true, message: 'Payment processed via fallback method', invoice_id: invoice.id });
-                    });
-                    return; // stop here, fallback async handled
-                }
+                            await this.processDirectPayment(invoice, result, gateway);
+                            // Immediate restore for fallback path
+                            try {
+                                const customer = await this.getCustomerById(invoice.customer_id);
+                                if (customer && customer.status === 'suspended') {
+                                    const invoices = await this.getInvoicesByCustomer(customer.id);
+                                    const unpaid = invoices.filter(i => i.status === 'unpaid');
+                                    if (unpaid.length === 0) {
+                                        const serviceSuspension = require('./serviceSuspension');
+                                        await serviceSuspension.restoreCustomerService(customer);
+                                    }
+                                }
+                            } catch (restoreErr) {
+                                logger.error('[WEBHOOK] Immediate restore (fallback) failed:', restoreErr);
+                            }
+                            return resolve({ success: true, message: 'Payment processed via fallback method', invoice_id: invoice.id });
+                        });
+                        return; // stop here, fallback async handled
+                    }
 
-                // Update transaction status
-                const updateSql = `
+                    // Update transaction status
+                    const updateSql = `
                     UPDATE payment_gateway_transactions
                     SET status = ?, payment_type = ?, fraud_status = ?, updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?
                 `;
-                this.db.run(updateSql, [
-                    result.status,
-                    result.payment_type || null,
-                    result.fraud_status || null,
-                    transaction.id
-                ], async (updateErr) => {
-                    if (updateErr) {
-                        logger.error(`[WEBHOOK] Update transaction error:`, updateErr);
-                        return reject(updateErr);
-                    }
-
-                    if (result.status !== 'success') {
-                        logger.info(`[WEBHOOK] Payment status updated: ${result.status}`);
-                        return resolve({ success: true, message: 'Payment status updated', status: result.status });
-                    }
-
-                    try {
-                        logger.info(`[WEBHOOK] Processing successful payment for invoice: ${transaction.invoice_id}`);
-
-                        // Mark invoice paid and record payment
-                        await this.updateInvoiceStatus(transaction.invoice_id, 'paid', 'online');
-                        const paymentData = {
-                            invoice_id: transaction.invoice_id,
-                            amount: result.amount || transaction.amount,
-                            payment_method: 'online',
-                            reference_number: result.order_id,
-                            notes: `Payment via ${gateway} - ${result.payment_type || 'online'}`
-                        };
-                        await this.recordPayment(paymentData);
-
-                        // Notify and restore
-                        const invoice = await this.getInvoiceById(transaction.invoice_id);
-                        const customer = await this.getCustomerById(invoice.customer_id);
-                        if (customer) {
-                            try {
-                                await this.sendPaymentSuccessNotification(customer, invoice);
-                            } catch (notificationError) {
-                                logger.error(`[WEBHOOK] Failed send notification:`, notificationError);
-                            }
-                            try {
-                                const refreshed = await this.getCustomerById(invoice.customer_id);
-                                if (refreshed && refreshed.status === 'suspended') {
-                                    const invoices = await this.getInvoicesByCustomer(refreshed.id);
-                                    const unpaid = invoices.filter(i => i.status === 'unpaid');
-                                    if (unpaid.length === 0) {
-                                        const serviceSuspension = require('./serviceSuspension');
-                                        await serviceSuspension.restoreCustomerService(refreshed);
-                                    }
-                                }
-                            } catch (restoreErr) {
-                                logger.error('[WEBHOOK] Immediate restore failed:', restoreErr);
-                            }
-                        } else {
-                            logger.error(`[WEBHOOK] Customer not found for invoice: ${transaction.invoice_id}`);
+                    this.db.run(updateSql, [
+                        result.status,
+                        result.payment_type || null,
+                        result.fraud_status || null,
+                        transaction.id
+                    ], async (updateErr) => {
+                        if (updateErr) {
+                            logger.error(`[WEBHOOK] Update transaction error:`, updateErr);
+                            return reject(updateErr);
                         }
 
-                        return resolve({ success: true, message: 'Payment processed successfully', invoice_id: transaction.invoice_id });
-                    } catch (processingError) {
-                        logger.error(`[WEBHOOK] Error in payment processing:`, processingError);
-                        return resolve({ success: true, message: 'Payment processed successfully', invoice_id: transaction.invoice_id });
-                    }
+                        if (result.status !== 'success') {
+                            logger.info(`[WEBHOOK] Payment status updated: ${result.status}`);
+                            return resolve({ success: true, message: 'Payment status updated', status: result.status });
+                        }
+
+                        try {
+                            logger.info(`[WEBHOOK] Processing successful payment for invoice: ${transaction.invoice_id}`);
+
+                            // Mark invoice paid and record payment
+                            await this.updateInvoiceStatus(transaction.invoice_id, 'paid', 'online');
+                            const paymentData = {
+                                invoice_id: transaction.invoice_id,
+                                amount: result.amount || transaction.amount,
+                                payment_method: 'online',
+                                reference_number: result.order_id,
+                                notes: `Payment via ${gateway} - ${result.payment_type || 'online'}`
+                            };
+                            await this.recordPayment(paymentData);
+
+                            // Notify and restore
+                            const invoice = await this.getInvoiceById(transaction.invoice_id);
+                            const customer = await this.getCustomerById(invoice.customer_id);
+                            if (customer) {
+                                try {
+                                    await this.sendPaymentSuccessNotification(customer, invoice);
+                                } catch (notificationError) {
+                                    logger.error(`[WEBHOOK] Failed send notification:`, notificationError);
+                                }
+                                try {
+                                    const refreshed = await this.getCustomerById(invoice.customer_id);
+                                    if (refreshed && refreshed.status === 'suspended') {
+                                        const invoices = await this.getInvoicesByCustomer(refreshed.id);
+                                        const unpaid = invoices.filter(i => i.status === 'unpaid');
+                                        if (unpaid.length === 0) {
+                                            const serviceSuspension = require('./serviceSuspension');
+                                            await serviceSuspension.restoreCustomerService(refreshed);
+                                        }
+                                    }
+                                } catch (restoreErr) {
+                                    logger.error('[WEBHOOK] Immediate restore failed:', restoreErr);
+                                }
+                            } else {
+                                logger.error(`[WEBHOOK] Customer not found for invoice: ${transaction.invoice_id}`);
+                            }
+
+                            return resolve({ success: true, message: 'Payment processed successfully', invoice_id: transaction.invoice_id });
+                        } catch (processingError) {
+                            logger.error(`[WEBHOOK] Error in payment processing:`, processingError);
+                            return resolve({ success: true, message: 'Payment processed successfully', invoice_id: transaction.invoice_id });
+                        }
+                    });
                 });
-            });
-        } catch (error) {
-            logger.error(`[WEBHOOK] Webhook processing error:`, error);
-            reject(error);
-        }
-    });
+            } catch (error) {
+                logger.error(`[WEBHOOK] Webhook processing error:`, error);
+                reject(error);
+            }
+        });
     }
 
     async getFinancialReport(startDate, endDate, type = 'all') {
@@ -3204,7 +3291,7 @@ async handlePaymentWebhook(payload, gateway) {
             try {
                 let sql = '';
                 const params = [];
-                
+
                 if (type === 'income') {
                     // Laporan pemasukan dari pembayaran online, manual, dan kolektor
                     sql = `
@@ -3368,7 +3455,7 @@ async handlePaymentWebhook(payload, gateway) {
                         const totalCommission = rows.filter(r => r.type === 'income')
                             .reduce((sum, r) => sum + (r.commission_amount || 0), 0);
                         const netProfit = totalIncome - totalExpense;
-                        
+
                         // Statistik per tipe pembayaran
                         const incomeByType = rows.filter(r => r.type === 'income')
                             .reduce((acc, r) => {
@@ -3381,7 +3468,7 @@ async handlePaymentWebhook(payload, gateway) {
                                 acc[gateway].commission += (r.commission_amount || 0);
                                 return acc;
                             }, {});
-                        
+
                         const result = {
                             transactions: rows,
                             summary: {
@@ -3396,7 +3483,7 @@ async handlePaymentWebhook(payload, gateway) {
                             },
                             dateRange: { startDate, endDate }
                         };
-                        
+
                         resolve(result);
                     }
                 });
@@ -3410,10 +3497,10 @@ async handlePaymentWebhook(payload, gateway) {
     async addExpense(expenseData) {
         return new Promise((resolve, reject) => {
             const { description, amount, category, expense_date, payment_method, notes } = expenseData;
-            
+
             const sql = `INSERT INTO expenses (description, amount, category, expense_date, payment_method, notes) VALUES (?, ?, ?, ?, ?, ?)`;
-            
-            this.db.run(sql, [description, amount, category, expense_date, payment_method, notes], function(err) {
+
+            this.db.run(sql, [description, amount, category, expense_date, payment_method, notes], function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -3427,14 +3514,14 @@ async handlePaymentWebhook(payload, gateway) {
         return new Promise((resolve, reject) => {
             let sql = 'SELECT * FROM expenses';
             const params = [];
-            
+
             if (startDate && endDate) {
                 sql += ' WHERE expense_date BETWEEN ? AND ?';
                 params.push(startDate, endDate);
             }
-            
+
             sql += ' ORDER BY expense_date DESC';
-            
+
             this.db.all(sql, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -3448,10 +3535,10 @@ async handlePaymentWebhook(payload, gateway) {
     async updateExpense(id, expenseData) {
         return new Promise((resolve, reject) => {
             const { description, amount, category, expense_date, payment_method, notes } = expenseData;
-            
+
             const sql = `UPDATE expenses SET description = ?, amount = ?, category = ?, expense_date = ?, payment_method = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
-            
-            this.db.run(sql, [description, amount, category, expense_date, payment_method, notes, id], function(err) {
+
+            this.db.run(sql, [description, amount, category, expense_date, payment_method, notes, id], function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -3464,8 +3551,8 @@ async handlePaymentWebhook(payload, gateway) {
     async deleteExpense(id) {
         return new Promise((resolve, reject) => {
             const sql = 'DELETE FROM expenses WHERE id = ?';
-            
-            this.db.run(sql, [id], function(err) {
+
+            this.db.run(sql, [id], function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -3490,15 +3577,15 @@ async handlePaymentWebhook(payload, gateway) {
                 FROM collectors c
                 LEFT JOIN payments p ON c.id = p.collector_id AND p.payment_type = 'collector'
             `;
-            
+
             const params = [];
             if (startDate && endDate) {
                 sql += ' WHERE DATE(p.payment_date) BETWEEN ? AND ?';
                 params.push(startDate, endDate);
             }
-            
+
             sql += ' GROUP BY c.id, c.name ORDER BY total_commission DESC';
-            
+
             this.db.all(sql, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -3509,12 +3596,12 @@ async handlePaymentWebhook(payload, gateway) {
                         FROM expenses 
                         WHERE category = 'Operasional' AND description LIKE 'Komisi Kolektor%'
                     `;
-                    
+
                     if (startDate && endDate) {
                         expenseSql += ' AND DATE(expense_date) BETWEEN ? AND ?';
                         params.push(startDate, endDate);
                     }
-                    
+
                     this.db.get(expenseSql, params.slice(params.length - 2), (err, expenseRow) => {
                         if (err) {
                             reject(err);
@@ -3550,7 +3637,7 @@ async handlePaymentWebhook(payload, gateway) {
                 GROUP BY c.id, c.name, c.phone, c.commission_rate
                 ORDER BY c.name
             `;
-            
+
             this.db.all(sql, [], (err, rows) => {
                 if (err) {
                     reject(err);
@@ -3579,7 +3666,7 @@ async handlePaymentWebhook(payload, gateway) {
                 ORDER BY e.expense_date DESC
                 LIMIT 20
             `;
-            
+
             this.db.all(sql, [], (err, rows) => {
                 if (err) {
                     reject(err);
@@ -3595,14 +3682,14 @@ async handlePaymentWebhook(payload, gateway) {
         return new Promise((resolve, reject) => {
             const { collector_id, amount, payment_method, notes, remittance_date } = remittanceData;
             const self = this; // Store reference to this
-            
+
             // Mulai transaction
             this.db.run('BEGIN TRANSACTION', (err) => {
                 if (err) {
                     reject(err);
                     return;
                 }
-                
+
                 // Update payments dengan remittance_status = 'remitted'
                 const updateSql = `
                     UPDATE payments 
@@ -3613,24 +3700,24 @@ async handlePaymentWebhook(payload, gateway) {
                     AND payment_type = 'collector'
                     AND remittance_status IS NULL
                 `;
-                
+
                 // Update semua payment yang belum di-remit
-                self.db.run(updateSql, [remittance_date, notes, collector_id], function(err) {
+                self.db.run(updateSql, [remittance_date, notes, collector_id], function (err) {
                     if (err) {
                         self.db.run('ROLLBACK');
                         reject(err);
                         return;
                     }
-                    
+
                     // Commit transaction
                     self.db.run('COMMIT', (err) => {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve({ 
-                                success: true, 
+                            resolve({
+                                success: true,
                                 updatedPayments: this.changes,
-                                ...remittanceData 
+                                ...remittanceData
                             });
                         }
                     });
@@ -3674,16 +3761,16 @@ async handlePaymentWebhook(payload, gateway) {
     async sendPaymentSuccessNotification(customer, invoice) {
         try {
             logger.info(`[NOTIFICATION] Sending payment success notification to ${customer.phone} for invoice ${invoice.invoice_number}`);
-            
+
             const whatsapp = require('./whatsapp');
-            
+
             // Cek apakah WhatsApp sudah terhubung
             const whatsappStatus = whatsapp.getWhatsAppStatus();
             if (!whatsappStatus || !whatsappStatus.connected) {
                 logger.warn(`[NOTIFICATION] WhatsApp not connected, status: ${JSON.stringify(whatsappStatus)}`);
                 return false;
             }
-            
+
             const message = `🎉 *Pembayaran Berhasil!*
 
 Halo ${customer.name},
