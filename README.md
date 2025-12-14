@@ -73,6 +73,9 @@ node scripts/run-all-migrations.js
 
 # Verifikasi struktur database
 node scripts/verify-production-database.js
+
+# Tambah LID untuk fitur whatsapp pelanggan
+node migrate-whatsapp-lid.js
 ```
 
 ### 5. Jalankan Aplikasi
@@ -155,5 +158,6 @@ Project ini dilisensikan di bawah lisensi ISC - lihat file [LICENSE](LICENSE) un
   
   [Laporkan Bug](https://github.com/alijayanet/gembok-bill/issues) · [Minta Fitur](https://github.com/alijayanet/gembok-bill/issues) · [Dokumentasi](DEPLOYMENT_GUIDE.md)
   
+
 
 </div>
