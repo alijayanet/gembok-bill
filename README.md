@@ -1,7 +1,4 @@
-\u003c!-- Improved modern README with vibrant colors and enhanced structure --\u003e
-\u003cdiv align="center"\u003e
-  \u003cimg src="public/img/logo.png" alt="Gembok Bill Logo" width="120" height="120"\u003e
-  
+ 
   # Gembok Bill
   **Integrated ISP Management System**
   
@@ -9,7 +6,7 @@
   [![License](https://img.shields.io/badge/license-ISC-blue?style=for-the-badge)](LICENSE)
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge)](https://github.com/alijayanet/gembok-bill/pulls)
   [![GitHub Stars](https://img.shields.io/github/stars/alijayanet/gembok-bill?style=for-the-badge)](https://github.com/alijayanet/gembok-bill/stargazers)
-\u003c/div\u003e
+
 
 ## 🌐 About Gembok Bill
 
@@ -214,11 +211,12 @@ This project is licensed under the ISC license - see the [LICENSE](LICENSE) file
 - The open source community for inspiration and support
 
 ---
-\u003cdiv align="center"\u003e
+
   
   💻 Developed with ❤️ for the ISP community
   
   [Report Bug](https://github.com/alijayanet/gembok-bill/issues) · [Request Feature](https://github.com/alijayanet/gembok-bill/issues) · [Documentation](DEPLOYMENT_GUIDE.md)
   
+
 
 \u003c/div\u003e
