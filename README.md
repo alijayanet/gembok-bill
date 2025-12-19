@@ -1,4 +1,7 @@
- 
+\u003c!-- Improved modern README with vibrant colors and enhanced structure --\u003e
+\u003cdiv align="center"\u003e
+  \u003cimg src="public/img/logo.png" alt="Gembok Bill Logo" width="120" height="120"\u003e
+  
   # Gembok Bill
   **Integrated ISP Management System**
   
@@ -21,6 +24,42 @@
 - **👥 Agent & Technician Management**: Flexible roles, access control, and job assignment
 - **📂 Database Migration**: SQL-based schema updates for continuous development
 - **🗺️ Cable Network Mapping**: Visual management of ODP, poles, and cable layouts
+
+### 💬 WhatsApp Commands
+
+The system supports WhatsApp LID (Lidded ID) registration for enhanced security and customer identification.
+
+#### For Customers
+
+| Command | Format | Description |
+|---------|--------|-------------|
+| **REG** | `REG [nama/nomor]` | Link WhatsApp LID to existing customer account |
+| **DAFTAR** | `DAFTAR [Nama]#[NoHP]#[Alamat]#[ID_Paket]` | Register as new customer with complete data |
+| **STATUS** | `STATUS` | Check billing and service status |
+| **MENU** | `MENU` | Display available customer commands |
+
+**Examples:**
+```
+REG Budi Santoso
+REG 081234567890
+DAFTAR Agus Setiawan#08123456789#Jl. Melati No 5#1
+```
+
+#### For Admins
+
+| Command | Format | Description |
+|---------|--------|-------------|
+| **SETLID** | `SETLID [password]` | Save admin WhatsApp LID to settings (requires admin password) |
+| **MENU** | `MENU` or `ADMIN` | Display admin menu |
+
+**Examples:**
+```
+SETLID admin123
+```
+
+> **Note:** Admin password is configured in `settings.json` as `admin_password`
+
+> **Security:** WhatsApp LID ensures secure identification even if phone numbers change format
 
 ## 🛠️ Technologies Used
 
@@ -175,11 +214,11 @@ This project is licensed under the ISC license - see the [LICENSE](LICENSE) file
 - The open source community for inspiration and support
 
 ---
+\u003cdiv align="center"\u003e
   
   💻 Developed with ❤️ for the ISP community
   
   [Report Bug](https://github.com/alijayanet/gembok-bill/issues) · [Request Feature](https://github.com/alijayanet/gembok-bill/issues) · [Documentation](DEPLOYMENT_GUIDE.md)
   
 
-
-
+\u003c/div\u003e
