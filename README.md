@@ -1,7 +1,4 @@
-\u003c!-- Improved modern README with vibrant colors and enhanced structure --\u003e
-\u003cdiv align="center"\u003e
-  \u003cimg src="public/img/logo.png" alt="Gembok Bill Logo" width="120" height="120"\u003e
-  
+ 
   # Gembok Bill
   **Integrated ISP Management System**
   
@@ -184,5 +181,6 @@ This project is licensed under the ISC license - see the [LICENSE](LICENSE) file
   
   [Report Bug](https://github.com/alijayanet/gembok-bill/issues) · [Request Feature](https://github.com/alijayanet/gembok-bill/issues) · [Documentation](DEPLOYMENT_GUIDE.md)
   
+
 
 \u003c/div\u003e
