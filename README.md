@@ -175,7 +175,6 @@ This project is licensed under the ISC license - see the [LICENSE](LICENSE) file
 - The open source community for inspiration and support
 
 ---
-\u003cdiv align="center"\u003e
   
   💻 Developed with ❤️ for the ISP community
   
@@ -183,4 +182,4 @@ This project is licensed under the ISC license - see the [LICENSE](LICENSE) file
   
 
 
-\u003c/div\u003e
+
