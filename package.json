@@ -1,6 +1,6 @@
 {
   "name": "gembok-bill",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Sistem Manajemen ISP Terintegrasi dengan WhatsApp Gateway untuk GenieACS, Mikrotik PPPoE, dan Hotspot Management",
   "main": "app.js",
   "scripts": {
@@ -9,6 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "echo \"No build process required\"",
     "setup": "npm install && node scripts/setup-database.js",
+    "migrate": "node scripts/run-all-migrations.js",
     "check-whatsapp-version": "node scripts/check-whatsapp-version.js",
     "test-whatsapp-connection": "node scripts/test-whatsapp-connection.js",
     "prepare-for-github": "node scripts/prepare-for-github.js",
@@ -46,9 +47,10 @@
     "xendit-node": "^7.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "ejs-lint": "^2.0.1",
-    "nodemon": "^3.1.10",
-    "eslint": "^9.38.0"
+    "eslint": "^9.38.0",
+    "nodemon": "^3.1.10"
   },
   "engines": {
     "node": ">=14.0.0",
