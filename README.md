@@ -46,7 +46,7 @@ DAFTAR Agus Setiawan#08123456789#Jl. Melati No 5#1
 
 | Command | Format | Description |
 |---------|--------|-------------|
-| **SETLID** | `SETLID [password]` | Save admin WhatsApp LID to settings (requires admin password) |
+| **SETLID** | `SETLID [password]`[nomer admin]| Save admin WhatsApp LID to settings (requires admin password) |
 | **MENU** | `MENU` or `ADMIN` | Display admin menu |
 
 **Examples:**
@@ -217,6 +217,7 @@ This project is licensed under the ISC license - see the [LICENSE](LICENSE) file
   
   [Report Bug](https://github.com/alijayanet/gembok-bill/issues) · [Request Feature](https://github.com/alijayanet/gembok-bill/issues) · [Documentation](DEPLOYMENT_GUIDE.md)
   
+
 
 
 
