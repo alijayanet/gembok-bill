@@ -17,38 +17,39 @@ class ServiceSuspensionManager {
     async ensureIsolirProfile() {
         try {
             const mikrotik = await getMikrotikConnection();
-            
+
             const selectedProfile = getSetting('isolir_profile', 'isolir');
             // Cek apakah profile isolir sudah ada
             const profiles = await mikrotik.write('/ppp/profile/print', [
                 `?name=${selectedProfile}`
             ]);
-            
+
             if (profiles && profiles.length > 0) {
                 logger.info(`Isolir profile '${selectedProfile}' already exists in Mikrotik`);
                 return profiles[0]['.id'];
             }
-            
-            // Jika user memilih nama lain selain 'isolir', jangan auto-create, biarkan admin pilih profil yang sudah ada
-            if (selectedProfile !== 'isolir') {
+
+            // Jika user memilih nama lain selain 'isolir' (case insensitive), jangan auto-create
+            // Kecuali jika namanya 'isolir' atau 'ISOLIR', kita bantu buatkan
+            if (selectedProfile.toLowerCase() !== 'isolir') {
                 logger.warn(`Isolir profile '${selectedProfile}' not found in Mikrotik. Please create it on Mikrotik or choose another profile.`);
                 return null;
             }
 
-            // Buat profile 'isolir' jika belum ada
+            // Buat profile dengan nama sesuai setting (bisa 'isolir' atau 'ISOLIR')
             const newProfile = await mikrotik.write('/ppp/profile/add', [
-                '=name=isolir',
+                `=name=${selectedProfile}`,
                 '=local-address=0.0.0.0',
                 '=remote-address=0.0.0.0',
                 '=rate-limit=0/0',
                 '=comment=SUSPENDED_PROFILE',
                 '=shared-users=1'
             ]);
-            
+
             const profileId = newProfile[0]['ret'];
             logger.info('Created isolir profile in Mikrotik with ID:', profileId);
             return profileId;
-            
+
         } catch (error) {
             logger.error('Error ensuring isolir profile:', error);
             throw error;
@@ -80,7 +81,7 @@ class ServiceSuspensionManager {
                 results.suspension_type = 'pppoe';
                 try {
                     const mikrotik = await getMikrotikConnection();
-                    
+
                     // Tentukan profile isolir dari setting
                     const selectedProfile = getSetting('isolir_profile', 'isolir');
                     // Pastikan profile isolir ada (auto-create hanya jika 'isolir')
@@ -106,12 +107,12 @@ class ServiceSuspensionManager {
 
                     await mikrotik.write('/ppp/secret/set', setParams);
                     logger.info(`Mikrotik: Set profile to '${selectedProfile}' for ${customer.pppoe_username} (${secretId ? 'by .id' : 'by name'})`);
-                    
+
                     // Disconnect active session jika ada
                     const activeSessions = await mikrotik.write('/ppp/active/print', [
                         `?name=${customer.pppoe_username}`
                     ]);
-                    
+
                     if (activeSessions && activeSessions.length > 0) {
                         for (const session of activeSessions) {
                             await mikrotik.write('/ppp/active/remove', [
@@ -119,7 +120,7 @@ class ServiceSuspensionManager {
                             ]);
                         }
                     }
-                    
+
                     results.mikrotik = true;
                     logger.info(`Mikrotik: Successfully suspended PPPoE user ${customer.pppoe_username} with isolir profile`);
                 } catch (mikrotikError) {
@@ -132,13 +133,13 @@ class ServiceSuspensionManager {
                 try {
                     // Tentukan metode suspend dari setting (default: address_list)
                     const suspensionMethod = getSetting('static_ip_suspension_method', 'address_list');
-                    
+
                     const staticResult = await staticIPSuspension.suspendStaticIPCustomer(
-                        customer, 
-                        reason, 
+                        customer,
+                        reason,
                         suspensionMethod
                     );
-                    
+
                     if (staticResult.success) {
                         results.mikrotik = true;
                         results.static_ip_method = staticResult.results?.method_used;
@@ -160,7 +161,7 @@ class ServiceSuspensionManager {
             if (customer.phone || customer.pppoe_username) {
                 try {
                     let device = null;
-                    
+
                     // Coba cari device by phone number dulu
                     if (customer.phone) {
                         try {
@@ -169,7 +170,7 @@ class ServiceSuspensionManager {
                             logger.warn(`Device not found by phone ${customer.phone}, trying PPPoE...`);
                         }
                     }
-                    
+
                     // Jika tidak ketemu, coba by PPPoE username
                     if (!device && customer.pppoe_username) {
                         try {
@@ -200,23 +201,23 @@ class ServiceSuspensionManager {
             // 3. Update status di billing database
             try {
                 if (customer.id) {
-                    logger.info(`[SUSPEND] Updating billing status by id=${customer.id} to 'suspended' (username=${customer.username||customer.pppoe_username||'-'})`);
+                    logger.info(`[SUSPEND] Updating billing status by id=${customer.id} to 'suspended' (username=${customer.username || customer.pppoe_username || '-'})`);
                     await billingManager.setCustomerStatusById(customer.id, 'suspended');
                     results.billing = true;
                 } else {
                     // Resolve by username first, then phone, to obtain reliable id
                     let resolved = null;
                     if (customer.pppoe_username) {
-                        try { resolved = await billingManager.getCustomerByUsername(customer.pppoe_username); } catch (_) {}
+                        try { resolved = await billingManager.getCustomerByUsername(customer.pppoe_username); } catch (_) { }
                     }
                     if (!resolved && customer.username) {
-                        try { resolved = await billingManager.getCustomerByUsername(customer.username); } catch (_) {}
+                        try { resolved = await billingManager.getCustomerByUsername(customer.username); } catch (_) { }
                     }
                     if (!resolved && customer.phone) {
-                        try { resolved = await billingManager.getCustomerByPhone(customer.phone); } catch (_) {}
+                        try { resolved = await billingManager.getCustomerByPhone(customer.phone); } catch (_) { }
                     }
                     if (resolved && resolved.id) {
-                        logger.info(`[SUSPEND] Resolved customer id=${resolved.id} (username=${resolved.pppoe_username||resolved.username||'-'}) → set 'suspended'`);
+                        logger.info(`[SUSPEND] Resolved customer id=${resolved.id} (username=${resolved.pppoe_username || resolved.username || '-'}) → set 'suspended'`);
                         await billingManager.setCustomerStatusById(resolved.id, 'suspended');
                         results.billing = true;
                     } else if (customer.phone) {
@@ -277,7 +278,7 @@ class ServiceSuspensionManager {
                 results.restoration_type = 'pppoe';
                 try {
                     const mikrotik = await getMikrotikConnection();
-                    
+
                     // Ambil profile dari customer atau package, fallback ke default
                     let profileToUse = customer.pppoe_profile;
                     if (!profileToUse) {
@@ -285,7 +286,7 @@ class ServiceSuspensionManager {
                         const packageData = await billingManager.getPackageById(customer.package_id);
                         profileToUse = packageData?.pppoe_profile || getSetting('default_pppoe_profile', 'default');
                     }
-                    
+
                     // Cari .id secret berdasarkan name terlebih dahulu
                     let secretId = null;
                     try {
@@ -306,12 +307,12 @@ class ServiceSuspensionManager {
 
                     await mikrotik.write('/ppp/secret/set', setParams);
                     logger.info(`Mikrotik: Restored profile to '${profileToUse}' for ${customer.pppoe_username} (${secretId ? 'by .id' : 'by name'})`);
-                    
+
                     // Disconnect active session agar client reconnect dengan profile baru
                     const activeSessions = await mikrotik.write('/ppp/active/print', [
                         `?name=${customer.pppoe_username}`
                     ]);
-                    
+
                     if (activeSessions && activeSessions.length > 0) {
                         for (const session of activeSessions) {
                             await mikrotik.write('/ppp/active/remove', [
@@ -332,7 +333,7 @@ class ServiceSuspensionManager {
                 results.restoration_type = 'static_ip';
                 try {
                     const staticResult = await staticIPSuspension.restoreStaticIPCustomer(customer, reason);
-                    
+
                     if (staticResult.success) {
                         results.mikrotik = true;
                         results.static_ip_methods = staticResult.results?.methods_tried;
@@ -354,7 +355,7 @@ class ServiceSuspensionManager {
             if (customer.phone || customer.pppoe_username) {
                 try {
                     let device = null;
-                    
+
                     // Coba cari device by phone number dulu
                     if (customer.phone) {
                         try {
@@ -363,7 +364,7 @@ class ServiceSuspensionManager {
                             logger.warn(`Device not found by phone ${customer.phone}, trying PPPoE...`);
                         }
                     }
-                    
+
                     // Jika tidak ketemu, coba by PPPoE username
                     if (!device && customer.pppoe_username) {
                         try {
@@ -394,23 +395,23 @@ class ServiceSuspensionManager {
             // 3. Update status di billing database
             try {
                 if (customer.id) {
-                    logger.info(`[RESTORE] Updating billing status by id=${customer.id} to 'active' (username=${customer.username||customer.pppoe_username||'-'})`);
+                    logger.info(`[RESTORE] Updating billing status by id=${customer.id} to 'active' (username=${customer.username || customer.pppoe_username || '-'})`);
                     await billingManager.setCustomerStatusById(customer.id, 'active');
                     results.billing = true;
                 } else {
                     // Resolve by username first, then phone
                     let resolved = null;
                     if (customer.pppoe_username) {
-                        try { resolved = await billingManager.getCustomerByUsername(customer.pppoe_username); } catch (_) {}
+                        try { resolved = await billingManager.getCustomerByUsername(customer.pppoe_username); } catch (_) { }
                     }
                     if (!resolved && customer.username) {
-                        try { resolved = await billingManager.getCustomerByUsername(customer.username); } catch (_) {}
+                        try { resolved = await billingManager.getCustomerByUsername(customer.username); } catch (_) { }
                     }
                     if (!resolved && customer.phone) {
-                        try { resolved = await billingManager.getCustomerByPhone(customer.phone); } catch (_) {}
+                        try { resolved = await billingManager.getCustomerByPhone(customer.phone); } catch (_) { }
                     }
                     if (resolved && resolved.id) {
-                        logger.info(`[RESTORE] Resolved customer id=${resolved.id} (username=${resolved.pppoe_username||resolved.username||'-'}) → set 'active'`);
+                        logger.info(`[RESTORE] Resolved customer id=${resolved.id} (username=${resolved.pppoe_username || resolved.username || '-'}) → set 'active'`);
                         await billingManager.setCustomerStatusById(resolved.id, 'active');
                         results.billing = true;
                     } else if (customer.phone) {
@@ -470,7 +471,7 @@ class ServiceSuspensionManager {
 
             // Ambil tagihan yang overdue
             const overdueInvoices = await billingManager.getOverdueInvoices();
-            
+
             const results = {
                 checked: 0,
                 suspended: 0,
@@ -514,7 +515,7 @@ class ServiceSuspensionManager {
 
                     // Suspend layanan
                     const suspensionResult = await this.suspendCustomerService(customer, `Telat bayar ${daysOverdue} hari`);
-                    
+
                     if (suspensionResult.success) {
                         results.suspended++;
                         results.details.push({
@@ -579,7 +580,7 @@ class ServiceSuspensionManager {
                     // Jika tidak ada tagihan yang belum dibayar, restore layanan
                     if (unpaidInvoices.length === 0) {
                         const restorationResult = await this.restoreCustomerService(customer);
-                        
+
                         if (restorationResult.success) {
                             results.restored++;
                             results.details.push({
