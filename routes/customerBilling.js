@@ -11,6 +11,8 @@ const ensureCustomerSession = async (req, res, next) => {
         let username = req.session?.customer_username;
         const phone = req.session?.phone || req.session?.customer_phone;
 
+        console.log(`🔍 [SESSION_CHECK] URL: ${req.url}, Username: ${username}, Phone: ${phone}`);
+
         // Jika tidak ada customer_username tapi ada phone, ambil dari billing
         if (!username && phone) {
             console.log(`🔄 [SESSION_FIX] No customer_username but phone exists: ${phone}, fetching from billing`);
@@ -21,12 +23,33 @@ const ensureCustomerSession = async (req, res, next) => {
                     req.session.customer_phone = phone;
                     username = customer.username;
                     console.log(`✅ [SESSION_FIX] Set customer_username: ${username} for phone: ${phone}`);
+
+                    // IMPORTANT: Save session explicitly before continuing
+                    await new Promise((resolve, reject) => {
+                        req.session.save((err) => {
+                            if (err) {
+                                console.error(`❌ [SESSION_FIX] Failed to save session:`, err);
+                                reject(err);
+                            } else {
+                                console.log(`💾 [SESSION_FIX] Session saved successfully`);
+                                resolve();
+                            }
+                        });
+                    });
                 } else {
                     // Customer tidak ada di billing, buat temporary username
                     req.session.customer_username = `temp_${phone}`;
                     req.session.customer_phone = phone;
                     username = `temp_${phone}`;
                     console.log(`⚠️ [SESSION_FIX] Customer not in billing, created temp username: ${username} for phone: ${phone}`);
+
+                    // Save session for temp user too
+                    await new Promise((resolve) => {
+                        req.session.save((err) => {
+                            if (err) console.error(`❌ [SESSION_FIX] Failed to save temp session:`, err);
+                            resolve();
+                        });
+                    });
                 }
             } catch (error) {
                 console.error(`❌ [SESSION_FIX] Error getting customer from billing:`, error);
@@ -34,6 +57,14 @@ const ensureCustomerSession = async (req, res, next) => {
                 req.session.customer_username = `temp_${phone}`;
                 req.session.customer_phone = phone;
                 username = `temp_${phone}`;
+
+                // Save fallback session
+                await new Promise((resolve) => {
+                    req.session.save((err) => {
+                        if (err) console.error(`❌ [SESSION_FIX] Failed to save fallback session:`, err);
+                        resolve();
+                    });
+                });
             }
         }
 
@@ -46,6 +77,14 @@ const ensureCustomerSession = async (req, res, next) => {
                     req.session.customer_phone = phone;
                     username = customerFix.username;
                     console.log(`✅ [SESSION_FIX] Replaced temp username with real username: ${username} for phone: ${phone}`);
+
+                    // Save updated session
+                    await new Promise((resolve) => {
+                        req.session.save((err) => {
+                            if (err) console.error(`❌ [SESSION_FIX] Failed to save updated session:`, err);
+                            resolve();
+                        });
+                    });
                 }
             } catch (e) {
                 console.warn(`⚠️ [SESSION_FIX] Retry getCustomerByPhone failed: ${e.message}`);
@@ -58,9 +97,10 @@ const ensureCustomerSession = async (req, res, next) => {
             return res.redirect('/customer/login');
         }
 
+        console.log(`✅ [SESSION_CHECK] Session OK - proceeding with username: ${username}`);
         next();
     } catch (error) {
-        console.error('Error in ensureCustomerSession middleware:', error);
+        console.error('❌ [SESSION_ERROR] Error in ensureCustomerSession middleware:', error);
         return res.redirect('/customer/login');
     }
 };
@@ -87,7 +127,7 @@ router.get('/dashboard', ensureCustomerSession, getAppSettings, async (req, res)
     try {
         const username = req.session.customer_username;
         const phone = req.session.customer_phone || req.session.phone;
-        
+
         if (!username) {
             return res.redirect('/customer/login');
         }
@@ -95,7 +135,7 @@ router.get('/dashboard', ensureCustomerSession, getAppSettings, async (req, res)
         // Handle temporary customer (belum ada di billing)
         if (username.startsWith('temp_')) {
             console.log(`📋 [BILLING_DASHBOARD] Temporary customer detected: ${username}, phone: ${phone}`);
-            
+
             // Render dashboard dengan data kosong untuk customer tanpa billing
             return res.render('customer/billing/dashboard', {
                 title: 'Dashboard Billing',
@@ -122,7 +162,7 @@ router.get('/dashboard', ensureCustomerSession, getAppSettings, async (req, res)
                 const customerByPhone = await billingManager.getCustomerByPhone(phone);
                 if (!customerByPhone) {
                     console.log(`⚠️ [BILLING_DASHBOARD] Customer not found for username: ${username} or phone: ${phone}, treating as no billing data`);
-                    
+
                     // Render dashboard dengan data kosong
                     return res.render('customer/billing/dashboard', {
                         title: 'Dashboard Billing',
@@ -142,7 +182,7 @@ router.get('/dashboard', ensureCustomerSession, getAppSettings, async (req, res)
                     });
                 }
             }
-            
+
             return res.status(404).render('error', {
                 message: 'Pelanggan tidak ditemukan',
                 error: 'Terjadi kesalahan. Silakan coba lagi.',
@@ -153,7 +193,7 @@ router.get('/dashboard', ensureCustomerSession, getAppSettings, async (req, res)
 
         const invoices = await billingManager.getInvoices(username);
         const payments = await billingManager.getPayments();
-        
+
         // Filter payments untuk customer ini
         const customerPayments = payments.filter(payment => {
             return invoices.some(invoice => invoice.id === payment.invoice_id);
@@ -172,7 +212,7 @@ router.get('/dashboard', ensureCustomerSession, getAppSettings, async (req, res)
         const totalInvoices = invoices.length;
         const paidInvoices = invoices.filter(inv => inv.status === 'paid').length;
         const unpaidInvoices = invoices.filter(inv => inv.status === 'unpaid').length;
-        const overdueInvoices = invoices.filter(inv => 
+        const overdueInvoices = invoices.filter(inv =>
             inv.status === 'unpaid' && new Date(inv.due_date) < new Date()
         ).length;
         const totalPaid = invoices
@@ -200,7 +240,7 @@ router.get('/dashboard', ensureCustomerSession, getAppSettings, async (req, res)
         });
     } catch (error) {
         logger.error('Error loading customer billing dashboard:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading billing dashboard',
             error: error.message,
             appSettings: req.appSettings
@@ -212,11 +252,54 @@ router.get('/dashboard', ensureCustomerSession, getAppSettings, async (req, res)
 router.get('/invoices', ensureCustomerSession, getAppSettings, async (req, res) => {
     try {
         const username = req.session.customer_username;
+        const phone = req.session.customer_phone || req.session.phone;
         if (!username) {
             return res.redirect('/customer/login');
         }
 
-        const customer = await billingManager.getCustomerByUsername(username);
+        let customer = null;
+        let invoices = [];
+
+        // Handle temporary customer (belum ada di billing)
+        if (username.startsWith('temp_') && phone) {
+            console.log(`📋 [INVOICES] Temporary customer detected: ${username}, phone: ${phone}`);
+
+            // For temporary customers, try to find customer by phone
+            try {
+                customer = await billingManager.getCustomerByPhone(phone);
+                if (customer) {
+                    console.log(`✅ [INVOICES] Found customer by phone for temp customer: ${username}`);
+                    // Get invoices for this customer
+                    invoices = await billingManager.getInvoicesByCustomer(customer.id);
+                } else {
+                    console.log(`⚠️ [INVOICES] No customer found by phone for temp customer: ${username}`);
+                    // Render invoices page with empty data for temporary customer
+                    return res.render('customer/billing/invoices', {
+                        title: 'Tagihan Saya',
+                        customer: {
+                            id: null,
+                            username: username,
+                            name: 'Pelanggan Sementara',
+                            phone: phone,
+                            address: 'Alamat belum diatur',
+                            email: null,
+                            package_id: null
+                        },
+                        invoices: [],
+                        appSettings: req.appSettings
+                    });
+                }
+            } catch (customerError) {
+                console.error(`❌ [INVOICES] Error getting customer by phone:`, customerError);
+            }
+        } else {
+            // For non-temporary customers, get by username
+            customer = await billingManager.getCustomerByUsername(username);
+            if (customer) {
+                invoices = await billingManager.getInvoices(username);
+            }
+        }
+
         if (!customer) {
             return res.status(404).render('error', {
                 message: 'Pelanggan tidak ditemukan',
@@ -226,8 +309,6 @@ router.get('/invoices', ensureCustomerSession, getAppSettings, async (req, res) 
             });
         }
 
-        const invoices = await billingManager.getInvoices(username);
-        
         res.render('customer/billing/invoices', {
             title: 'Tagihan Saya',
             customer,
@@ -236,7 +317,7 @@ router.get('/invoices', ensureCustomerSession, getAppSettings, async (req, res) 
         });
     } catch (error) {
         logger.error('Error loading customer invoices:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading invoices',
             error: error.message,
             appSettings: req.appSettings
@@ -248,13 +329,14 @@ router.get('/invoices', ensureCustomerSession, getAppSettings, async (req, res) 
 router.get('/invoices/:id', ensureCustomerSession, getAppSettings, async (req, res) => {
     try {
         const username = req.session.customer_username;
+        const phone = req.session.customer_phone || req.session.phone;
         if (!username) {
             return res.redirect('/customer/login');
         }
 
         const { id } = req.params;
         const invoice = await billingManager.getInvoiceById(id);
-        
+
         if (!invoice) {
             return res.status(404).render('error', {
                 message: 'Tagihan tidak ditemukan',
@@ -264,9 +346,43 @@ router.get('/invoices/:id', ensureCustomerSession, getAppSettings, async (req, r
             });
         }
 
-        // Check session access (removed debug logs for production)
-        
-        // Pastikan tagihan milik customer yang login
+        // Handle temporary customer (belum ada di billing)
+        if (username.startsWith('temp_') && phone) {
+            console.log(`📋 [INVOICE_DETAIL] Temporary customer detected: ${username}, phone: ${phone}`);
+
+            // For temporary customers, try to find customer by phone and check if invoice belongs to them
+            try {
+                const billingManager = require('../config/billing');
+                const customerByPhone = await billingManager.getCustomerByPhone(phone);
+
+                if (customerByPhone && invoice.customer_id === customerByPhone.id) {
+                    console.log(`✅ [INVOICE_DETAIL] Invoice matches customer by phone for temp customer: ${username}`);
+
+                    const payments = await billingManager.getPayments(id);
+
+                    return res.render('customer/billing/invoice-detail', {
+                        title: `Tagihan ${invoice.invoice_number}`,
+                        invoice,
+                        payments,
+                        appSettings: req.appSettings
+                    });
+                } else {
+                    console.log(`❌ [INVOICE_DETAIL] Invoice doesn't match customer by phone for temp customer: ${username}`);
+                }
+            } catch (customerError) {
+                console.error(`❌ [INVOICE_DETAIL] Error checking customer by phone:`, customerError);
+            }
+
+            // If we reach here, access is denied
+            return res.status(403).render('error', {
+                message: 'Akses ditolak',
+                error: `Session username: "${username}" (temporary) tidak cocok dengan invoice customer`,
+                appSettings: req.appSettings,
+                req: req
+            });
+        }
+
+        // Pastikan tagihan milik customer yang login (for non-temporary customers)
         if (invoice.customer_username !== username) {
             return res.status(403).render('error', {
                 message: 'Akses ditolak',
@@ -277,7 +393,7 @@ router.get('/invoices/:id', ensureCustomerSession, getAppSettings, async (req, r
         }
 
         const payments = await billingManager.getPayments(id);
-        
+
         res.render('customer/billing/invoice-detail', {
             title: `Tagihan ${invoice.invoice_number}`,
             invoice,
@@ -286,7 +402,7 @@ router.get('/invoices/:id', ensureCustomerSession, getAppSettings, async (req, r
         });
     } catch (error) {
         logger.error('Error loading invoice detail:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading invoice detail',
             error: error.message,
             appSettings: req.appSettings
@@ -314,7 +430,7 @@ router.get('/payments', ensureCustomerSession, getAppSettings, async (req, res) 
 
         const invoices = await billingManager.getInvoices(username);
         const allPayments = await billingManager.getPayments();
-        
+
         // Filter payments untuk customer ini
         const customerPayments = allPayments.filter(payment => {
             return invoices.some(invoice => invoice.id === payment.invoice_id);
@@ -328,7 +444,7 @@ router.get('/payments', ensureCustomerSession, getAppSettings, async (req, res) 
         });
     } catch (error) {
         logger.error('Error loading customer payments:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading payments',
             error: error.message,
             appSettings: req.appSettings
@@ -337,14 +453,53 @@ router.get('/payments', ensureCustomerSession, getAppSettings, async (req, res) 
 });
 
 // Halaman Profil Customer
-router.get('/profile', getAppSettings, async (req, res) => {
+router.get('/profile', ensureCustomerSession, getAppSettings, async (req, res) => {
     try {
         const username = req.session.customer_username;
+        const phone = req.session.customer_phone || req.session.phone;
         if (!username) {
             return res.redirect('/customer/login');
         }
 
-        const customer = await billingManager.getCustomerByUsername(username);
+        let customer = null;
+
+        // Handle temporary customer (belum ada di billing)
+        if (username.startsWith('temp_') && phone) {
+            console.log(`📋 [PROFILE] Temporary customer detected: ${username}, phone: ${phone}`);
+
+            // For temporary customers, try to find customer by phone
+            try {
+                customer = await billingManager.getCustomerByPhone(phone);
+                if (customer) {
+                    console.log(`✅ [PROFILE] Found customer by phone for temp customer: ${username}`);
+                } else {
+                    console.log(`⚠️ [PROFILE] No customer found by phone for temp customer: ${username}`);
+                    // Render profile with minimal data for temporary customer
+                    const packages = await billingManager.getPackages();
+
+                    return res.render('customer/billing/profile', {
+                        title: 'Profil Saya',
+                        customer: {
+                            id: null,
+                            username: username,
+                            name: 'Pelanggan Sementara',
+                            phone: phone,
+                            address: 'Alamat belum diatur',
+                            email: null,
+                            package_id: null
+                        },
+                        packages,
+                        appSettings: req.appSettings
+                    });
+                }
+            } catch (customerError) {
+                console.error(`❌ [PROFILE] Error getting customer by phone:`, customerError);
+            }
+        } else {
+            // For non-temporary customers, get by username
+            customer = await billingManager.getCustomerByUsername(username);
+        }
+
         if (!customer) {
             return res.status(404).render('error', {
                 message: 'Pelanggan tidak ditemukan',
@@ -355,7 +510,7 @@ router.get('/profile', getAppSettings, async (req, res) => {
         }
 
         const packages = await billingManager.getPackages();
-        
+
         res.render('customer/billing/profile', {
             title: 'Profil Saya',
             customer,
@@ -364,7 +519,7 @@ router.get('/profile', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading customer profile:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading profile',
             error: error.message,
             appSettings: req.appSettings
@@ -397,7 +552,7 @@ router.get('/api/payments', async (req, res) => {
 
         const invoices = await billingManager.getInvoices(username);
         const allPayments = await billingManager.getPayments();
-        
+
         // Filter payments untuk customer ini
         const customerPayments = allPayments.filter(payment => {
             return invoices.some(invoice => invoice.id === payment.invoice_id);
@@ -439,7 +594,7 @@ router.get('/invoices/:id/download', getAppSettings, async (req, res) => {
 
         const { id } = req.params;
         const invoice = await billingManager.getInvoiceById(id);
-        
+
         if (!invoice || invoice.customer_username !== username) {
             return res.status(404).render('error', {
                 message: 'Tagihan tidak ditemukan',
@@ -465,8 +620,9 @@ router.get('/invoices/:id/download', getAppSettings, async (req, res) => {
 router.get('/invoices/:id/print', ensureCustomerSession, getAppSettings, async (req, res) => {
     try {
         const username = req.session.customer_username;
-        console.log(`📄 [PRINT] Print request - username: ${username}, invoice_id: ${req.params.id}`);
-        
+        const phone = req.session.customer_phone || req.session.phone;
+        console.log(`📄 [PRINT] Print request - username: ${username}, phone: ${phone}, invoice_id: ${req.params.id}`);
+
         if (!username) {
             console.log(`❌ [PRINT] No customer_username in session`);
             return res.redirect('/customer/login');
@@ -474,15 +630,62 @@ router.get('/invoices/:id/print', ensureCustomerSession, getAppSettings, async (
 
         const { id } = req.params;
         const invoice = await billingManager.getInvoiceById(id);
-        
+
         console.log(`📄 [PRINT] Invoice found:`, invoice ? {
             id: invoice.id,
             customer_username: invoice.customer_username,
             invoice_number: invoice.invoice_number,
             status: invoice.status
         } : 'null');
-        
-        if (!invoice || invoice.customer_username !== username) {
+
+        if (!invoice) {
+            console.log(`❌ [PRINT] Invoice not found`);
+            return res.status(404).render('error', {
+                message: 'Tagihan tidak ditemukan',
+                error: 'Terjadi kesalahan. Silakan coba lagi.',
+                appSettings: req.appSettings,
+                req: req
+            });
+        }
+
+        // Handle temporary customer (belum ada di billing)
+        if (username.startsWith('temp_') && phone) {
+            console.log(`📋 [PRINT] Temporary customer detected: ${username}, phone: ${phone}`);
+
+            // For temporary customers, try to find customer by phone and check if invoice belongs to them
+            try {
+                const billingManager = require('../config/billing');
+                const customerByPhone = await billingManager.getCustomerByPhone(phone);
+
+                if (customerByPhone && invoice.customer_id === customerByPhone.id) {
+                    console.log(`✅ [PRINT] Invoice matches customer by phone for temp customer: ${username}`);
+
+                    const payments = await billingManager.getPayments(id);
+
+                    return res.render('customer/billing/invoice-print', {
+                        title: `Print Tagihan ${invoice.invoice_number}`,
+                        invoice,
+                        payments,
+                        appSettings: req.appSettings
+                    });
+                } else {
+                    console.log(`❌ [PRINT] Invoice doesn't match customer by phone for temp customer: ${username}`);
+                }
+            } catch (customerError) {
+                console.error(`❌ [PRINT] Error checking customer by phone:`, customerError);
+            }
+
+            // If we reach here, access is denied
+            console.log(`❌ [PRINT] Access denied for temp customer - invoice.customer_username: ${invoice?.customer_username}, session username: ${username}`);
+            return res.status(404).render('error', {
+                message: 'Tagihan tidak ditemukan',
+                error: 'Terjadi kesalahan. Silakan coba lagi.',
+                appSettings: req.appSettings,
+                req: req
+            });
+        }
+
+        if (invoice.customer_username !== username) {
             console.log(`❌ [PRINT] Access denied - invoice.customer_username: ${invoice?.customer_username}, session username: ${username}`);
             return res.status(404).render('error', {
                 message: 'Tagihan tidak ditemukan',
@@ -493,7 +696,7 @@ router.get('/invoices/:id/print', ensureCustomerSession, getAppSettings, async (
         }
 
         const payments = await billingManager.getPayments(id);
-        
+
         res.render('customer/billing/invoice-print', {
             title: `Print Tagihan ${invoice.invoice_number}`,
             invoice,
@@ -502,7 +705,7 @@ router.get('/invoices/:id/print', ensureCustomerSession, getAppSettings, async (
         });
     } catch (error) {
         logger.error('Error printing invoice:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error printing invoice',
             error: error.message,
             appSettings: req.appSettings
@@ -523,9 +726,9 @@ router.get('/api/payment-methods', async (req, res) => {
 
         const PaymentGatewayManager = require('../config/paymentGateway');
         const paymentGateway = new PaymentGatewayManager();
-        
+
         const methods = await paymentGateway.getAvailablePaymentMethods();
-        
+
         res.json({
             success: true,
             methods: methods
@@ -552,9 +755,9 @@ router.post('/create-payment', async (req, res) => {
         }
 
         const { invoice_id, gateway, method } = req.body;
-        
+
         // Process customer payment request
-        
+
         if (!invoice_id) {
             return res.status(400).json({
                 success: false,
@@ -571,11 +774,44 @@ router.post('/create-payment', async (req, res) => {
             });
         }
 
-        if (invoice.customer_username !== username) {
-            return res.status(403).json({
-                success: false,
-                message: 'Access denied'
-            });
+        // Handle temporary customer (belum ada di billing)
+        if (username.startsWith('temp_')) {
+            const phone = req.session.customer_phone || req.session.phone;
+            if (phone) {
+                try {
+                    const billingManager = require('../config/billing');
+                    const customerByPhone = await billingManager.getCustomerByPhone(phone);
+
+                    if (customerByPhone && invoice.customer_id === customerByPhone.id) {
+                        console.log(`✅ [PAYMENT] Invoice matches customer by phone for temp customer: ${username}`);
+                        // Allow the payment to proceed
+                    } else {
+                        return res.status(403).json({
+                            success: false,
+                            message: 'Access denied - invoice does not match your account'
+                        });
+                    }
+                } catch (customerError) {
+                    console.error(`❌ [PAYMENT] Error checking customer by phone:`, customerError);
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Access denied'
+                    });
+                }
+            } else {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Access denied - no phone number in session'
+                });
+            }
+        } else {
+            // For non-temporary customers, check username match
+            if (invoice.customer_username !== username) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Access denied'
+                });
+            }
         }
 
         if (invoice.status === 'paid') {
@@ -590,9 +826,9 @@ router.post('/create-payment', async (req, res) => {
 
         // Create online payment with specific method for Tripay
         const result = await billingManager.createOnlinePaymentWithMethod(invoice_id, gateway, method);
-        
+
         logger.info(`Customer ${username} created payment for invoice ${invoice_id} using ${gateway}${method && method !== 'all' ? ' - ' + method : ''}`);
-        
+
         res.json({
             success: true,
             message: 'Payment created successfully',
