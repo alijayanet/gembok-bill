@@ -4509,6 +4509,21 @@ async function handleIncomingMessage(sock, message) {
         if (remoteJid.includes('@lid')) {
             senderLid = remoteJid; // Format: 85280887435270@lid
             logger.debug(`WhatsApp LID detected`, { lid: senderLid });
+
+            // Try to resolve phone number from LID to allow admin recognition
+            try {
+                const BillingManager = require('./billing');
+                const billing = new BillingManager();
+                const customer = await billing.getCustomerByWhatsAppLid(senderLid);
+                if (customer) {
+                    senderNumber = customer.phone;
+                    // Normalize
+                    if (senderNumber.startsWith('0')) senderNumber = '62' + senderNumber.slice(1);
+                    logger.info(`✅ Resolved LID ${senderLid} to phone: ${senderNumber}`);
+                }
+            } catch (err) {
+                // Ignore errors, proceed with raw senderNumber
+            }
         }
 
         // Cek apakah pengirim adalah admin
@@ -4936,6 +4951,105 @@ Pesan GenieACS telah diaktifkan kembali.`);
 
         // Jika admin, cek perintah admin lainnya
         if (isAdmin) {
+            // Perintah SETLID untuk admin menyimpan WhatsApp LID mereka
+            if (command === 'setlid' || command === '!setlid' || command === '/setlid') {
+                try {
+                    const { setSetting, getSetting } = require('./settingsManager');
+
+                    // Parse password dari command: SETLID [password]
+                    const args = messageText.split(' ').slice(1);
+                    const inputPassword = args[0] ? args[0].trim() : '';
+
+                    if (!inputPassword) {
+                        await sock.sendMessage(remoteJid, {
+                            text: formatWithHeaderFooter(
+                                `🔐 *FORMAT SETLID*\n\n` +
+                                `Untuk keamanan, Anda harus memasukkan password admin.\n\n` +
+                                `Format: *SETLID [password]*\n\n` +
+                                `Contoh: SETLID admin123\n\n` +
+                                `Password adalah admin_password yang ada di settings.json`
+                            )
+                        });
+                        return;
+                    }
+
+                    // Validasi password
+                    const adminPassword = getSetting('admin_password', '');
+                    if (inputPassword !== adminPassword) {
+                        await sock.sendMessage(remoteJid, {
+                            text: formatWithHeaderFooter(
+                                `❌ *PASSWORD SALAH*\n\n` +
+                                `Password yang Anda masukkan tidak sesuai.\n\n` +
+                                `Silakan coba lagi dengan password yang benar.`
+                            )
+                        });
+                        console.log(`⚠️ Failed SETLID attempt from ${senderNumber} - wrong password`);
+                        return;
+                    }
+
+                    if (!senderLid) {
+                        await sock.sendMessage(remoteJid, {
+                            text: formatWithHeaderFooter(
+                                `❌ *LID TIDAK TERDETEKSI*\n\n` +
+                                `WhatsApp LID tidak terdeteksi. Fitur ini hanya untuk akun WhatsApp dengan format @lid.\n\n` +
+                                `Nomor Anda: ${senderNumber}`
+                            )
+                        });
+                        return;
+                    }
+
+                    // Cari slot admin yang sesuai dengan nomor pengirim
+                    let adminSlot = null;
+                    for (let i = 0; i < 10; i++) {
+                        const adminNum = getSetting(`admins.${i}`, '');
+                        if (adminNum === senderNumber || adminNum === `0${senderNumber.slice(2)}`) {
+                            adminSlot = i;
+                            break;
+                        }
+                    }
+
+                    if (adminSlot === null) {
+                        await sock.sendMessage(remoteJid, {
+                            text: formatWithHeaderFooter(
+                                `❌ *NOMOR TIDAK TERDAFTAR*\n\n` +
+                                `Nomor ${senderNumber} tidak terdaftar sebagai admin di settings.json.\n\n` +
+                                `Silakan tambahkan nomor Anda ke settings.json terlebih dahulu sebagai admins.0, admins.1, dst.`
+                            )
+                        });
+                        return;
+                    }
+
+                    // Simpan LID ke settings.json dengan key admin_lid.X
+                    const lidKey = `admin_lid.${adminSlot}`;
+                    const success = setSetting(lidKey, senderLid);
+
+                    if (success) {
+                        await sock.sendMessage(remoteJid, {
+                            text: formatWithHeaderFooter(
+                                `✅ *LID TERSIMPAN*\n\n` +
+                                `WhatsApp LID Anda berhasil disimpan!\n\n` +
+                                `📋 *Detail:*\n` +
+                                `• Nomor: ${senderNumber}\n` +
+                                `• LID: ${senderLid}\n` +
+                                `• Slot: admin_lid.${adminSlot}\n\n` +
+                                `LID ini akan digunakan untuk identifikasi admin di masa depan.`
+                            )
+                        });
+                        console.log(`✅ Admin LID saved: ${senderLid} for admin slot ${adminSlot}`);
+                    } else {
+                        await sock.sendMessage(remoteJid, {
+                            text: `❌ Gagal menyimpan LID ke settings.json. Silakan cek log.`
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error in SETLID command:', error);
+                    await sock.sendMessage(remoteJid, {
+                        text: `❌ Terjadi kesalahan: ${error.message}`
+                    });
+                }
+                return;
+            }
+
             // Perintah cek ONU (tapi bukan cek tagihan)
             if ((command.startsWith('cek ') || command.startsWith('!cek ') || command.startsWith('/cek ')) &&
                 !command.includes('tagihan')) {
@@ -6466,6 +6580,7 @@ async function handleAdminMenu(remoteJid) {
         adminMessage += `• 🔧 *editssid [nomor] [ssid]* * Edit SSID pelanggan\n`;
         adminMessage += `• 🔧 *editpass [nomor] [password]* * Edit password WiFi pelanggan\n`;
         adminMessage += `• 🔐 *otp [on/off/status]* * Kelola sistem OTP\n`;
+        adminMessage += `• 🆔 *setlid [password]* - Simpan WhatsApp LID admin (perlu password)\n`;
         adminMessage += `• 📊 *billing* * Menu billing admin\n\n`;
 
         // Status GenieACS (tanpa menampilkan perintah)

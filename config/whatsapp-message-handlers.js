@@ -3,6 +3,8 @@ const { getAdminHelpMessage, getTechnicianHelpMessage, getCustomerHelpMessage, g
 const WhatsAppTroubleCommands = require('./whatsapp-trouble-commands');
 const WhatsAppPPPoECommands = require('./whatsapp-pppoe-commands');
 const AgentAdminCommands = require('./agentAdminCommands');
+const BillingManager = require('./billing');
+const { getCompanyHeader, getFooterInfo } = require('./message-templates');
 
 class WhatsAppMessageHandlers {
     constructor(whatsappCore, whatsappCommands) {
@@ -11,7 +13,7 @@ class WhatsAppMessageHandlers {
         this.troubleCommands = new WhatsAppTroubleCommands(whatsappCore);
         this.pppoeCommands = new WhatsAppPPPoECommands(whatsappCore);
         this.agentAdminCommands = new AgentAdminCommands();
-        
+
         // Parameter paths for different device parameters (from genieacs-commands.js)
         this.parameterPaths = {
             rxPower: [
@@ -92,14 +94,14 @@ class WhatsAppMessageHandlers {
                 logger.warn('Invalid message received', { message: typeof message });
                 return;
             }
-            
+
             // Ekstrak informasi pesan
             const remoteJid = message.key.remoteJid;
             if (!remoteJid) {
                 logger.warn('Message without remoteJid received', { messageKey: message.key });
                 return;
             }
-            
+
             // Skip jika pesan dari grup dan bukan dari admin
             if (remoteJid.includes('@g.us')) {
                 logger.debug('Message from group received', { groupJid: remoteJid });
@@ -110,14 +112,14 @@ class WhatsAppMessageHandlers {
                 }
                 logger.info('Group message from admin, processing', { participant });
             }
-            
+
             // Cek tipe pesan dan ekstrak teks
             let messageText = '';
             if (!message.message) {
                 logger.debug('Message without content received', { messageType: 'unknown' });
                 return;
             }
-            
+
             if (message.message.conversation) {
                 messageText = message.message.conversation;
                 logger.debug('Conversation message received');
@@ -125,56 +127,103 @@ class WhatsAppMessageHandlers {
                 messageText = message.message.extendedTextMessage.text;
                 logger.debug('Extended text message received');
             } else {
-                logger.debug('Unsupported message type received', { 
-                    messageTypes: Object.keys(message.message) 
+                logger.debug('Unsupported message type received', {
+                    messageTypes: Object.keys(message.message)
                 });
                 return;
             }
-            
-            // Ekstrak nomor pengirim
+
+            // Ekstrak nomor pengirim dan LID
             let senderNumber;
+            let senderLid = null;
+            let realSenderNumber = null; // Nomor asli dari database jika menggunakan LID
+
             try {
-                senderNumber = remoteJid.split('@')[0];
+                // Cek apakah pengirim menggunakan LID
+                if (remoteJid.endsWith('@lid')) {
+                    senderLid = remoteJid;
+                    logger.debug(`Message from LID detected: ${senderLid}`);
+
+                    // Coba cari nomor HP berdasarkan LID di database
+                    try {
+                        const billing = new BillingManager();
+                        const customer = await billing.getCustomerByWhatsAppLid(senderLid);
+
+                        if (customer) {
+                            realSenderNumber = customer.phone;
+                            senderNumber = realSenderNumber; // Gunakan nomor HP asli untuk logic selanjutnya
+
+                            // Normalisasi nomor HP
+                            if (senderNumber.startsWith('0')) senderNumber = '62' + senderNumber.slice(1);
+
+                            logger.info(`✅ Resolved LID ${senderLid} to customer phone: ${senderNumber}`);
+                        } else {
+                            // Jika tidak ditemukan, gunakan bagian depan LID tapi ini mungkin bukan nomor HP valid
+                            senderNumber = remoteJid.split('@')[0];
+                            logger.info(`⚠️ LID ${senderLid} not found in database. Using raw ID: ${senderNumber}`);
+                        }
+                    } catch (err) {
+                        logger.error('Error resolving LID:', err);
+                        senderNumber = remoteJid.split('@')[0];
+                    }
+                } else {
+                    // Normal message (non-LID)
+                    senderNumber = remoteJid.split('@')[0];
+                }
             } catch (error) {
                 logger.error('Error extracting sender number', { remoteJid, error: error.message });
                 return;
             }
-            
+
             logger.info(`Message received`, { sender: senderNumber, messageLength: messageText.length });
             logger.debug(`Message content`, { sender: senderNumber, message: messageText });
-            
+
             // Cek apakah pengirim adalah admin
             const isAdmin = this.core.isAdminNumber(senderNumber);
             logger.debug(`Sender admin status`, { sender: senderNumber, isAdmin });
-            
+
             // Jika pesan kosong, abaikan
             if (!messageText.trim()) {
                 logger.debug('Empty message, ignoring');
                 return;
             }
-            
+
             // Proses pesan
-            await this.processMessage(remoteJid, senderNumber, messageText, isAdmin);
-            
+            await this.processMessage(remoteJid, senderNumber, messageText, isAdmin, senderLid);
+
         } catch (error) {
             logger.error('Error in handleIncomingMessage', { error: error.message, stack: error.stack });
         }
     }
 
     // Process message and route to appropriate handler
-    async processMessage(remoteJid, senderNumber, messageText, isAdmin) {
+    async processMessage(remoteJid, senderNumber, messageText, isAdmin, senderLid = null) {
         const command = messageText.trim().toLowerCase();
         const originalCommand = messageText.trim();
-        
+
         try {
             // Cek apakah pengirim bisa akses fitur teknisi
             const canAccessTechnician = this.core.canAccessTechnicianFeatures(senderNumber);
-            
+
             // Debug logging
             logger.info(`🔍 [ROUTING] Processing command: "${originalCommand}" (lowercase: "${command}")`);
             logger.info(`🔍 [ROUTING] Sender: ${senderNumber}, isAdmin: ${isAdmin}, canAccessTechnician: ${canAccessTechnician}`);
             console.log(`🔍 [ROUTING DEBUG] isAdmin=${isAdmin}, typeof isAdmin=${typeof isAdmin}`);
-            
+
+
+            // REGISTRASI LID (Priority High - sebelum admin/technician check)
+            // SETLID untuk registrasi WhatsApp LID Admin
+            if (command.startsWith('setlid ') || command.startsWith('!setlid ') || command.startsWith('/setlid ')) {
+                await this.handleSetLidCommand(remoteJid, senderNumber, messageText, senderLid);
+                return;
+            }
+
+            // Perintah REG untuk registrasi WhatsApp LID pelanggan
+            if (command.startsWith('reg ') || command.startsWith('!reg ') || command.startsWith('/reg ')) {
+                await this.handleRegCommand(remoteJid, senderNumber, messageText, senderLid);
+                return;
+            }
+
             // Admin commands (termasuk command teknisi)
             if (isAdmin) {
                 logger.info(`🔍 [ROUTING] Routing to handleAdminCommands`);
@@ -182,64 +231,334 @@ class WhatsAppMessageHandlers {
                 await this.handleAdminCommands(remoteJid, senderNumber, command, messageText);
                 return;
             }
-            
+
             console.log(`🔍 [ROUTING] NOT routing to admin handler, isAdmin=${isAdmin}`);
-            
+
             // Technician commands (untuk teknisi yang bukan admin)
             if (canAccessTechnician && !isAdmin) {
                 logger.info(`🔍 [ROUTING] Routing to handleTechnicianCommands`);
                 await this.handleTechnicianCommands(remoteJid, senderNumber, command, messageText);
                 return;
             }
-            
+
             // Customer commands
             logger.info(`🔍 [ROUTING] Routing to handleCustomerCommands`);
             await this.handleCustomerCommands(remoteJid, senderNumber, command, messageText);
-            
+
         } catch (error) {
-            logger.error('Error processing message', { 
-                command, 
-                sender: senderNumber, 
-                error: error.message 
+            logger.error('Error processing message', {
+                command,
+                sender: senderNumber,
+                error: error.message
             });
-            
+
             // Send error message to user
-            await this.commands.sendMessage(remoteJid, 
+            await this.commands.sendMessage(remoteJid,
                 `❌ *ERROR*\n\nTerjadi kesalahan saat memproses perintah:\n${error.message}`
             );
+        }
+    }
+
+    // Handle REG command for LID registration
+    async handleRegCommand(remoteJid, senderNumber, messageText, senderLid) {
+        try {
+            const billing = new BillingManager();
+
+            // Extract search term (nama atau nomor)
+            const searchTerm = messageText.split(' ').slice(1).join(' ').trim();
+
+            const formatWithHeaderFooter = (content) => {
+                const header = getCompanyHeader();
+                const footer = getFooterInfo();
+                return `📱 *${header}*\n\n${content}\n\n_${footer}_`;
+            };
+
+            if (!searchTerm) {
+                await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                    `❌ *FORMAT SALAH*\n\n` +
+                    `Gunakan format:\n` +
+                    `• REG [nama pelanggan]\n` +
+                    `• REG [nomor HP]\n\n` +
+                    `Contoh:\n` +
+                    `• REG Budi Santoso\n` +
+                    `• REG 081234567890`
+                ));
+                return;
+            }
+
+            // Check if LID is available
+            if (!senderLid) {
+                // Jika tidak terdeteksi sebagai LID, mungkin user menggunakan WA biasa tapi ingin register? 
+                // Tapi fitur ini spesifik untuk mapping LID. 
+                // Jika user pakai WA biasa, remoteJid SUDAH nomor HPnya (ideally).
+                // Tapi kita kasih warning aja.
+                if (!remoteJid.endsWith('@lid')) {
+                    // Jika bukan LID, cek apakah nomor ini sudah terdaftar?
+                    // Kalau sudah, info saja "Nomor ini sudah terdaftar otomatis".
+                    const customer = await billing.getCustomerByPhone(senderNumber);
+                    if (customer) {
+                        await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                            `✅ *SUDAH TERDAFTAR*\n\n` +
+                            `Nomor WhatsApp ini sudah terdaftar sebagai:\n` +
+                            `👤 *Nama:* ${customer.name}\n` +
+                            `📞 *Nomor:* ${customer.phone}\n\n` +
+                            `Anda tidak perlu melakukan registrasi ulang.`
+                        ));
+                        return;
+                    }
+                }
+
+                if (!senderLid && !remoteJid.endsWith('@lid')) {
+                    // Fallback create dummy LID from remoteJid if needed? No, just warn.
+                    // Actually, let's allow "REG" to work for normal numbers too to confirm identity
+                }
+            }
+
+            // Determine if search term is phone number (only digits) or name
+            const isPhoneNumber = /^\d+$/.test(searchTerm.replace(/[\s\-\+]/g, ''));
+
+            let customers = [];
+
+            if (isPhoneNumber) {
+                // Search by phone number
+                const customer = await billing.getCustomerByPhone(searchTerm);
+                if (customer) {
+                    customers = [customer];
+                }
+            } else {
+                // Search by name
+                customers = await billing.getCustomerByNameOrPhone(searchTerm);
+                // getCustomerByNameOrPhone returns single object, not array. Need to check billing.js again.
+                // It returns SINGLE row. So wrap in array if found.
+                if (customers) {
+                    customers = [customers];
+                }
+            }
+
+            // Note: billing.findCustomersByNameOrPhone might be what we want for multiple results?
+            // checking billing.js... getCustomerByNameOrPhone returns 1 row via db.get.
+            // If we want likely matches, we might need a search function that returns multiple rows.
+            // But for now let's stick to strict matching to avoid confusion.
+
+            if (!customers || customers.length === 0) {
+                await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                    `❌ *PELANGGAN TIDAK DITEMUKAN*\n\n` +
+                    `Tidak ada pelanggan dengan ${isPhoneNumber ? 'nomor' : 'nama'}: ${searchTerm}\n\n` +
+                    `Silakan coba lagi dengan:\n` +
+                    `• Nama lengkap pelanggan, atau\n` +
+                    `• Nomor HP yang terdaftar`
+                ));
+                return;
+            }
+
+            // Single customer found
+            const customer = customers[0];
+
+            // Check if customer already has a WhatsApp LID
+            if (customer.whatsapp_lid) {
+                // Jika senderLid ada dan match
+                if (senderLid && customer.whatsapp_lid === senderLid) {
+                    await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                        `✅ *SUDAH TERDAFTAR*\n\n` +
+                        `WhatsApp ini sudah terhubung dengan akun:\n\n` +
+                        `👤 *Nama:* ${customer.name}\n` +
+                        `📞 *Nomor:* ${customer.phone}\n` +
+                        `📦 *Paket:* ${customer.package_name || 'Tidak ada paket'}`
+                    ));
+                    return;
+                } else if (senderLid && customer.whatsapp_lid !== senderLid) {
+                    // Jika sudah punya LID tapi beda, konfirmasi ganti?
+                    // Saat ini auto-replace atau reject? 
+                    // Amannya reject dan minta hubungi admin.
+                    await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                        `⚠️ *KONFIRMASI DIPERLUKAN*\n\n` +
+                        `Pelanggan "${customer.name}" sudah memiliki WhatsApp ID lain yang terhubung.\n\n` +
+                        `Jika Anda ganti HP/WA, silakan hubungi admin untuk reset data.`
+                    ));
+                    return;
+                }
+            }
+
+            // Register the WhatsApp LID
+            try {
+                // Gunakan LID jika ada, jika tidak gunakan remoteJid (untuk WA biasa)
+                const targetLid = senderLid || remoteJid;
+
+                await billing.updateCustomerWhatsAppLid(customer.id, targetLid);
+
+                await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                    `✅ *REGISTRASI BERHASIL*\n\n` +
+                    `WhatsApp Anda berhasil didaftarkan!\n\n` +
+                    `📋 *Data Pelanggan:*\n` +
+                    `👤 *Nama:* ${customer.name}\n` +
+                    `📞 *Nomor:* ${customer.phone}\n` +
+                    `📦 *Paket:* ${customer.package_name || 'Tidak ada paket'}\n` +
+                    `💰 *Harga:* ${customer.package_price ? 'Rp ' + customer.package_price.toLocaleString('id-ID') : '-'}\n\n` +
+                    `Sekarang Anda dapat menggunakan perintah bot dengan WhatsApp ini.\n\n` +
+                    `Ketik *MENU* untuk melihat daftar perintah.`
+                ));
+
+                logger.info(`✅ WhatsApp LID registered: ${targetLid} for customer ${customer.name} (${customer.phone})`);
+            } catch (error) {
+                logger.error('Error registering WhatsApp LID:', error);
+                await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                    `❌ *REGISTRASI GAGAL*\n\n` +
+                    `Terjadi kesalahan: ${error.message}\n\n` +
+                    `Silakan hubungi admin untuk bantuan.`
+                ));
+            }
+
+        } catch (error) {
+            logger.error('Error in REG command:', error);
+            await this.commands.sendMessage(remoteJid, `❌ *TERJADI KESALAHAN*\n\nError: ${error.message}`);
+        }
+    }
+
+    // Handle SETLID command for Admin LID registration
+    async handleSetLidCommand(remoteJid, senderNumber, messageText, senderLid) {
+        try {
+            const billing = new BillingManager();
+
+            // Extract password
+            const password = messageText.split(' ').slice(1).join(' ').trim();
+            const adminPassword = this.core.getSetting('admin_password');
+
+            const formatWithHeaderFooter = (content) => {
+                const header = getCompanyHeader();
+                const footer = getFooterInfo();
+                return `📱 *${header}*\n\n${content}\n\n_${footer}_`;
+            };
+
+            if (!password) {
+                await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                    `❌ *FORMAT SALAH*\n\n` +
+                    `Gunakan format:\n` +
+                    `• SETLID [password_admin]\n\n` +
+                    `Untuk mendaftarkan WhatsApp ini sebagai Admin.`
+                ));
+                return;
+            }
+
+            // Verify admin password
+            if (password !== adminPassword) {
+                await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                    `❌ *PASSWORD SALAH*\n\n` +
+                    `Password admin yang Anda masukkan salah.`
+                ));
+                return;
+            }
+
+            // Check if LID is available
+            if (!senderLid) {
+                await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                    `⚠️ *BUKAN LID*\n\n` +
+                    `Akun WhatsApp Anda tidak terdeteksi menggunakan LID.\n` +
+                    `Anda tetap bisa menggunakan nomor ini sebagai admin (via settings).`
+                ));
+                // Bisa lanjutkan jika mau support nomor biasa, tapi ini fitur spesifik LID
+                // Mari kita izinkan untuk mapping nomor biasa ke akun 'admin' dummy jika perlu
+            }
+
+            // But wait, SETLID tujuannya agar admin bisa dikenali sbg admin meski pakai LID.
+            // Admin biasanya tidak punya akun customer di billing (kecuali dibuat dummy).
+            // Jadi kita harus simpan mapping ini di suatu tempat.
+            // Opsi 1: Simpan di settings.json (admins array) -> Tapi ini butuh write file & restart
+            // Opsi 2: Simpan di table customers (buat admin jadi customer) -> Ini yg dipakai REG
+
+            // Karena user minta "SETLID", asumsikan dia ingin mapping ke akun.
+            // Tapi admin numbers ada di settings.json. 
+            // Kalau LID berubah-ubah, susah kalau hardcode di settings.json.
+
+            // Solusi: Kita cari customer dengan nomor HP yg ada di settings 'admins'.
+            // Kalau belum ada, admin harus buat akun customer dulu dengan nomor HP adminnya.
+
+            // Cari customer yg phone-nya match salah satu admin number?
+            // Atau cukup cari customer dengan nomor HP senderNumber (yg mungkin sudah ter-resolve atau belum)?
+            // Jika belum ter-resolve, senderNumber adalah LID prefix (angka acak). 
+            // Jadi kita tidak bisa cari by phone.
+
+            // User harus input nomor HP aslinya juga? 
+            // "SETLID [password] [nomor_hp_asli]" ? 
+            // Atau cukup "SETLID [password]" lalu kita cari customer bernama "Admin" atau sejenisnya?
+
+            // LEBIH BAIK: "SETLID [password] [nomor_hp_admin]"
+            // Perintah ini akan melink-kan LID pengirim ke customer dengan nomor_hp_admin.
+
+            const parts = messageText.split(' ');
+            if (parts.length < 3) {
+                await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                    `❌ *FORMAT KURANG LENGKAP*\n\n` +
+                    `Gunakan format:\n` +
+                    `• SETLID [password_admin] [nomor_hp_admin]\n\n` +
+                    `Contoh:\n` +
+                    `• SETLID rahasia123 081234567890`
+                ));
+                return;
+            }
+
+            const targetPhone = parts[2];
+
+            // Cari customer dengan nomor HP tersebut
+            const customer = await billing.getCustomerByPhone(targetPhone);
+
+            if (!customer) {
+                await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                    `❌ *PELANGGAN TIDAK DITEMUKAN*\n\n` +
+                    `Tidak ditemukan data pelanggan dengan nomor HP: ${targetPhone}\n\n` +
+                    `Silakan buat akun pelanggan dummy untuk Admin dengan nomor tersebut terlebih dahulu.`
+                ));
+                return;
+            }
+
+            // Update LID
+            const targetLid = senderLid || remoteJid;
+            await billing.updateCustomerWhatsAppLid(customer.id, targetLid);
+
+            await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                `✅ *ADMIN LID BERHASIL DISET*\n\n` +
+                `WhatsApp LID Anda berhasil ditautkan ke akun:\n` +
+                `👤 *Nama:* ${customer.name}\n` +
+                `📞 *Nomor:* ${customer.phone}\n\n` +
+                `Sistem sekarang mengenali Anda sebagai: ${customer.phone}\n` +
+                `Silakan coba kirim perintah *ADMIN* atau *MENU*.`
+            ));
+
+        } catch (error) {
+            logger.error('Error in SETLID command:', error);
+            await this.commands.sendMessage(remoteJid, `❌ *ERROR*: ${error.message}`);
         }
     }
 
     // Handle technician commands (untuk teknisi yang bukan admin)
     async handleTechnicianCommands(remoteJid, senderNumber, command, messageText) {
         // Command yang bisa diakses teknisi (tidak bisa akses semua fitur admin)
-        
+
         logger.info(`🔍 [TECHNICIAN] Processing command: "${command}" from ${senderNumber}`);
-        
+
         // Help Commands
         if (command === 'teknisi') {
             logger.info(`🔍 [TECHNICIAN] Handling teknisi command`);
             await this.sendTechnicianHelp(remoteJid);
             return;
         }
-        
+
         if (command === 'help') {
             await this.sendTechnicianHelp(remoteJid);
             return;
         }
-        
+
         // Trouble Report Commands (PRIORITAS TINGGI)
         if (command === 'trouble') {
             await this.troubleCommands.handleListTroubleReports(remoteJid);
             return;
         }
-        
+
         if (command.startsWith('status ')) {
             const reportId = messageText.split(' ')[1];
             await this.troubleCommands.handleTroubleReportStatus(remoteJid, reportId);
             return;
         }
-        
+
         if (command.startsWith('update ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 2) {
@@ -250,7 +569,7 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('selesai ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 1) {
@@ -260,14 +579,14 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         // Search Commands (untuk teknisi)
         if (command.startsWith('cari ')) {
             const searchTerm = messageText.split(' ').slice(1).join(' ');
             await this.handleSearchCustomer(remoteJid, searchTerm);
             return;
         }
-        
+
         if (command.startsWith('catatan ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 2) {
@@ -277,12 +596,12 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command === 'help trouble') {
             await this.troubleCommands.handleTroubleReportHelp(remoteJid);
             return;
         }
-        
+
         // PPPoE Commands (PEMASANGAN BARU)
         if (command.startsWith('addpppoe ')) {
             const params = messageText.split(' ').slice(1);
@@ -296,7 +615,7 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('editpppoe ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 3) {
@@ -307,50 +626,50 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('checkpppoe ')) {
             const username = messageText.split(' ')[1];
             await this.pppoeCommands.handleCheckPPPoEStatus(remoteJid, username);
             return;
         }
-        
+
         if (command.startsWith('restartpppoe ')) {
             const username = messageText.split(' ')[1];
             await this.pppoeCommands.handleRestartPPPoE(remoteJid, username);
             return;
         }
-        
+
         if (command === 'help pppoe') {
             await this.pppoeCommands.handlePPPoEHelp(remoteJid);
             return;
         }
-        
+
         // System Info Commands
         if (command === 'version') {
             const versionMessage = getVersionMessage();
             await this.commands.sendMessage(remoteJid, versionMessage);
             return;
         }
-        
+
         if (command === 'info') {
             const systemInfoMessage = getSystemInfoMessage();
             await this.commands.sendMessage(remoteJid, systemInfoMessage);
             return;
         }
-        
+
         // Basic device commands (terbatas)
         if (command.startsWith('cek ')) {
             const customerNumber = messageText.split(' ')[1];
             await this.commands.handleCekStatus(remoteJid, customerNumber);
             return;
         }
-        
+
         if (command.startsWith('cekstatus ')) {
             const customerNumber = messageText.split(' ')[1];
             await this.commands.handleCekStatus(remoteJid, customerNumber);
             return;
         }
-        
+
         // Search Commands
         if (command.startsWith('cari ')) {
             logger.info(`🔍 [TECHNICIAN] Handling cari command`);
@@ -358,7 +677,7 @@ class WhatsAppMessageHandlers {
             await this.handleSearchCustomer(remoteJid, searchTerm);
             return;
         }
-        
+
         // Debug GenieACS Commands (case insensitive)
         if (command.toLowerCase().startsWith('debuggenieacs ')) {
             logger.info(`🔍 [TECHNICIAN] Handling debuggenieacs command`);
@@ -366,7 +685,7 @@ class WhatsAppMessageHandlers {
             await this.handleDebugGenieACS(remoteJid, phoneNumber);
             return;
         }
-        
+
         // Simple debug command
         if (command.toLowerCase().startsWith('debug ')) {
             logger.info(`🔍 [TECHNICIAN] Handling debug command`);
@@ -374,14 +693,14 @@ class WhatsAppMessageHandlers {
             await this.handleDebugGenieACS(remoteJid, phoneNumber);
             return;
         }
-        
+
         // List all devices command
         if (command === 'listdevices') {
             logger.info(`🔍 [TECHNICIAN] Handling listdevices command`);
             await this.handleListDevices(remoteJid);
             return;
         }
-        
+
         // Unknown command for technician
         console.log(`Perintah tidak dikenali dari teknisi: ${command}`);
         // await this.commands.sendMessage(remoteJid, 
@@ -407,24 +726,24 @@ class WhatsAppMessageHandlers {
             await this.commands.handleCekStatus(remoteJid, customerNumber);
             return;
         }
-        
+
         if (command.startsWith('cekstatus ')) {
             const customerNumber = messageText.split(' ')[1];
             await this.commands.handleCekStatus(remoteJid, customerNumber);
             return;
         }
-        
+
         if (command === 'cekall') {
             await this.commands.handleCekAll(remoteJid);
             return;
         }
-        
+
         if (command.startsWith('refresh ')) {
             const deviceId = messageText.split(' ')[1];
             await this.commands.handleRefresh(remoteJid, deviceId);
             return;
         }
-        
+
         if (command.startsWith('gantissid ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 2) {
@@ -434,7 +753,7 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('gantipass ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 2) {
@@ -444,13 +763,13 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('reboot ')) {
             const customerNumber = messageText.split(' ')[1];
             await this.commands.handleReboot(remoteJid, customerNumber);
             return;
         }
-        
+
         // Search Commands
         if (command.startsWith('cari ')) {
             logger.info(`🔍 [TECHNICIAN] Handling cari command`);
@@ -458,7 +777,7 @@ class WhatsAppMessageHandlers {
             await this.handleSearchCustomer(remoteJid, searchTerm);
             return;
         }
-        
+
         // Debug GenieACS Commands (case insensitive)
         if (command.toLowerCase().startsWith('debuggenieacs ')) {
             logger.info(`🔍 [TECHNICIAN] Handling debuggenieacs command`);
@@ -466,7 +785,7 @@ class WhatsAppMessageHandlers {
             await this.handleDebugGenieACS(remoteJid, phoneNumber);
             return;
         }
-        
+
         // Simple debug command
         if (command.toLowerCase().startsWith('debug ')) {
             logger.info(`🔍 [TECHNICIAN] Handling debug command`);
@@ -474,14 +793,14 @@ class WhatsAppMessageHandlers {
             await this.handleDebugGenieACS(remoteJid, phoneNumber);
             return;
         }
-        
+
         // List all devices command
         if (command === 'listdevices') {
             logger.info(`🔍 [TECHNICIAN] Handling listdevices command`);
             await this.handleListDevices(remoteJid);
             return;
         }
-        
+
         if (command.startsWith('tag ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 2) {
@@ -491,7 +810,7 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('untag ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 2) {
@@ -501,13 +820,13 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('tags ')) {
             const deviceId = messageText.split(' ')[1];
             await this.commands.handleListTags(remoteJid, deviceId);
             return;
         }
-        
+
         if (command.startsWith('addtag ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 2) {
@@ -517,62 +836,62 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         // System Commands
         if (command === 'status') {
             await this.commands.handleStatus(remoteJid);
             return;
         }
-        
+
         if (command === 'restart') {
             await this.commands.handleRestart(remoteJid);
             return;
         }
-        
+
         if (command === 'ya' || command === 'iya' || command === 'yes') {
             await this.commands.handleConfirmRestart(remoteJid);
             return;
         }
-        
+
         if (command === 'tidak' || command === 'no' || command === 'batal') {
             if (global.pendingRestart && global.restartRequestedBy === remoteJid) {
                 global.pendingRestart = false;
                 global.restartRequestedBy = null;
-                await this.commands.sendMessage(remoteJid, 
+                await this.commands.sendMessage(remoteJid,
                     `✅ *RESTART DIBATALKAN*\n\nRestart aplikasi telah dibatalkan.`
                 );
             }
             return;
         }
-        
+
         if (command === 'debug resource') {
             await this.commands.handleDebugResource(remoteJid);
             return;
         }
-        
+
         if (command === 'checkgroup') {
             await this.commands.handleCheckGroup(remoteJid);
             return;
         }
-        
+
         if (command.startsWith('setheader ')) {
             const newHeader = messageText.split(' ').slice(1).join(' ');
             await this.commands.handleSetHeader(remoteJid, newHeader);
             return;
         }
-        
+
         // Trouble Report Commands
         if (command === 'trouble') {
             await this.troubleCommands.handleListTroubleReports(remoteJid);
             return;
         }
-        
+
         if (command.startsWith('status ')) {
             const reportId = messageText.split(' ')[1];
             await this.troubleCommands.handleTroubleReportStatus(remoteJid, reportId);
             return;
         }
-        
+
         if (command.startsWith('update ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 2) {
@@ -583,7 +902,7 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('selesai ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 2) {
@@ -593,7 +912,7 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('catatan ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 2) {
@@ -603,12 +922,12 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command === 'help trouble') {
             await this.troubleCommands.handleTroubleReportHelp(remoteJid);
             return;
         }
-        
+
         // PPPoE Commands
         if (command.startsWith('addpppoe ')) {
             const params = messageText.split(' ').slice(1);
@@ -622,7 +941,7 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('editpppoe ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 3) {
@@ -633,7 +952,7 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('delpppoe ')) {
             const params = messageText.split(' ').slice(1);
             if (params.length >= 1) {
@@ -643,64 +962,64 @@ class WhatsAppMessageHandlers {
             }
             return;
         }
-        
+
         if (command.startsWith('pppoe ')) {
             const filter = messageText.split(' ').slice(1).join(' ');
             await this.pppoeCommands.handleListPPPoE(remoteJid, filter);
             return;
         }
-        
+
         if (command === 'pppoe') {
             await this.pppoeCommands.handleListPPPoE(remoteJid);
             return;
         }
-        
+
         if (command.startsWith('checkpppoe ')) {
             const username = messageText.split(' ')[1];
             await this.pppoeCommands.handleCheckPPPoEStatus(remoteJid, username);
             return;
         }
-        
+
         if (command.startsWith('restartpppoe ')) {
             const username = messageText.split(' ')[1];
             await this.pppoeCommands.handleRestartPPPoE(remoteJid, username);
             return;
         }
-        
+
         if (command === 'help pppoe') {
             await this.pppoeCommands.handlePPPoEHelp(remoteJid);
             return;
         }
-        
+
         // Help Commands
         if (command === 'admin') {
             await this.sendAdminHelp(remoteJid);
             return;
         }
-        
+
         if (command === 'teknisi') {
             await this.sendTechnicianHelp(remoteJid);
             return;
         }
-        
+
         if (command === 'menu' || command === 'help') {
             await this.sendAdminHelp(remoteJid);
             return;
         }
-        
+
         // System Info Commands
         if (command === 'version') {
             const versionMessage = getVersionMessage();
             await this.commands.sendMessage(remoteJid, versionMessage);
             return;
         }
-        
+
         if (command === 'info') {
             const systemInfoMessage = getSystemInfoMessage();
             await this.commands.sendMessage(remoteJid, systemInfoMessage);
             return;
         }
-        
+
         // Unknown command
         // JANGAN kirim pesan untuk command yang tidak dikenali
         // Ini akan mencegah respon otomatis terhadap setiap pesan
@@ -721,31 +1040,31 @@ class WhatsAppMessageHandlers {
             await this.handleCustomerStatus(remoteJid, senderNumber);
             return;
         }
-        
+
         if (command === 'menu' || command === 'help') {
             await this.sendCustomerHelp(remoteJid);
             return;
         }
-        
+
         if (command === 'info') {
             await this.handleCustomerInfo(remoteJid, senderNumber);
             return;
         }
-        
+
         // Search Commands (untuk pelanggan - akses terbatas)
         if (command.startsWith('cari ')) {
             const searchTerm = messageText.split(' ').slice(1).join(' ');
             await this.handleCustomerSearch(remoteJid, searchTerm);
             return;
         }
-        
+
         // System Info Commands
         if (command === 'version') {
             const versionMessage = getVersionMessage();
             await this.commands.sendMessage(remoteJid, versionMessage);
             return;
         }
-        
+
         // Unknown command for customer
         // JANGAN kirim pesan untuk command yang tidak dikenali
         // Ini akan mencegah respon otomatis terhadap setiap pesan
@@ -760,7 +1079,7 @@ class WhatsAppMessageHandlers {
         const helpMessage = getAdminHelpMessage();
         await this.commands.sendMessage(remoteJid, helpMessage);
     }
-    
+
     // Send technician help message
     async sendTechnicianHelp(remoteJid) {
         const helpMessage = getTechnicianHelpMessage();
@@ -776,19 +1095,66 @@ class WhatsAppMessageHandlers {
     // Handle customer status request
     async handleCustomerStatus(remoteJid, senderNumber) {
         try {
-            // Implementasi cek status pelanggan
-            
-            await this.commands.sendMessage(remoteJid, 
+            await this.commands.sendMessage(remoteJid,
                 `📱 *STATUS PELANGGAN*\n\nSedang mengecek status perangkat Anda...\nMohon tunggu sebentar.`
             );
-            
+
+            // Gunakan getCustomerComprehensiveData untuk mendapatkan status lengkap
+            // senderNumber seharusnya sudah berupa nomor HP (resolved dari LID jika ada)
+            const customerData = await this.getCustomerComprehensiveData(senderNumber);
+
+            const formatWithHeaderFooter = (content) => {
+                const header = getCompanyHeader();
+                const footer = getFooterInfo();
+                return `📱 *${header}*\n\n${content}\n\n_${footer}_`;
+            };
+
+            if (!customerData.deviceFound && !customerData.billingData.customer) {
+                await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                    `❌ *DATA TIDAK DITEMUKAN*\n\n` +
+                    `Nomor WhatsApp Anda (${senderNumber}) tidak terdaftar sebagai pelanggan.\n\n` +
+                    `Jika Anda pelanggan baru, silakan hubungi admin untuk registrasi.`
+                ));
+                return;
+            }
+
+            let message = ``;
+
+            // Info Pelanggan
+            if (customerData.billingData && customerData.billingData.customer) {
+                const c = customerData.billingData.customer;
+                message += `👤 *INFO PELANGGAN*\n`;
+                message += `• Nama: ${c.name}\n`;
+                message += `• Paket: ${c.package_name || '-'}\n`;
+                message += `• Tagihan: ${c.payment_status === 'paid' ? '✅ Lunas' : '⚠️ Belum Lunas'}\n\n`;
+            }
+
+            // Info Perangkat
+            if (customerData.deviceFound) {
+                message += `🔧 *STATUS PERANGKAT*\n`;
+                message += `• Status: ${customerData.status === 'Online' ? '🟢 ONLINE' : '🔴 OFFLINE'}\n`;
+                message += `• Sinyal (RX): ${customerData.rxPower}\n`;
+
+                if (customerData.status === 'Online') {
+                    message += `• Pengguna Aktif: ${customerData.connectedUsers}\n`;
+                    message += `• Uptime: ${customerData.uptime}\n`;
+                }
+
+                message += `• Terakhir Update: ${customerData.lastInform}\n`;
+            } else {
+                message += `🔧 *STATUS PERANGKAT*\n`;
+                message += `⚠️ Data perangkat tidak ditemukan / offline lama.\n`;
+            }
+
+            await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(message));
+
         } catch (error) {
-            logger.error('Error handling customer status', { 
-                sender: senderNumber, 
-                error: error.message 
+            logger.error('Error handling customer status', {
+                sender: senderNumber,
+                error: error.message
             });
-            
-            await this.commands.sendMessage(remoteJid, 
+
+            await this.commands.sendMessage(remoteJid,
                 `❌ *ERROR*\n\nTerjadi kesalahan saat mengecek status:\n${error.message}`
             );
         }
@@ -797,19 +1163,66 @@ class WhatsAppMessageHandlers {
     // Handle customer info request
     async handleCustomerInfo(remoteJid, senderNumber) {
         try {
-            // Implementasi info layanan pelanggan
-            
-            await this.commands.sendMessage(remoteJid, 
+            const billingManager = require('./billing');
+
+            await this.commands.sendMessage(remoteJid,
                 `📋 *INFO LAYANAN*\n\nSedang mengambil informasi layanan Anda...\nMohon tunggu sebentar.`
             );
-            
+
+            const customer = await billingManager.getCustomerByPhone(senderNumber);
+
+            const formatWithHeaderFooter = (content) => {
+                const header = getCompanyHeader();
+                const footer = getFooterInfo();
+                return `📋 *${header}*\n\n${content}\n\n_${footer}_`;
+            };
+
+            if (!customer) {
+                await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(
+                    `❌ *DATA TIDAK DITEMUKAN*\n\n` +
+                    `Nomor WhatsApp Anda (${senderNumber}) tidak terdaftar.\n` +
+                    `Silakan hubungi admin untuk bantuan.`
+                ));
+                return;
+            }
+
+            // Get invoices
+            const invoices = await billingManager.getInvoicesByCustomer(customer.id);
+            const unpaidInvoice = invoices.find(inv => inv.status === 'unpaid');
+
+            let message = `👤 *PROFIL PELANGGAN*\n\n`;
+            message += `• Nama: ${customer.name}\n`;
+            message += `• No. HP: ${customer.phone}\n`;
+            message += `• Alamat: ${customer.address || '-'}\n`;
+            message += `• Terdaftar: ${customer.join_date ? new Date(customer.join_date).toLocaleDateString('id-ID') : '-'}\n\n`;
+
+            message += `📦 *PAKET INTERNET*\n`;
+            message += `• Nama: ${customer.package_name || 'Standar'}\n`;
+            message += `• Kecepatan: ${customer.package_speed || '-'}\n`;
+            message += `• Harga: Rp ${customer.package_price ? customer.package_price.toLocaleString('id-ID') : '0'}/bulan\n`;
+            message += `• Jatuh Tempo: Tgl ${customer.billing_day || 15} setiap bulan\n\n`;
+
+            message += `💰 *STATUS TAGIHAN*\n`;
+            if (unpaidInvoice) {
+                message += `⚠️ *BELUM LUNAS*\n`;
+                message += `• Periode: ${unpaidInvoice.period || '-'}\n`;
+                message += `• Jumlah: Rp ${unpaidInvoice.amount.toLocaleString('id-ID')}\n`;
+                message += `• Tempo: ${new Date(unpaidInvoice.due_date).toLocaleDateString('id-ID')}\n`;
+                message += `\nSilakan lakukan pembayaran agar layanan tidak terganggu.`;
+            } else {
+                message += `✅ *LUNAS*\n`;
+                message += `Terima kasih telah melakukan pembayaran tepat waktu.`;
+            }
+
+            await this.commands.sendMessage(remoteJid, formatWithHeaderFooter(message));
+
         } catch (error) {
-            logger.error('Error handling customer info', { 
-                sender: senderNumber, 
-                error: error.message 
+            logger.error('Error handling customer info', {
+                sender: senderNumber,
+                error: error.message
             });
-            
-            await this.commands.sendMessage(remoteJid, 
+
+            await this.commands.sendMessage(remoteJid,
                 `❌ *ERROR*\n\nTerjadi kesalahan saat mengambil info:\n${error.message}`
             );
         }
@@ -819,7 +1232,7 @@ class WhatsAppMessageHandlers {
     async handleCustomerSearch(remoteJid, searchTerm) {
         try {
             if (!searchTerm || searchTerm.trim() === '') {
-                await this.commands.sendMessage(remoteJid, 
+                await this.commands.sendMessage(remoteJid,
                     `❌ *FORMAT SALAH!*\n\n` +
                     `Format: cari [nama_pelanggan]\n` +
                     `Contoh:\n` +
@@ -831,17 +1244,17 @@ class WhatsAppMessageHandlers {
 
             // Import billing manager
             const billingManager = require('./billing');
-            
+
             // Send processing message
-            await this.commands.sendMessage(remoteJid, 
+            await this.commands.sendMessage(remoteJid,
                 `🔍 *MENCARI PELANGGAN*\n\nSedang mencari data pelanggan dengan kata kunci: "${searchTerm}"\nMohon tunggu sebentar...`
             );
 
             // Search customers
             const customers = await billingManager.findCustomersByNameOrPhone(searchTerm);
-            
+
             if (customers.length === 0) {
-                await this.commands.sendMessage(remoteJid, 
+                await this.commands.sendMessage(remoteJid,
                     `❌ *PELANGGAN TIDAK DITEMUKAN!*\n\n` +
                     `Tidak ada pelanggan yang ditemukan dengan kata kunci: "${searchTerm}"\n\n` +
                     `💡 *Tips pencarian:*\n` +
@@ -859,17 +1272,17 @@ class WhatsAppMessageHandlers {
             for (let i = 0; i < customers.length; i++) {
                 const customer = customers[i];
                 const status = customer.status === 'active' ? '🟢 Aktif' : '🔴 Nonaktif';
-                
+
                 message += `📋 *${i + 1}. ${customer.name}*\n`;
                 message += `📱 Phone: ${customer.phone}\n`;
                 message += `📦 Paket: ${customer.package_name || 'N/A'} (${customer.package_speed || 'N/A'})\n`;
                 message += `💰 Harga: Rp ${customer.package_price ? customer.package_price.toLocaleString('id-ID') : 'N/A'}\n`;
                 message += `📊 Status: ${status}\n`;
-                
+
                 if (customer.address) {
                     message += `📍 Alamat: ${customer.address}\n`;
                 }
-                
+
                 message += `\n`;
             }
 
@@ -879,12 +1292,12 @@ class WhatsAppMessageHandlers {
             await this.commands.sendMessage(remoteJid, message);
 
         } catch (error) {
-            logger.error('Error handling customer search', { 
-                searchTerm, 
-                error: error.message 
+            logger.error('Error handling customer search', {
+                searchTerm,
+                error: error.message
             });
-            
-            await this.commands.sendMessage(remoteJid, 
+
+            await this.commands.sendMessage(remoteJid,
                 `❌ *ERROR SISTEM!*\n\n` +
                 `Terjadi kesalahan saat mencari pelanggan:\n${error.message}\n\n` +
                 `Silakan coba lagi atau hubungi admin.`
@@ -896,7 +1309,7 @@ class WhatsAppMessageHandlers {
     async handleSearchCustomer(remoteJid, searchTerm) {
         try {
             if (!searchTerm || searchTerm.trim() === '') {
-                await this.commands.sendMessage(remoteJid, 
+                await this.commands.sendMessage(remoteJid,
                     `❌ *FORMAT SALAH!*\n\n` +
                     `Format: cari [nama_pelanggan/pppoe_username]\n` +
                     `Contoh:\n` +
@@ -911,17 +1324,17 @@ class WhatsAppMessageHandlers {
             // Import billing manager and genieacs
             const billingManager = require('./billing');
             const genieacsApi = require('./genieacs');
-            
+
             // Send processing message
-            await this.commands.sendMessage(remoteJid, 
+            await this.commands.sendMessage(remoteJid,
                 `🔍 *MENCARI PELANGGAN*\n\nSedang mencari data pelanggan dengan kata kunci: "${searchTerm}"\nMohon tunggu sebentar...`
             );
 
             // Search customers
             const customers = await billingManager.findCustomersByNameOrPhone(searchTerm);
-            
+
             if (customers.length === 0) {
-                await this.commands.sendMessage(remoteJid, 
+                await this.commands.sendMessage(remoteJid,
                     `❌ *PELANGGAN TIDAK DITEMUKAN!*\n\n` +
                     `Tidak ada pelanggan yang ditemukan dengan kata kunci: "${searchTerm}"\n\n` +
                     `💡 *Tips pencarian:*\n` +
@@ -941,10 +1354,10 @@ class WhatsAppMessageHandlers {
             for (let i = 0; i < customers.length; i++) {
                 const customer = customers[i];
                 const status = customer.status === 'active' ? '🟢 Aktif' : '🔴 Nonaktif';
-                const paymentStatus = customer.payment_status === 'overdue' ? '🔴 Overdue' : 
-                                    customer.payment_status === 'unpaid' ? '🟡 Belum Bayar' : 
-                                    customer.payment_status === 'paid' ? '🟢 Lunas' : '⚪ No Invoice';
-                
+                const paymentStatus = customer.payment_status === 'overdue' ? '🔴 Overdue' :
+                    customer.payment_status === 'unpaid' ? '🟡 Belum Bayar' :
+                        customer.payment_status === 'paid' ? '🟢 Lunas' : '⚪ No Invoice';
+
                 message += `📋 *${i + 1}. ${customer.name}*\n`;
                 message += `📱 Phone: ${customer.phone}\n`;
                 message += `👤 Username: ${customer.username || 'N/A'}\n`;
@@ -953,15 +1366,15 @@ class WhatsAppMessageHandlers {
                 message += `💰 Harga: Rp ${customer.package_price ? customer.package_price.toLocaleString('id-ID') : 'N/A'}\n`;
                 message += `📊 Status: ${status}\n`;
                 message += `💳 Payment: ${paymentStatus}\n`;
-                
+
                 if (customer.address) {
                     message += `📍 Alamat: ${customer.address}\n`;
                 }
-                
+
                 // Get comprehensive data using customer dashboard logic
                 try {
                     const customerData = await this.getCustomerComprehensiveData(customer.phone);
-                    
+
                     if (customerData.deviceFound) {
                         message += `\n🔧 *DATA PERANGKAT GENIEACS:*\n`;
                         message += `• Status: ${customerData.status}\n`;
@@ -982,7 +1395,7 @@ class WhatsAppMessageHandlers {
                         message += `• SSID 5G: ${customerData.ssid5G}\n`;
                         message += `• User Terkoneksi: ${customerData.connectedUsers}\n`;
                         message += `• PON Mode: ${customerData.ponMode}\n`;
-                        
+
                         if (customerData.tags && customerData.tags.length > 0) {
                             message += `• Tags: ${customerData.tags.join(', ')}\n`;
                         }
@@ -996,7 +1409,7 @@ class WhatsAppMessageHandlers {
                     message += `\n🔧 *DATA PERANGKAT:* Error mengambil data perangkat\n`;
                     message += `• Error: ${deviceError.message}\n`;
                 }
-                
+
                 message += `\n`;
             }
 
@@ -1009,12 +1422,12 @@ class WhatsAppMessageHandlers {
             await this.commands.sendMessage(remoteJid, message);
 
         } catch (error) {
-            logger.error('Error handling search customer', { 
-                searchTerm, 
-                error: error.message 
+            logger.error('Error handling search customer', {
+                searchTerm,
+                error: error.message
             });
-            
-            await this.commands.sendMessage(remoteJid, 
+
+            await this.commands.sendMessage(remoteJid,
                 `❌ *ERROR SISTEM!*\n\n` +
                 `Terjadi kesalahan saat mencari pelanggan:\n${error.message}\n\n` +
                 `Silakan coba lagi atau hubungi admin.`
@@ -1028,9 +1441,9 @@ class WhatsAppMessageHandlers {
             // 1. Ambil data customer dari billing terlebih dahulu (coba semua varian phone)
             let customer = null;
             const phoneVariants = this.generatePhoneVariants(phone);
-            
+
             logger.info(`🔍 [COMPREHENSIVE] Searching customer with phone variants:`, phoneVariants);
-            
+
             for (const variant of phoneVariants) {
                 try {
                     const billingManager = require('./billing');
@@ -1043,20 +1456,20 @@ class WhatsAppMessageHandlers {
                     logger.warn(`⚠️ [COMPREHENSIVE] Error searching with variant ${variant}:`, error.message);
                 }
             }
-            
+
             let device = null;
             let billingData = null;
-            
+
             if (customer) {
                 logger.info(`✅ [COMPREHENSIVE] Customer found in billing: ${customer.name} (${customer.phone}) - searched with: ${phone}`);
-                
+
                 // 2. CUSTOMER BILLING: Cari device berdasarkan PPPoE username (FAST PATH)
                 if (customer.pppoe_username || customer.username) {
                     try {
                         const { genieacsApi } = require('./genieacs');
                         const pppoeToSearch = customer.pppoe_username || customer.username;
                         logger.info(`🔍 [COMPREHENSIVE] Searching device by PPPoE username: ${pppoeToSearch}`);
-                        
+
                         device = await genieacsApi.findDeviceByPPPoE(pppoeToSearch);
                         if (device) {
                             logger.info(`✅ [COMPREHENSIVE] Device found by PPPoE username: ${pppoeToSearch}`);
@@ -1067,13 +1480,13 @@ class WhatsAppMessageHandlers {
                         logger.error('❌ [COMPREHENSIVE] Error finding device by PPPoE username:', error.message);
                     }
                 }
-                
+
                 // 3. Jika tidak ditemukan dengan PPPoE, coba dengan tag sebagai fallback
                 if (!device) {
                     logger.info(`🔍 [COMPREHENSIVE] Trying tag search as fallback...`);
                     const { genieacsApi } = require('./genieacs');
                     const tagVariants = this.generatePhoneVariants(phone);
-                    
+
                     for (const v of tagVariants) {
                         try {
                             device = await genieacsApi.findDeviceByPhoneNumber(v);
@@ -1086,7 +1499,7 @@ class WhatsAppMessageHandlers {
                         }
                     }
                 }
-                
+
                 // 4. Siapkan data billing
                 try {
                     const billingManager = require('./billing');
@@ -1102,11 +1515,11 @@ class WhatsAppMessageHandlers {
                         invoices: []
                     };
                 }
-                
+
             } else {
                 // 5. CUSTOMER NON-BILLING: Cari device berdasarkan tag saja (FAST PATH)
                 logger.info(`⚠️ [COMPREHENSIVE] Customer not found in billing, searching GenieACS by tag only`);
-                
+
                 const { genieacsApi } = require('./genieacs');
                 const tagVariants = this.generatePhoneVariants(phone);
                 for (const v of tagVariants) {
@@ -1121,11 +1534,11 @@ class WhatsAppMessageHandlers {
                     }
                 }
             }
-            
+
             // 6. Jika tidak ada device di GenieACS, buat data default yang informatif
             if (!device) {
                 logger.info(`⚠️ [COMPREHENSIVE] No device found in GenieACS for: ${phone}`);
-                
+
                 return {
                     phone: phone,
                     ssid: customer ? `WiFi-${customer.username}` : 'WiFi-Default',
@@ -1139,19 +1552,19 @@ class WhatsAppMessageHandlers {
                     billingData: billingData,
                     deviceFound: false,
                     searchMethod: customer ? 'pppoe_username_fallback_tag' : 'tag_only',
-                    message: customer ? 
+                    message: customer ?
                         'Device ONU tidak ditemukan di GenieACS. Silakan hubungi teknisi untuk setup device.' :
                         'Customer tidak terdaftar di sistem billing. Silakan hubungi admin.'
                 };
             }
-            
+
             // 7. Jika ada device di GenieACS, ambil data lengkap
             logger.info(`✅ [COMPREHENSIVE] Processing device data for: ${device._id}`);
-            
-            const ssid = device?.InternetGatewayDevice?.LANDevice?.['1']?.WLANConfiguration?.['1']?.SSID?._value || 
-                         device?.VirtualParameters?.SSID || 
-                         (customer ? `WiFi-${customer.username}` : 'WiFi-Default');
-            
+
+            const ssid = device?.InternetGatewayDevice?.LANDevice?.['1']?.WLANConfiguration?.['1']?.SSID?._value ||
+                device?.VirtualParameters?.SSID ||
+                (customer ? `WiFi-${customer.username}` : 'WiFi-Default');
+
             const lastInform = device?._lastInform
                 ? new Date(device._lastInform).toLocaleString('id-ID')
                 : device?.Events?.Inform
@@ -1159,35 +1572,35 @@ class WhatsAppMessageHandlers {
                     : device?.InternetGatewayDevice?.DeviceInfo?.['1']?.LastInform?._value
                         ? new Date(device.InternetGatewayDevice.DeviceInfo['1'].LastInform._value).toLocaleString('id-ID')
                         : '-';
-            
+
             const status = lastInform !== '-' ? 'Online' : 'Unknown';
-            
+
             // Extract device parameters
             const rxPower = this.getParameterWithPaths(device, this.parameterPaths.rxPower) || '-';
             const pppoeIP = this.getParameterWithPaths(device, this.parameterPaths.pppoeIP) || '-';
-            const pppoeUsername = customer ? (customer.pppoe_username || customer.username) : 
-                                 this.getParameterWithPaths(device, this.parameterPaths.pppUsername) || '-';
+            const pppoeUsername = customer ? (customer.pppoe_username || customer.username) :
+                this.getParameterWithPaths(device, this.parameterPaths.pppUsername) || '-';
             const connectedUsers = this.getParameterWithPaths(device, this.parameterPaths.userConnected) || '0';
             const temperature = this.getParameterWithPaths(device, this.parameterPaths.temperature) || '-';
             const ponMode = this.getParameterWithPaths(device, this.parameterPaths.ponMode) || '-';
             const pppUptime = this.getParameterWithPaths(device, this.parameterPaths.pppUptime) || '-';
-            const firmware = device?.InternetGatewayDevice?.DeviceInfo?.SoftwareVersion?._value || 
-                           device?.VirtualParameters?.softwareVersion || '-';
+            const firmware = device?.InternetGatewayDevice?.DeviceInfo?.SoftwareVersion?._value ||
+                device?.VirtualParameters?.softwareVersion || '-';
             const uptime = device?.InternetGatewayDevice?.DeviceInfo?.UpTime?._value || '-';
-            const serialNumber = device.DeviceID?.SerialNumber || 
-                               device.InternetGatewayDevice?.DeviceInfo?.SerialNumber?._value || 
-                               device._id;
+            const serialNumber = device.DeviceID?.SerialNumber ||
+                device.InternetGatewayDevice?.DeviceInfo?.SerialNumber?._value ||
+                device._id;
             const manufacturer = device.InternetGatewayDevice?.DeviceInfo?.Manufacturer?._value || '-';
-            const model = device.DeviceID?.ProductClass || 
-                         device.InternetGatewayDevice?.DeviceInfo?.ModelName?._value || '-';
+            const model = device.DeviceID?.ProductClass ||
+                device.InternetGatewayDevice?.DeviceInfo?.ModelName?._value || '-';
             const hardwareVersion = device.InternetGatewayDevice?.DeviceInfo?.HardwareVersion?._value || '-';
-            
+
             // SSID 5G
             const ssid5G = this.getSSIDValue(device, '5') || 'N/A';
-            
+
             // Tags
             const tags = device._tags || [];
-            
+
             return {
                 phone: phone,
                 ssid: ssid,
@@ -1213,7 +1626,7 @@ class WhatsAppMessageHandlers {
                 deviceFound: true,
                 searchMethod: customer ? 'pppoe_username_fallback_tag' : 'tag_only'
             };
-            
+
         } catch (error) {
             logger.error('❌ [COMPREHENSIVE] Error in getCustomerComprehensiveData:', error);
             return {
@@ -1316,26 +1729,26 @@ class WhatsAppMessageHandlers {
         const getSSIDValue = (device, configIndex) => {
             try {
                 // Try method 1: Using bracket notation for WLANConfiguration
-                if (device.InternetGatewayDevice && 
-                    device.InternetGatewayDevice.LANDevice && 
-                    device.InternetGatewayDevice.LANDevice['1'] && 
-                    device.InternetGatewayDevice.LANDevice['1'].WLANConfiguration && 
-                    device.InternetGatewayDevice.LANDevice['1'].WLANConfiguration[configIndex] && 
+                if (device.InternetGatewayDevice &&
+                    device.InternetGatewayDevice.LANDevice &&
+                    device.InternetGatewayDevice.LANDevice['1'] &&
+                    device.InternetGatewayDevice.LANDevice['1'].WLANConfiguration &&
+                    device.InternetGatewayDevice.LANDevice['1'].WLANConfiguration[configIndex] &&
                     device.InternetGatewayDevice.LANDevice['1'].WLANConfiguration[configIndex].SSID) {
-                    
+
                     const ssidObj = device.InternetGatewayDevice.LANDevice['1'].WLANConfiguration[configIndex].SSID;
                     if (ssidObj._value !== undefined) {
                         return ssidObj._value;
                     }
                 }
-                
+
                 // Try method 2: Using getParameterWithPaths
                 const ssidPath = `InternetGatewayDevice.LANDevice.1.WLANConfiguration.${configIndex}.SSID`;
                 const ssidValue = getParameterWithPaths(device, [ssidPath]);
                 if (ssidValue && ssidValue !== 'N/A') {
                     return ssidValue;
                 }
-                
+
                 return 'N/A';
             } catch (error) {
                 return 'N/A';
@@ -1430,15 +1843,15 @@ class WhatsAppMessageHandlers {
     async handleListDevices(remoteJid) {
         try {
             const genieacsApi = require('./genieacs');
-            
-            await this.commands.sendMessage(remoteJid, 
+
+            await this.commands.sendMessage(remoteJid,
                 `🔍 *LIST ALL DEVICES*\n\nSedang mengambil daftar semua perangkat dari GenieACS...\nMohon tunggu...`
             );
 
             const allDevices = await genieacsApi.getDevices();
-            
+
             if (!allDevices || allDevices.length === 0) {
-                await this.commands.sendMessage(remoteJid, 
+                await this.commands.sendMessage(remoteJid,
                     `❌ *TIDAK ADA PERANGKAT!*\n\nTidak ada perangkat yang ditemukan di GenieACS.`
                 );
                 return;
@@ -1449,25 +1862,25 @@ class WhatsAppMessageHandlers {
 
             // Tampilkan 10 perangkat pertama dengan detail
             const devicesToShow = allDevices.slice(0, 10);
-            
+
             for (let i = 0; i < devicesToShow.length; i++) {
                 const device = devicesToShow[i];
                 message += `${i + 1}. *Device ID:* ${device._id}\n`;
                 message += `   *Tags:* ${device._tags ? device._tags.join(', ') : 'None'}\n`;
                 message += `   *Last Inform:* ${device._lastInform ? new Date(device._lastInform).toLocaleString() : 'N/A'}\n`;
-                
+
                 // Cek PPPoE username
                 const pppoeUsername = this.getParameterWithPaths(device, this.parameterPaths.pppUsername);
                 if (pppoeUsername !== 'N/A') {
                     message += `   *PPPoE Username:* ${pppoeUsername}\n`;
                 }
-                
+
                 // Cek serial number
                 const serialNumber = device.InternetGatewayDevice?.DeviceInfo?.SerialNumber?._value || 'N/A';
                 if (serialNumber !== 'N/A') {
                     message += `   *Serial:* ${serialNumber}\n`;
                 }
-                
+
                 message += `\n`;
             }
 
@@ -1493,7 +1906,7 @@ class WhatsAppMessageHandlers {
 
         } catch (error) {
             logger.error('Error in handleListDevices:', error);
-            await this.commands.sendMessage(remoteJid, 
+            await this.commands.sendMessage(remoteJid,
                 `❌ *ERROR SISTEM!*\n\nTerjadi kesalahan saat mengambil daftar perangkat:\n${error.message}`
             );
         }
@@ -1503,7 +1916,7 @@ class WhatsAppMessageHandlers {
     async handleDebugGenieACS(remoteJid, phoneNumber) {
         try {
             if (!phoneNumber) {
-                await this.commands.sendMessage(remoteJid, 
+                await this.commands.sendMessage(remoteJid,
                     `❌ *FORMAT SALAH!*\n\n` +
                     `Format: debuggenieacs [nomor_telepon]\n` +
                     `Contoh: debuggenieacs 087786722675`
@@ -1511,13 +1924,13 @@ class WhatsAppMessageHandlers {
                 return;
             }
 
-            await this.commands.sendMessage(remoteJid, 
+            await this.commands.sendMessage(remoteJid,
                 `🔍 *DEBUG GENIEACS*\n\nSedang mengecek data GenieACS untuk nomor: ${phoneNumber}\nMohon tunggu...`
             );
 
             // Get comprehensive data using customer dashboard logic
             const customerData = await this.getCustomerComprehensiveData(phoneNumber);
-            
+
             let message = `🔍 *DEBUG GENIEACS*\n\n`;
             message += `📱 *Nomor:* ${phoneNumber}\n`;
             message += `🔍 *Search Method:* ${customerData.searchMethod}\n`;
@@ -1555,7 +1968,7 @@ class WhatsAppMessageHandlers {
                 message += `• SSID 5G: ${customerData.ssid5G}\n`;
                 message += `• User Terkoneksi: ${customerData.connectedUsers}\n`;
                 message += `• PON Mode: ${customerData.ponMode}\n`;
-                
+
                 if (customerData.tags && customerData.tags.length > 0) {
                     message += `• Tags: ${customerData.tags.join(', ')}\n`;
                 }
@@ -1567,7 +1980,7 @@ class WhatsAppMessageHandlers {
 
         } catch (error) {
             logger.error('Error in handleDebugGenieACS:', error);
-            await this.commands.sendMessage(remoteJid, 
+            await this.commands.sendMessage(remoteJid,
                 `❌ *ERROR SISTEM!*\n\nTerjadi kesalahan saat debug GenieACS:\n${error.message}`
             );
         }
