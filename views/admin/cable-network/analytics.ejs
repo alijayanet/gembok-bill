@@ -1,21 +1,27 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> - Admin Portal</title>
+    <title>
+        <%= title %> - Admin Portal
+    </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
-    <!-- Admin Mobile Optimizations -->
-    <link href="/css/admin-mobile.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .analytics-card {
             transition: transform 0.2s;
         }
+
         .analytics-card:hover {
             transform: translateY(-2px);
         }
+
         .metric-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -23,30 +29,38 @@
             padding: 1.5rem;
             margin-bottom: 1.5rem;
         }
+
         .metric-card.success {
             background: linear-gradient(135deg, #06d6a0 0%, #118ab2 100%);
         }
+
         .metric-card.warning {
             background: linear-gradient(135deg, #ffd166 0%, #fd7e14 100%);
         }
+
         .metric-card.danger {
             background: linear-gradient(135deg, #ef476f 0%, #8e44ad 100%);
         }
+
         .metric-card.info {
             background: linear-gradient(135deg, #118ab2 0%, #667eea 100%);
         }
+
         .chart-container {
             position: relative;
             height: 300px;
             margin-bottom: 2rem;
         }
+
         .progress-ring {
             transform: rotate(-90deg);
         }
+
         .progress-ring-circle {
             transition: stroke-dasharray 0.35s;
             transform-origin: 50% 50%;
         }
+
         .status-indicator {
             display: inline-block;
             width: 12px;
@@ -54,16 +68,30 @@
             border-radius: 50%;
             margin-right: 8px;
         }
-        .status-connected { background-color: #06d6a0; }
-        .status-disconnected { background-color: #ef476f; }
-        .status-maintenance { background-color: #ffd166; }
-        .status-damaged { background-color: #8e44ad; }
+
+        .status-connected {
+            background-color: #06d6a0;
+        }
+
+        .status-disconnected {
+            background-color: #ef476f;
+        }
+
+        .status-maintenance {
+            background-color: #ffd166;
+        }
+
+        .status-damaged {
+            background-color: #8e44ad;
+        }
+
         .heatmap-container {
             background: white;
             border-radius: 15px;
             padding: 1.5rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
         }
+
         .heatmap-cell {
             width: 20px;
             height: 20px;
@@ -73,15 +101,18 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
+
         .heatmap-cell:hover {
             transform: scale(1.2);
         }
+
         .heatmap-legend {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-top: 15px;
         }
+
         .legend-item {
             display: flex;
             align-items: center;
@@ -90,290 +121,276 @@
         }
     </style>
 </head>
+
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/admin">
-                <i class="bx bx-wifi"></i> Admin Portal
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/admin">
-                    <i class="bx bx-home"></i> Dashboard
-                </a>
-                <a class="nav-link" href="/admin/cable-network/odp">
-                    <i class="bx bx-broadcast"></i> ODP Management
-                </a>
-                <a class="nav-link" href="/admin/cable-network/cables">
-                    <i class="bx bx-cable-car"></i> Cable Routes
-                </a>
-                <a class="nav-link active" href="/admin/cable-network/analytics">
-                    <i class="bx bx-bar-chart-alt-2"></i> Analytics
-                </a>
-                <a class="nav-link" href="/admin/billing/mapping-new">
-                    <i class="bx bx-map"></i> Map View
-                </a>
-            </div>
-        </div>
-    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <%- include('../../partials/admin-responsive-sidebar', { page: 'cable-network-analytics' , settings: typeof
+                settings !=='undefined' ? settings : {} }) %>
 
-    <div class="container-fluid mt-4">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h2><i class="bx bx-bar-chart-alt-2"></i> Cable Network Analytics</h2>
-                        <p class="text-muted">Advanced analytics dan insights untuk cable network management</p>
-                    </div>
-                    <div class="btn-group">
-                        <button class="btn btn-outline-primary" onclick="refreshAnalytics()">
-                            <i class="bx bx-refresh"></i> Refresh
-                        </button>
-                        <button class="btn btn-primary" onclick="exportReport()">
-                            <i class="bx bx-download"></i> Export Report
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Key Metrics -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="metric-card success">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 id="totalODPs">-</h4>
-                            <p class="mb-0">Total ODPs</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bx bx-broadcast fs-1"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="metric-card info">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 id="totalCables">-</h4>
-                            <p class="mb-0">Total Cables</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bx bx-cable-car fs-1"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="metric-card warning">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 id="utilizationRate">-%</h4>
-                            <p class="mb-0">Utilization Rate</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bx bx-trending-up fs-1"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="metric-card danger">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 id="healthScore">-%</h4>
-                            <p class="mb-0">Network Health</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="bx bx-heart fs-1"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Charts Row -->
-        <div class="row mb-4">
-            <!-- ODP Capacity Distribution -->
-            <div class="col-md-6">
-                <div class="analytics-card card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bx bx-pie-chart-alt-2"></i> ODP Capacity Distribution</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="odpCapacityChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cable Status Distribution -->
-            <div class="col-md-6">
-                <div class="analytics-card card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bx bx-bar-chart"></i> Cable Status Distribution</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="cableStatusChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Network Health and Utilization -->
-        <div class="row mb-4">
-            <!-- Network Utilization Trend -->
-            <div class="col-md-8">
-                <div class="analytics-card card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bx bx-trending-up"></i> Network Utilization Trend</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="utilizationTrendChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Top ODPs by Usage -->
-            <div class="col-md-4">
-                <div class="analytics-card card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bx bx-trophy"></i> Top ODPs by Usage</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="topODPsList">
-                            <div class="text-center">
-                                <i class="bx bx-loader-alt bx-spin fs-1 text-muted"></i>
-                                <p class="text-muted">Loading...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Heatmap and Alerts -->
-        <div class="row mb-4">
-            <!-- ODP Heatmap -->
-            <div class="col-md-8">
-                <div class="heatmap-container">
-                    <h5 class="mb-3"><i class="bx bx-grid-alt"></i> ODP Capacity Heatmap</h5>
-                    <div id="odpHeatmap" class="mb-3">
-                        <div class="text-center">
-                            <i class="bx bx-loader-alt bx-spin fs-1 text-muted"></i>
-                            <p class="text-muted">Loading heatmap...</p>
-                        </div>
-                    </div>
-                    <div class="heatmap-legend">
-                        <span class="text-muted">Capacity Usage:</span>
-                        <div class="legend-item">
-                            <div class="heatmap-cell" style="background-color: #06d6a0;"></div>
-                            <span>0-30%</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="heatmap-cell" style="background-color: #ffd166;"></div>
-                            <span>30-70%</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="heatmap-cell" style="background-color: #fd7e14;"></div>
-                            <span>70-90%</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="heatmap-cell" style="background-color: #ef476f;"></div>
-                            <span>90-100%</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Alerts and Recommendations -->
-            <div class="col-md-4">
-                <div class="analytics-card card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bx bx-error-circle"></i> Alerts & Recommendations</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="alertsList">
-                            <div class="text-center">
-                                <i class="bx bx-loader-alt bx-spin fs-1 text-muted"></i>
-                                <p class="text-muted">Loading alerts...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Performance Metrics -->
-        <div class="row mb-4">
-            <!-- Network Performance -->
-            <div class="col-md-6">
-                <div class="analytics-card card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bx bx-tachometer"></i> Network Performance</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row text-center">
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <h3 class="text-success" id="avgUptime">-</h3>
-                                    <small class="text-muted">Avg Uptime</small>
+                <!-- Main Content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                    <!-- Header -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h2><i class="bx bx-bar-chart-alt-2"></i> Cable Network Analytics</h2>
+                                    <p class="text-muted">Advanced analytics dan insights untuk cable network management
+                                    </p>
                                 </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <h3 class="text-info" id="avgResponseTime">-</h3>
-                                    <small class="text-muted">Avg Response (ms)</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <h3 class="text-warning" id="maintenanceCount">-</h3>
-                                    <small class="text-muted">Maintenance Count</small>
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-primary" onclick="refreshAnalytics()">
+                                        <i class="bx bx-refresh"></i> Refresh
+                                    </button>
+                                    <button class="btn btn-primary" onclick="exportReport()">
+                                        <i class="bx bx-download"></i> Export Report
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Cost Analysis -->
-            <div class="col-md-6">
-                <div class="analytics-card card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bx bx-money"></i> Cost Analysis</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row text-center">
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <h3 class="text-primary" id="totalCableLength">-</h3>
-                                    <small class="text-muted">Total Length (km)</small>
+                    <!-- Key Metrics -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="metric-card success">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 id="totalODPs">-</h4>
+                                        <p class="mb-0">Total ODPs</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bx bx-broadcast fs-1"></i>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <h3 class="text-success" id="costPerKm">-</h3>
-                                    <small class="text-muted">Cost/Km (IDR)</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card info">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 id="totalCables">-</h4>
+                                        <p class="mb-0">Total Cables</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bx bx-cable-car fs-1"></i>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-4">
-                                <div class="mb-3">
-                                    <h3 class="text-warning" id="totalInvestment">-</h3>
-                                    <small class="text-muted">Total Investment</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card warning">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 id="utilizationRate">-%</h4>
+                                        <p class="mb-0">Utilization Rate</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bx bx-trending-up fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card danger">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 id="healthScore">-%</h4>
+                                        <p class="mb-0">Network Health</p>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bx bx-heart fs-1"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+
+                    <!-- Charts Row -->
+                    <div class="row mb-4">
+                        <!-- ODP Capacity Distribution -->
+                        <div class="col-md-6">
+                            <div class="analytics-card card">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="bx bx-pie-chart-alt-2"></i> ODP Capacity Distribution
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="odpCapacityChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cable Status Distribution -->
+                        <div class="col-md-6">
+                            <div class="analytics-card card">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="bx bx-bar-chart"></i> Cable Status Distribution</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="cableStatusChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Network Health and Utilization -->
+                    <div class="row mb-4">
+                        <!-- Network Utilization Trend -->
+                        <div class="col-md-8">
+                            <div class="analytics-card card">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="bx bx-trending-up"></i> Network Utilization Trend</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="utilizationTrendChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top ODPs by Usage -->
+                        <div class="col-md-4">
+                            <div class="analytics-card card">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="bx bx-trophy"></i> Top ODPs by Usage</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="topODPsList">
+                                        <div class="text-center">
+                                            <i class="bx bx-loader-alt bx-spin fs-1 text-muted"></i>
+                                            <p class="text-muted">Loading...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Heatmap and Alerts -->
+                    <div class="row mb-4">
+                        <!-- ODP Heatmap -->
+                        <div class="col-md-8">
+                            <div class="heatmap-container">
+                                <h5 class="mb-3"><i class="bx bx-grid-alt"></i> ODP Capacity Heatmap</h5>
+                                <div id="odpHeatmap" class="mb-3">
+                                    <div class="text-center">
+                                        <i class="bx bx-loader-alt bx-spin fs-1 text-muted"></i>
+                                        <p class="text-muted">Loading heatmap...</p>
+                                    </div>
+                                </div>
+                                <div class="heatmap-legend">
+                                    <span class="text-muted">Capacity Usage:</span>
+                                    <div class="legend-item">
+                                        <div class="heatmap-cell" style="background-color: #06d6a0;"></div>
+                                        <span>0-30%</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="heatmap-cell" style="background-color: #ffd166;"></div>
+                                        <span>30-70%</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="heatmap-cell" style="background-color: #fd7e14;"></div>
+                                        <span>70-90%</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <div class="heatmap-cell" style="background-color: #ef476f;"></div>
+                                        <span>90-100%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alerts and Recommendations -->
+                        <div class="col-md-4">
+                            <div class="analytics-card card">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="bx bx-error-circle"></i> Alerts & Recommendations</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="alertsList">
+                                        <div class="text-center">
+                                            <i class="bx bx-loader-alt bx-spin fs-1 text-muted"></i>
+                                            <p class="text-muted">Loading alerts...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Metrics -->
+                    <div class="row mb-4">
+                        <!-- Network Performance -->
+                        <div class="col-md-6">
+                            <div class="analytics-card card">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="bx bx-tachometer"></i> Network Performance</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <div class="mb-3">
+                                                <h3 class="text-success" id="avgUptime">-</h3>
+                                                <small class="text-muted">Avg Uptime</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="mb-3">
+                                                <h3 class="text-info" id="avgResponseTime">-</h3>
+                                                <small class="text-muted">Avg Response (ms)</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="mb-3">
+                                                <h3 class="text-warning" id="maintenanceCount">-</h3>
+                                                <small class="text-muted">Maintenance Count</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cost Analysis -->
+                        <div class="col-md-6">
+                            <div class="analytics-card card">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="bx bx-money"></i> Cost Analysis</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <div class="mb-3">
+                                                <h3 class="text-primary" id="totalCableLength">-</h3>
+                                                <small class="text-muted">Total Length (km)</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="mb-3">
+                                                <h3 class="text-success" id="costPerKm">-</h3>
+                                                <small class="text-muted">Cost/Km (IDR)</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="mb-3">
+                                                <h3 class="text-warning" id="totalInvestment">-</h3>
+                                                <small class="text-muted">Total Investment</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
         </div>
     </div>
 
@@ -388,7 +405,7 @@
             try {
                 const response = await fetch('/admin/cable-network/api/analytics');
                 const result = await response.json();
-                
+
                 if (result.success) {
                     analyticsData = result.data;
                     updateMetrics();
@@ -408,19 +425,19 @@
         // Update key metrics
         function updateMetrics() {
             if (!analyticsData) return;
-            
+
             document.getElementById('totalODPs').textContent = analyticsData.odps.total || 0;
             document.getElementById('totalCables').textContent = analyticsData.cables.total || 0;
-            document.getElementById('utilizationRate').textContent = 
+            document.getElementById('utilizationRate').textContent =
                 (analyticsData.utilization || 0).toFixed(1) + '%';
-            document.getElementById('healthScore').textContent = 
+            document.getElementById('healthScore').textContent =
                 (analyticsData.healthScore || 0).toFixed(1) + '%';
         }
 
         // Render charts
         function renderCharts() {
             if (!analyticsData) return;
-            
+
             // ODP Capacity Distribution
             const odpCapacityCtx = document.getElementById('odpCapacityChart').getContext('2d');
             charts.odpCapacity = new Chart(odpCapacityCtx, {
@@ -517,24 +534,24 @@
         // Render ODP heatmap
         function renderHeatmap() {
             if (!analyticsData || !analyticsData.odps.heatmap) return;
-            
+
             const heatmapContainer = document.getElementById('odpHeatmap');
             heatmapContainer.innerHTML = '';
-            
+
             analyticsData.odps.heatmap.forEach(odp => {
                 const percentage = (odp.used_ports / odp.capacity) * 100;
                 let color = '#06d6a0'; // Green - < 30%
-                
+
                 if (percentage >= 90) color = '#ef476f'; // Red - > 90%
                 else if (percentage >= 70) color = '#fd7e14'; // Orange - 70-90%
                 else if (percentage >= 30) color = '#ffd166'; // Yellow - 30-70%
-                
+
                 const cell = document.createElement('div');
                 cell.className = 'heatmap-cell';
                 cell.style.backgroundColor = color;
                 cell.title = `${odp.name}: ${percentage.toFixed(1)}% (${odp.used_ports}/${odp.capacity})`;
                 cell.onclick = () => showODPDetails(odp);
-                
+
                 heatmapContainer.appendChild(cell);
             });
         }
@@ -542,10 +559,10 @@
         // Render alerts
         function renderAlerts() {
             if (!analyticsData || !analyticsData.alerts) return;
-            
+
             const alertsContainer = document.getElementById('alertsList');
             alertsContainer.innerHTML = '';
-            
+
             analyticsData.alerts.forEach(alert => {
                 const alertDiv = document.createElement('div');
                 alertDiv.className = `alert alert-${alert.type} alert-sm mb-2`;
@@ -565,10 +582,10 @@
         // Render top ODPs
         function renderTopODPs() {
             if (!analyticsData || !analyticsData.topODPs) return;
-            
+
             const topODPsContainer = document.getElementById('topODPsList');
             topODPsContainer.innerHTML = '';
-            
+
             analyticsData.topODPs.forEach((odp, index) => {
                 const percentage = (odp.used_ports / odp.capacity) * 100;
                 const odpDiv = document.createElement('div');
@@ -592,18 +609,18 @@
         // Render performance metrics
         function renderPerformanceMetrics() {
             if (!analyticsData || !analyticsData.performance) return;
-            
-            document.getElementById('avgUptime').textContent = 
+
+            document.getElementById('avgUptime').textContent =
                 (analyticsData.performance.avgUptime || 99.9).toFixed(1) + '%';
-            document.getElementById('avgResponseTime').textContent = 
+            document.getElementById('avgResponseTime').textContent =
                 (analyticsData.performance.avgResponseTime || 15).toFixed(0);
-            document.getElementById('maintenanceCount').textContent = 
+            document.getElementById('maintenanceCount').textContent =
                 analyticsData.performance.maintenanceCount || 0;
-            document.getElementById('totalCableLength').textContent = 
+            document.getElementById('totalCableLength').textContent =
                 ((analyticsData.cables.totalLength || 0) / 1000).toFixed(1);
-            document.getElementById('costPerKm').textContent = 
+            document.getElementById('costPerKm').textContent =
                 (analyticsData.cost.costPerKm || 25000).toLocaleString();
-            document.getElementById('totalInvestment').textContent = 
+            document.getElementById('totalInvestment').textContent =
                 (analyticsData.cost.totalInvestment || 0).toLocaleString();
         }
 
@@ -621,9 +638,10 @@
         }
 
         // Load data when page loads
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadAnalyticsData();
         });
     </script>
 </body>
+
 </html>

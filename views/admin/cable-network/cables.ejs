@@ -1,23 +1,30 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> - Admin Portal</title>
+    <title>
+        <%= title %> - Admin Portal
+    </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
     <!-- Admin Mobile Optimizations -->
-    <link href="/css/admin-mobile.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
     <style>
         .cable-card {
             transition: transform 0.2s;
         }
+
         .cable-card:hover {
             transform: translateY(-2px);
         }
+
         .status-badge {
             font-size: 0.75rem;
         }
+
         .cable-icon {
             width: 40px;
             height: 40px;
@@ -28,10 +35,23 @@
             color: white;
             font-size: 1.2rem;
         }
-        .cable-connected { background-color: #28a745; }
-        .cable-disconnected { background-color: #dc3545; }
-        .cable-maintenance { background-color: #ffc107; }
-        .cable-damaged { background-color: #6f42c1; }
+
+        .cable-connected {
+            background-color: #28a745;
+        }
+
+        .cable-disconnected {
+            background-color: #dc3545;
+        }
+
+        .cable-maintenance {
+            background-color: #ffc107;
+        }
+
+        .cable-damaged {
+            background-color: #6f42c1;
+        }
+
         .customer-info {
             background-color: #f8f9fa;
             border-radius: 8px;
@@ -39,276 +59,309 @@
         }
     </style>
 </head>
+
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/admin">
-                <i class="bx bx-wifi"></i> Admin Portal
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/admin">
-                    <i class="bx bx-home"></i> Dashboard
-                </a>
-                <a class="nav-link" href="/admin/cable-network/odp">
-                    <i class="bx bx-broadcast"></i> ODP Management
-                </a>
-                <a class="nav-link active" href="/admin/cable-network/cables">
-                    <i class="bx bx-cable-car"></i> Cable Routes
-                </a>
-                <a class="nav-link" href="/admin/billing/mapping-new">
-                    <i class="bx bx-map"></i> Map View
-                </a>
-            </div>
-        </div>
-    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <%- include('../../partials/admin-responsive-sidebar', { page: 'cable-network-cables' , settings: typeof
+                settings !=='undefined' ? settings : {} }) %>
 
-    <div class="container-fluid mt-4">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h2><i class="bx bx-cable-car"></i> Cable Route Management</h2>
-                        <p class="text-muted">Kelola jalur kabel dari ODP ke pelanggan</p>
-                    </div>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCableModal">
-                        <i class="bx bx-plus"></i> Tambah Cable Route
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card bg-primary text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4><%= cableRoutes.length %></h4>
-                                <p class="mb-0">Total Cables</p>
-                            </div>
-                            <div class="align-self-center">
-                                <i class="bx bx-cable-car fs-1"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-success text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4><%= cableRoutes.filter(c => c.status === 'connected').length %></h4>
-                                <p class="mb-0">Connected</p>
-                            </div>
-                            <div class="align-self-center">
-                                <i class="bx bx-check-circle fs-1"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-danger text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4><%= cableRoutes.filter(c => c.status === 'disconnected').length %></h4>
-                                <p class="mb-0">Disconnected</p>
-                            </div>
-                            <div class="align-self-center">
-                                <i class="bx bx-x-circle fs-1"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card bg-info text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4><%= (cableRoutes.reduce((sum, c) => sum + (parseFloat(c.cable_length) || 0), 0) / 1000).toFixed(1) %> km</h4>
-                                <p class="mb-0">Total Length</p>
-                            </div>
-                            <div class="align-self-center">
-                                <i class="bx bx-ruler fs-1"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filter and Search -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <label class="form-label">Filter by Status</label>
-                                <select class="form-select" id="statusFilter">
-                                    <option value="">All Status</option>
-                                    <option value="connected">Connected</option>
-                                    <option value="disconnected">Disconnected</option>
-                                    <option value="maintenance">Maintenance</option>
-                                    <option value="damaged">Damaged</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Filter by ODP</label>
-                                <select class="form-select" id="odpFilter">
-                                    <option value="">All ODP</option>
-                                    <% odps.forEach(odp => { %>
-                                    <option value="<%= odp.id %>"><%= odp.name %></option>
-                                    <% }); %>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Search Customer</label>
-                                <input type="text" class="form-control" id="searchInput" placeholder="Search by customer name or phone...">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">&nbsp;</label>
-                                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
-                                    <i class="bx bx-x"></i> Clear
+                <!-- Main Content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                    <!-- Header -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h2><i class="bx bx-cable-car"></i> Cable Route Management</h2>
+                                    <p class="text-muted">Kelola jalur kabel dari ODP ke pelanggan</p>
+                                </div>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCableModal">
+                                    <i class="bx bx-plus"></i> Tambah Cable Route
                                 </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Cable Routes List -->
-        <div class="row" id="cableRoutesList">
-            <% cableRoutes.forEach(cable => { %>
-            <div class="col-md-6 col-lg-4 mb-4 cable-route-item" 
-                 data-status="<%= cable.status %>" 
-                 data-odp="<%= cable.odp_id %>"
-                 data-customer="<%= (cable.customer_name + ' ' + cable.customer_phone).toLowerCase() %>">
-                <div class="card cable-card h-100" data-cable-id="<%= cable.id %>">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="cable-icon <%= 'cable-' + cable.status %>">
-                                    <i class="bx bx-wifi"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <h6 class="mb-0">Cable Route #<%= cable.id %></h6>
-                                    <small class="text-muted" data-field="cable_type"><%= cable.cable_type %></small>
-                                </div>
-                            </div>
-                            <span class="badge <%= 
-                                cable.status === 'connected' ? 'bg-success' :
-                                cable.status === 'disconnected' ? 'bg-danger' :
-                                cable.status === 'maintenance' ? 'bg-warning' : 'bg-secondary'
-                            %> status-badge" data-field="status">
-                                <%= cable.status.charAt(0).toUpperCase() + cable.status.slice(1) %>
-                            </span>
-                        </div>
-
-                        <div class="customer-info mb-3">
-                            <small class="text-muted d-block">Customer</small>
-                            <h6 class="mb-1" data-field="customer_name"><%= cable.customer_name %></h6>
-                            <small class="text-muted" data-field="customer_phone"><%= cable.customer_phone %></small>
-                        </div>
-
-                        <div class="mb-3">
-                            <small class="text-muted d-block">Connected to ODP</small>
-                            <p class="mb-1"><%= cable.odp_name %> (<%= cable.odp_code %>)</p>
-                            <!-- Hidden data fields for edit functionality -->
-                            <span data-field="odp_name" style="display: none;"><%= cable.odp_name %></span>
-                            <span data-field="odp_code" style="display: none;"><%= cable.odp_code %></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="row text-center">
-                                <div class="col-6">
-                                    <div class="border-end">
-                                        <h6 class="mb-0 text-primary"><%= cable.cable_length ? (parseFloat(cable.cable_length) / 1000).toFixed(1) + ' km' : 'N/A' %></h6>
-                                        <small class="text-muted">Length</small>
-                                        <!-- Hidden data field for edit functionality -->
-                                        <span data-field="cable_length" style="display: none;"><%= cable.cable_length || '' %></span>
+                    <!-- Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4>
+                                                <%= cableRoutes.length %>
+                                            </h4>
+                                            <p class="mb-0">Total Cables</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-cable-car fs-1"></i>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-6">
-                                    <h6 class="mb-0 text-info">Port #<%= cable.port_number || 'N/A' %></h6>
-                                    <small class="text-muted">Port</small>
-                                    <!-- Hidden data field for edit functionality -->
-                                    <span data-field="port_number" style="display: none;"><%= cable.port_number || '' %></span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4>
+                                                <%= cableRoutes.filter(c=> c.status === 'connected').length %>
+                                            </h4>
+                                            <p class="mb-0">Connected</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-check-circle fs-1"></i>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <% if (cable.notes) { %>
-                        <div class="mb-3">
-                            <small class="text-muted">Notes</small>
-                            <p class="mb-1 small" data-field="notes"><%= cable.notes %></p>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4>
+                                                <%= cableRoutes.filter(c=> c.status === 'disconnected').length %>
+                                            </h4>
+                                            <p class="mb-0">Disconnected</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-x-circle fs-1"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <% } else { %>
-                        <!-- Hidden data field for edit functionality -->
-                        <span data-field="notes" style="display: none;"></span>
-                        <% } %>
-
-                        <div class="d-flex justify-content-between">
-                            <button class="btn btn-sm btn-outline-primary" onclick="editCable(<%= cable.id %>)">
-                                <i class="bx bx-edit"></i> Edit
-                            </button>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-outline-success" onclick="updateCableStatus(<%= cable.id %>, 'connected')">
-                                    <i class="bx bx-check"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="updateCableStatus(<%= cable.id %>, 'disconnected')">
-                                    <i class="bx bx-x"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-warning" onclick="updateCableStatus(<%= cable.id %>, 'maintenance')">
-                                    <i class="bx bx-wrench"></i>
-                                </button>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4>
+                                                <%= (cableRoutes.reduce((sum, c)=> sum + (parseFloat(c.cable_length) ||
+                                                    0), 0) / 1000).toFixed(1) %> km
+                                            </h4>
+                                            <p class="mb-0">Total Length</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-ruler fs-1"></i>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <% }); %>
-        </div>
 
-        <!-- No customers without cable routes message -->
-        <% if (customersWithoutCable.length > 0) { %>
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Customers Without Cable Routes (<%= customersWithoutCable.length %>)</h5>
+                    <!-- Filter and Search -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label class="form-label">Filter by Status</label>
+                                            <select class="form-select" id="statusFilter">
+                                                <option value="">All Status</option>
+                                                <option value="connected">Connected</option>
+                                                <option value="disconnected">Disconnected</option>
+                                                <option value="maintenance">Maintenance</option>
+                                                <option value="damaged">Damaged</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Filter by ODP</label>
+                                            <select class="form-select" id="odpFilter">
+                                                <option value="">All ODP</option>
+                                                <% odps.forEach(odp=> { %>
+                                                    <option value="<%= odp.id %>">
+                                                        <%= odp.name %>
+                                                    </option>
+                                                    <% }); %>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Search Customer</label>
+                                            <input type="text" class="form-control" id="searchInput"
+                                                placeholder="Search by customer name or phone...">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">&nbsp;</label>
+                                            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                                <i class="bx bx-x"></i> Clear
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <% customersWithoutCable.forEach(customer => { %>
-                            <div class="col-md-6 col-lg-4 mb-3">
-                                <div class="card border-warning">
+
+                    <!-- Cable Routes List -->
+                    <div class="row" id="cableRoutesList">
+                        <% cableRoutes.forEach(cable=> { %>
+                            <div class="col-md-6 col-lg-4 mb-4 cable-route-item" data-status="<%= cable.status %>"
+                                data-odp="<%= cable.odp_id %>"
+                                data-customer="<%= (cable.customer_name + ' ' + cable.customer_phone).toLowerCase() %>">
+                                <div class="card cable-card h-100" data-cable-id="<%= cable.id %>">
                                     <div class="card-body">
-                                        <h6 class="card-title"><%= customer.name %></h6>
-                                        <p class="card-text">
-                                            <small class="text-muted"><%= customer.phone %></small><br>
-                                            <small><%= customer.address || 'No address' %></small>
-                                        </p>
-                                        <button class="btn btn-sm btn-warning" onclick="assignCableToCustomer(<%= customer.id %>)">
-                                            <i class="bx bx-plus"></i> Sambungkan Kabel
-                                        </button>
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="cable-icon <%= 'cable-' + cable.status %>">
+                                                    <i class="bx bx-wifi"></i>
+                                                </div>
+                                                <div class="ms-3">
+                                                    <h6 class="mb-0">Cable Route #<%= cable.id %>
+                                                    </h6>
+                                                    <small class="text-muted" data-field="cable_type">
+                                                        <%= cable.cable_type %>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <span class="badge <%= 
+                                        cable.status === 'connected' ? 'bg-success' :
+                                        cable.status === 'disconnected' ? 'bg-danger' :
+                                        cable.status === 'maintenance' ? 'bg-warning' : 'bg-secondary'
+                                    %> status-badge" data-field="status">
+                                                <%= cable.status.charAt(0).toUpperCase() + cable.status.slice(1) %>
+                                            </span>
+                                        </div>
+
+                                        <div class="customer-info mb-3">
+                                            <small class="text-muted d-block">Customer</small>
+                                            <h6 class="mb-1" data-field="customer_name">
+                                                <%= cable.customer_name %>
+                                            </h6>
+                                            <small class="text-muted" data-field="customer_phone">
+                                                <%= cable.customer_phone %>
+                                            </small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <small class="text-muted d-block">Connected to ODP</small>
+                                            <p class="mb-1">
+                                                <%= cable.odp_name %> (<%= cable.odp_code %>)
+                                            </p>
+                                            <!-- Hidden data fields for edit functionality -->
+                                            <span data-field="odp_name" style="display: none;">
+                                                <%= cable.odp_name %>
+                                            </span>
+                                            <span data-field="odp_code" style="display: none;">
+                                                <%= cable.odp_code %>
+                                            </span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <div class="row text-center">
+                                                <div class="col-6">
+                                                    <div class="border-end">
+                                                        <h6 class="mb-0 text-primary">
+                                                            <%= cable.cable_length ? (parseFloat(cable.cable_length) /
+                                                                1000).toFixed(1) + ' km' : 'N/A' %>
+                                                        </h6>
+                                                        <small class="text-muted">Length</small>
+                                                        <!-- Hidden data field for edit functionality -->
+                                                        <span data-field="cable_length" style="display: none;">
+                                                            <%= cable.cable_length || '' %>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <h6 class="mb-0 text-info">Port #<%= cable.port_number || 'N/A' %>
+                                                    </h6>
+                                                    <small class="text-muted">Port</small>
+                                                    <!-- Hidden data field for edit functionality -->
+                                                    <span data-field="port_number" style="display: none;">
+                                                        <%= cable.port_number || '' %>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <% if (cable.notes) { %>
+                                            <div class="mb-3">
+                                                <small class="text-muted">Notes</small>
+                                                <p class="mb-1 small" data-field="notes">
+                                                    <%= cable.notes %>
+                                                </p>
+                                            </div>
+                                            <% } else { %>
+                                                <!-- Hidden data field for edit functionality -->
+                                                <span data-field="notes" style="display: none;"></span>
+                                                <% } %>
+
+                                                    <div class="d-flex justify-content-between">
+                                                        <button class="btn btn-sm btn-outline-primary"
+                                                            onclick="editCable(<%= cable.id %>)">
+                                                            <i class="bx bx-edit"></i> Edit
+                                                        </button>
+                                                        <div class="btn-group">
+                                                            <button class="btn btn-sm btn-outline-success"
+                                                                onclick="updateCableStatus(<%= cable.id %>, 'connected')">
+                                                                <i class="bx bx-check"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-danger"
+                                                                onclick="updateCableStatus(<%= cable.id %>, 'disconnected')">
+                                                                <i class="bx bx-x"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-warning"
+                                                                onclick="updateCableStatus(<%= cable.id %>, 'maintenance')">
+                                                                <i class="bx bx-wrench"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                     </div>
                                 </div>
                             </div>
                             <% }); %>
-                        </div>
                     </div>
-                </div>
-            </div>
+
+                    <!-- No customers without cable routes message -->
+                    <% if (customersWithoutCable.length> 0) { %>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Customers Without Cable Routes (<%=
+                                                customersWithoutCable.length %>)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <% customersWithoutCable.forEach(customer=> { %>
+                                                <div class="col-md-6 col-lg-4 mb-3">
+                                                    <div class="card border-warning">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">
+                                                                <%= customer.name %>
+                                                            </h6>
+                                                            <p class="card-text">
+                                                                <small class="text-muted">
+                                                                    <%= customer.phone %>
+                                                                </small><br>
+                                                                <small>
+                                                                    <%= customer.address || 'No address' %>
+                                                                </small>
+                                                            </p>
+                                                            <button class="btn btn-sm btn-warning"
+                                                                onclick="assignCableToCustomer(<%= customer.id %>)">
+                                                                <i class="bx bx-plus"></i> Sambungkan Kabel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <% }); %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <% } %>
+                </main>
         </div>
-        <% } %>
     </div>
 
     <!-- Add Cable Modal -->
@@ -327,9 +380,11 @@
                                     <label class="form-label">Customer *</label>
                                     <select class="form-select" name="customer_id" required>
                                         <option value="">Pilih Customer</option>
-                                        <% customersWithoutCable.forEach(customer => { %>
-                                        <option value="<%= customer.id %>"><%= customer.name %> - <%= customer.phone %></option>
-                                        <% }); %>
+                                        <% customersWithoutCable.forEach(customer=> { %>
+                                            <option value="<%= customer.id %>">
+                                                <%= customer.name %> - <%= customer.phone %>
+                                            </option>
+                                            <% }); %>
                                     </select>
                                 </div>
                             </div>
@@ -338,11 +393,12 @@
                                     <label class="form-label">ODP *</label>
                                     <select class="form-select" name="odp_id" required>
                                         <option value="">Pilih ODP</option>
-                                        <% odps.forEach(odp => { %>
-                                        <option value="<%= odp.id %>" data-capacity="<%= odp.capacity %>" data-used="<%= odp.used_ports %>">
-                                            <%= odp.name %> (<%= odp.used_ports %>/<%= odp.capacity %> ports used)
-                                        </option>
-                                        <% }); %>
+                                        <% odps.forEach(odp=> { %>
+                                            <option value="<%= odp.id %>" data-capacity="<%= odp.capacity %>"
+                                                data-used="<%= odp.used_ports %>">
+                                                <%= odp.name %> (<%= odp.used_ports %>/<%= odp.capacity %> ports used)
+                                            </option>
+                                            <% }); %>
                                     </select>
                                 </div>
                             </div>
@@ -351,7 +407,8 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Cable Length (meters)</label>
-                                    <input type="number" class="form-control" name="cable_length" step="0.01" placeholder="Auto-calculated if empty">
+                                    <input type="number" class="form-control" name="cable_length" step="0.01"
+                                        placeholder="Auto-calculated if empty">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -443,7 +500,8 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Cable Length (meters)</label>
-                                    <input type="number" class="form-control" id="editCableLength" name="cable_length" step="0.01">
+                                    <input type="number" class="form-control" id="editCableLength" name="cable_length"
+                                        step="0.01">
                                 </div>
                             </div>
                         </div>
@@ -451,7 +509,8 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Port Number</label>
-                                    <input type="number" class="form-control" id="editCablePortNumber" name="port_number" min="1">
+                                    <input type="number" class="form-control" id="editCablePortNumber"
+                                        name="port_number" min="1">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -492,18 +551,18 @@
             const statusFilter = document.getElementById('statusFilter').value;
             const odpFilter = document.getElementById('odpFilter').value;
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
+
             const cables = document.querySelectorAll('.cable-route-item');
-            
+
             cables.forEach(cable => {
                 const status = cable.dataset.status;
                 const odp = cable.dataset.odp;
                 const customer = cable.dataset.customer;
-                
+
                 const statusMatch = !statusFilter || status === statusFilter;
                 const odpMatch = !odpFilter || odp === odpFilter;
                 const searchMatch = !searchTerm || customer.includes(searchTerm);
-                
+
                 if (statusMatch && odpMatch && searchMatch) {
                     cable.style.display = 'block';
                 } else {
@@ -520,12 +579,12 @@
         }
 
         // Add Cable Form Handler
-        document.getElementById('addCableForm').addEventListener('submit', async function(e) {
+        document.getElementById('addCableForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
-            
+
             try {
                 const response = await fetch('/admin/cable-network/cables', {
                     method: 'POST',
@@ -534,9 +593,9 @@
                     },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     showAlert('success', result.message);
                     bootstrap.Modal.getInstance(document.getElementById('addCableModal')).hide();
@@ -550,17 +609,17 @@
         });
 
         // Edit Cable Form Handler
-        document.getElementById('editCableForm').addEventListener('submit', async function(e) {
+        document.getElementById('editCableForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
             const cableId = data.id;
-            
+
             // Log data yang akan dikirim
             console.log('Sending cable update for ID:', cableId);
             console.log('Form data:', data);
-            
+
             try {
                 const response = await fetch(`/admin/cable-network/cables/${cableId}`, {
                     method: 'PUT',
@@ -569,10 +628,10 @@
                     },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await response.json();
                 console.log('Server response:', result);
-                
+
                 if (result.success) {
                     showAlert('success', result.message);
                     console.log('Update successful, reloading page...');
@@ -591,7 +650,7 @@
         // Update Cable Status
         async function updateCableStatus(id, status) {
             const notes = prompt(`Update status to ${status}. Add notes (optional):`);
-            
+
             try {
                 const response = await fetch(`/admin/cable-network/cables/${id}/status`, {
                     method: 'PUT',
@@ -600,9 +659,9 @@
                     },
                     body: JSON.stringify({ status, notes })
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     showAlert('success', result.message);
                     setTimeout(() => location.reload(), 1000);
@@ -622,7 +681,7 @@
                 console.error('Cable row not found for ID:', id);
                 return;
             }
-            
+
             // Helper function untuk safe element access
             function safeSetValue(elementId, value) {
                 const element = document.getElementById(elementId);
@@ -632,7 +691,7 @@
                     console.warn('Element not found:', elementId);
                 }
             }
-            
+
             // Ambil data dari DOM dengan null checks
             const customerNameElement = cableRow.querySelector('[data-field="customer_name"]');
             const customerPhoneElement = cableRow.querySelector('[data-field="customer_phone"]');
@@ -643,7 +702,7 @@
             const portNumberElement = cableRow.querySelector('[data-field="port_number"]');
             const statusElement = cableRow.querySelector('[data-field="status"]');
             const notesElement = cableRow.querySelector('[data-field="notes"]');
-            
+
             // Isi form dengan data existing menggunakan safe access
             safeSetValue('editCableId', id);
             safeSetValue('editCableCustomerName', customerNameElement ? customerNameElement.textContent : '');
@@ -655,7 +714,7 @@
             safeSetValue('editCablePortNumber', portNumberElement ? portNumberElement.textContent : '');
             safeSetValue('editCableStatus', statusElement ? statusElement.textContent.toLowerCase() : '');
             safeSetValue('editCableNotes', notesElement ? notesElement.textContent : '');
-            
+
             // Tampilkan modal
             const editModal = new bootstrap.Modal(document.getElementById('editCableModal'));
             editModal.show();
@@ -681,7 +740,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
             document.body.appendChild(alertDiv);
-            
+
             setTimeout(() => {
                 if (alertDiv.parentNode) {
                     alertDiv.parentNode.removeChild(alertDiv);
@@ -690,4 +749,5 @@
         }
     </script>
 </body>
+
 </html>

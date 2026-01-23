@@ -1,32 +1,37 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kelola Agent - Admin Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Admin Mobile Optimizations -->
-    <link href="/css/admin-mobile.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
     <style>
         body {
             background: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
+
         .card {
             border: none;
             border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
         }
+
         .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
+
         .agent-item {
             background: white;
             border-radius: 10px;
@@ -35,25 +40,31 @@
             border-left: 4px solid #28a745;
             transition: all 0.3s ease;
         }
+
         .agent-item:hover {
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
         }
+
         .agent-item.inactive {
             border-left-color: #dc3545;
         }
+
         .agent-item.suspended {
             border-left-color: #ffc107;
         }
+
         .form-control {
             border-radius: 10px;
             border: 2px solid #e9ecef;
             padding: 12px 15px;
             transition: all 0.3s ease;
         }
+
         .form-control:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -62,10 +73,12 @@
             font-weight: 600;
             transition: all 0.3s ease;
         }
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
+
         .balance-request {
             background: #f8f9ff;
             border-radius: 10px;
@@ -75,117 +88,74 @@
         }
     </style>
 </head>
+
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/admin/dashboard">
-                <i class="fas fa-crown me-2"></i>
-                Admin Portal
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/dashboard">
-                            <i class="fas fa-home me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/billing">
-                            <i class="fas fa-credit-card me-1"></i>Billing
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/admin/agents">
-                            <i class="fas fa-user-tie me-1"></i>Agent
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/technicians">
-                            <i class="fas fa-tools me-1"></i>Teknisi
-                        </a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user me-1"></i>
-                            Admin
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/admin/settings">
-                                <i class="fas fa-cog me-2"></i>Pengaturan
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/admin/logout">
-                                <i class="fas fa-sign-out-alt me-2"></i>Logout
-                            </a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <%- include('../partials/admin-responsive-sidebar', { page: 'agents' , settings: typeof settings
+                !=='undefined' ? settings : {} }) %>
 
-    <div class="container-fluid mt-4">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <h2>
-                    <i class="fas fa-user-tie me-2"></i>
-                    Kelola Agent
-                </h2>
-                <p class="text-muted">Manajemen agent dan saldo mereka</p>
-            </div>
-            <div class="col-md-4 text-md-end">
-                <div class="btn-group">
-                    <a href="/admin/voucher-pricing" class="btn btn-success">
-                        <i class="fas fa-dollar-sign me-2"></i>
-                        Harga Voucher
-                    </a>
-                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addBalanceModal">
-                        <i class="fas fa-plus-circle me-2"></i>
-                        Tambah Saldo
-                    </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAgentModal">
-                        <i class="fas fa-plus me-2"></i>
-                        Tambah Agent
-                    </button>
-                </div>
-            </div>
-        </div>
+                <!-- Main Content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                    <!-- Header -->
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <h2>
+                                <i class="fas fa-user-tie me-2"></i>
+                                Kelola Agent
+                            </h2>
+                            <p class="text-muted">Manajemen agent dan saldo mereka</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="btn-group">
+                                <a href="/admin/voucher-pricing" class="btn btn-success">
+                                    <i class="fas fa-dollar-sign me-2"></i>
+                                    Harga Voucher
+                                </a>
+                                <button class="btn btn-warning" data-bs-toggle="modal"
+                                    data-bs-target="#addBalanceModal">
+                                    <i class="fas fa-plus-circle me-2"></i>
+                                    Tambah Saldo
+                                </button>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAgentModal">
+                                    <i class="fas fa-plus me-2"></i>
+                                    Tambah Agent
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- Balance Requests -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-money-bill-wave me-2"></i>
-                    Request Saldo Agent
-                </h5>
-            </div>
-            <div class="card-body">
-                <div id="balanceRequests">
-                    <!-- Balance requests will be loaded here -->
-                </div>
-            </div>
-        </div>
+                    <!-- Balance Requests -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-money-bill-wave me-2"></i>
+                                Request Saldo Agent
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="balanceRequests">
+                                <!-- Balance requests will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- Agents List -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-users me-2"></i>
-                    Daftar Agent
-                </h5>
-            </div>
-            <div class="card-body">
-                <div id="agentsList">
-                    <!-- Agents will be loaded here -->
-                </div>
-            </div>
+                    <!-- Agents List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-users me-2"></i>
+                                Daftar Agent
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="agentsList">
+                                <!-- Agents will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </main>
         </div>
     </div>
 
@@ -212,7 +182,7 @@
                                 <input type="text" class="form-control" id="agentName" name="name" required>
                             </div>
                         </div>
-                        
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="agentPhone" class="form-label">Nomor HP</label>
@@ -223,12 +193,12 @@
                                 <input type="email" class="form-control" id="agentEmail" name="email">
                             </div>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="agentAddress" class="form-label">Alamat</label>
                             <textarea class="form-control" id="agentAddress" name="address" rows="3"></textarea>
                         </div>
-                        
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="agentPassword" class="form-label">Password</label>
@@ -236,7 +206,8 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="agentCommission" class="form-label">Komisi (%)</label>
-                                <input type="number" class="form-control" id="agentCommission" name="commission_rate" value="5" min="0" max="100" step="0.01">
+                                <input type="number" class="form-control" id="agentCommission" name="commission_rate"
+                                    value="5" min="0" max="100" step="0.01">
                             </div>
                         </div>
                     </form>
@@ -276,7 +247,7 @@
                                 <input type="text" class="form-control" id="editName" name="name" required>
                             </div>
                         </div>
-                        
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="editPhone" class="form-label">Nomor HP</label>
@@ -287,15 +258,16 @@
                                 <input type="email" class="form-control" id="editEmail" name="email">
                             </div>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="editAddress" class="form-label">Alamat</label>
                             <textarea class="form-control" id="editAddress" name="address" rows="3"></textarea>
                         </div>
-                        
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="editPassword" class="form-label">Password Baru (kosongkan jika tidak diubah)</label>
+                                <label for="editPassword" class="form-label">Password Baru (kosongkan jika tidak
+                                    diubah)</label>
                                 <input type="password" class="form-control" id="editPassword" name="password">
                             </div>
                             <div class="col-md-6 mb-3">
@@ -339,23 +311,26 @@
                                 <option value="">-- Pilih Agent --</option>
                             </select>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="balanceAmount" class="form-label">Jumlah Saldo</label>
                             <div class="input-group">
                                 <span class="input-group-text">Rp</span>
-                                <input type="number" class="form-control" id="balanceAmount" name="amount" min="1000" step="1000" required>
+                                <input type="number" class="form-control" id="balanceAmount" name="amount" min="1000"
+                                    step="1000" required>
                             </div>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="balanceNotes" class="form-label">Catatan</label>
-                            <textarea class="form-control" id="balanceNotes" name="notes" rows="3" placeholder="Contoh: Deposit awal, bonus performa, dll."></textarea>
+                            <textarea class="form-control" id="balanceNotes" name="notes" rows="3"
+                                placeholder="Contoh: Deposit awal, bonus performa, dll."></textarea>
                         </div>
-                        
+
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
-                            <strong>Info:</strong> Saldo akan ditambahkan langsung ke akun agent dan transaksi akan dicatat dalam riwayat.
+                            <strong>Info:</strong> Saldo akan ditambahkan langsung ke akun agent dan transaksi akan
+                            dicatat dalam riwayat.
                         </div>
                     </form>
                 </div>
@@ -386,8 +361,8 @@
                         <input type="hidden" id="requestId" name="requestId">
                         <div class="mb-3">
                             <label for="adminNotes" class="form-label">Catatan Admin</label>
-                            <textarea class="form-control" id="adminNotes" name="adminNotes" rows="3" 
-                                      placeholder="Catatan untuk agent..."></textarea>
+                            <textarea class="form-control" id="adminNotes" name="adminNotes" rows="3"
+                                placeholder="Catatan untuk agent..."></textarea>
                         </div>
                     </form>
                 </div>
@@ -418,8 +393,8 @@
                         <input type="hidden" id="rejectRequestId" name="requestId">
                         <div class="mb-3">
                             <label for="rejectReason" class="form-label">Alasan Penolakan</label>
-                            <textarea class="form-control" id="rejectReason" name="rejectReason" rows="3" 
-                                      placeholder="Jelaskan alasan penolakan..." required></textarea>
+                            <textarea class="form-control" id="rejectReason" name="rejectReason" rows="3"
+                                placeholder="Jelaskan alasan penolakan..." required></textarea>
                         </div>
                     </form>
                 </div>
@@ -465,7 +440,7 @@
         // Display balance requests
         function displayBalanceRequests(requests) {
             const container = document.getElementById('balanceRequests');
-            
+
             if (requests.length === 0) {
                 container.innerHTML = '<div class="text-center text-muted py-3"><i class="fas fa-inbox fa-2x mb-2"></i><p>Tidak ada request saldo</p></div>';
                 return;
@@ -501,7 +476,7 @@
         // Display agents
         function displayAgents(agents) {
             const container = document.getElementById('agentsList');
-            
+
             if (agents.length === 0) {
                 container.innerHTML = '<div class="text-center text-muted py-3"><i class="fas fa-users fa-2x mb-2"></i><p>Tidak ada agent</p></div>';
                 return;
@@ -552,7 +527,7 @@
             const form = document.getElementById('addAgentForm');
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
-            
+
             fetch('/admin/agents/add', {
                 method: 'POST',
                 headers: {
@@ -560,19 +535,19 @@
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Agent berhasil ditambahkan!');
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat menambahkan agent');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Agent berhasil ditambahkan!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menambahkan agent');
+                });
         }
 
         // Show approve modal
@@ -593,7 +568,7 @@
         function approveRequest() {
             const requestId = document.getElementById('requestId').value;
             const adminNotes = document.getElementById('adminNotes').value;
-            
+
             fetch('/admin/agents/approve-request', {
                 method: 'POST',
                 headers: {
@@ -601,31 +576,31 @@
                 },
                 body: JSON.stringify({ requestId, adminNotes })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Request berhasil disetujui!');
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat menyetujui request');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Request berhasil disetujui!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menyetujui request');
+                });
         }
 
         // Reject request
         function rejectRequest() {
             const requestId = document.getElementById('rejectRequestId').value;
             const rejectReason = document.getElementById('rejectReason').value;
-            
+
             if (!rejectReason.trim()) {
                 alert('Alasan penolakan harus diisi!');
                 return;
             }
-            
+
             fetch('/admin/agents/reject-request', {
                 method: 'POST',
                 headers: {
@@ -633,19 +608,19 @@
                 },
                 body: JSON.stringify({ requestId, rejectReason })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Request berhasil ditolak!');
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat menolak request');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Request berhasil ditolak!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menolak request');
+                });
         }
 
         // Edit agent
@@ -663,7 +638,7 @@
                         document.getElementById('editEmail').value = data.agent.email || '';
                         document.getElementById('editAddress').value = data.agent.address || '';
                         document.getElementById('editStatus').value = data.agent.status;
-                        
+
                         // Show edit modal
                         const modal = new bootstrap.Modal(document.getElementById('editAgentModal'));
                         modal.show();
@@ -681,7 +656,7 @@
         function toggleAgentStatus(agentId, currentStatus) {
             const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
             const action = newStatus === 'active' ? 'mengaktifkan' : 'menonaktifkan';
-            
+
             if (confirm(`Apakah Anda yakin ingin ${action} agent ini?`)) {
                 fetch(`/admin/agents/${agentId}/toggle-status`, {
                     method: 'POST',
@@ -690,19 +665,19 @@
                     },
                     body: JSON.stringify({ status: newStatus })
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(`Agent berhasil ${action}!`);
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Terjadi kesalahan saat mengubah status agent');
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(`Agent berhasil ${action}!`);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Terjadi kesalahan saat mengubah status agent');
+                    });
             }
         }
 
@@ -711,12 +686,12 @@
             const form = document.getElementById('editAgentForm');
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
-            
+
             // Remove empty password field
             if (!data.password) {
                 delete data.password;
             }
-            
+
             fetch('/admin/agents/update', {
                 method: 'POST',
                 headers: {
@@ -724,19 +699,19 @@
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Agent berhasil diupdate!');
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat mengupdate agent');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Agent berhasil diupdate!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat mengupdate agent');
+                });
         }
 
         // Add balance to agent
@@ -744,17 +719,17 @@
             const form = document.getElementById('addBalanceForm');
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
-            
+
             if (!data.agentId || !data.amount) {
                 alert('Mohon isi semua field yang diperlukan!');
                 return;
             }
-            
+
             if (parseInt(data.amount) < 1000) {
                 alert('Jumlah saldo minimal Rp 1.000!');
                 return;
             }
-            
+
             if (confirm(`Apakah Anda yakin ingin menambahkan saldo Rp ${parseInt(data.amount).toLocaleString()} ke agent ini?`)) {
                 fetch('/admin/agents/add-balance', {
                     method: 'POST',
@@ -763,29 +738,29 @@
                     },
                     body: JSON.stringify(data)
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Saldo berhasil ditambahkan!');
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Terjadi kesalahan saat menambahkan saldo');
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Saldo berhasil ditambahkan!');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Terjadi kesalahan saat menambahkan saldo');
+                    });
             }
         }
 
         // Populate agent dropdown for balance modal
         function populateAgentDropdown() {
             const select = document.getElementById('balanceAgentSelect');
-            
+
             // Clear existing options except the first one
             select.innerHTML = '<option value="">-- Pilih Agent --</option>';
-            
+
             // Add agents from the current page data
             if (window.agentsData) {
                 window.agentsData.forEach(agent => {
@@ -812,33 +787,34 @@
                         'Content-Type': 'application/json'
                     }
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Agent berhasil dihapus!');
-                        loadAgents(); // Reload agents list
-                    } else {
-                        alert('Gagal menghapus agent: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error deleting agent:', error);
-                    alert('Terjadi kesalahan saat menghapus agent');
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Agent berhasil dihapus!');
+                            loadAgents(); // Reload agents list
+                        } else {
+                            alert('Gagal menghapus agent: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting agent:', error);
+                        alert('Terjadi kesalahan saat menghapus agent');
+                    });
             }
         }
 
         // Load data on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadBalanceRequests();
             loadAgents();
         });
 
         // Auto refresh every 30 seconds
-        setInterval(function() {
+        setInterval(function () {
             loadBalanceRequests();
             loadAgents();
         }, 30000);
     </script>
 </body>
+
 </html>

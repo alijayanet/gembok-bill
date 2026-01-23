@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - <%= settings.company_header || 'GEMBOK' %></title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <style>
+        .terminal-output {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 15px;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            border: 1px solid #333;
+        }
+        .status-badge {
+            font-size: 0.9em;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="row m-0">
+        <!-- Sidebar -->
+        <%- include('../partials/admin-sidebar') %>
+
+        <!-- Main Content -->
+        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">System Update</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="checkUpdate()">
+                            <i class="bi bi-arrow-clockwise"></i> Periksa Update
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Informasi Versi</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="fw-bold">Versi Saat Ini (Commit Hash):</label>
+                                <div class="font-monospace"><%= currentVersion %></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold">Pesan Commit Terakhir:</label>
+                                <div><%= latestCommitMsg %></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold">Tanggal Update Terakhir:</label>
+                                <div><%= lastUpdate %></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Status & Aksi</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <div id="updateStatusSection" class="mb-3">
+                                <div class="alert alert-secondary">
+                                    Silakan klik "Periksa Update" untuk melihat ketersediaan versi baru.
+                                </div>
+                            </div>
+                            
+                            <button id="btnUpdate" class="btn btn-primary d-none" onclick="performUpdate()">
+                                <i class="bi bi-cloud-arrow-down"></i> Update Sekarang
+                            </button>
+                            
+                            <div class="mt-3 text-muted small">
+                                <i class="bi bi-info-circle"></i> Update tidak akan merubah file <code>settings.json</code> Anda.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Log Proses</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="terminalOutput" class="terminal-output m-0 border-0 h-100" style="border-radius: 0 0 5px 5px; max-height: 400px;">
+Siap menunggu perintah...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const terminal = document.getElementById('terminalOutput');
+        const updateStatusSection = document.getElementById('updateStatusSection');
+        const btnUpdate = document.getElementById('btnUpdate');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            let color = '#d4d4d4';
+            if (type === 'error') color = '#ff6b6b';
+            if (type === 'success') color = '#4ecc4e';
+            if (type === 'warning') color = '#f1c40f';
+
+            terminal.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        async function checkUpdate() {
+            log('Memeriksa update ke repository...', 'info');
+            btnUpdate.classList.add('d-none');
+            
+            try {
+                const response = await fetch('/admin/update/check', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (result.updateAvailable) {
+                        log('Update tersedia!', 'success');
+                        log('Perubahan baru:\n' + result.log, 'info');
+                        updateStatusSection.innerHTML = `
+                            <div class="alert alert-success">
+                                <h6 class="alert-heading"><i class="bi bi-check-circle"></i> Update Tersedia!</h6>
+                                <p class="mb-0">Versi baru ditemukan di repository. Klik tombol di bawah untuk update.</p>
+                            </div>
+                        `;
+                        btnUpdate.classList.remove('d-none');
+                    } else {
+                        log('Sistem Anda sudah versi terbaru.', 'success');
+                        updateStatusSection.innerHTML = `
+                            <div class="alert alert-info">
+                                <i class="bi bi-check-circle"></i> Sistem sudah up-to-date.
+                            </div>
+                        `;
+                    }
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                log('Gagal memeriksa update: ' + error.message, 'error');
+                updateStatusSection.innerHTML = `
+                    <div class="alert alert-danger">
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function performUpdate() {
+            if (!confirm('Apakah Anda yakin ingin melakukan update sistem? Aplikasi mungkin akan restart.')) return;
+
+            log('Memulai proses update...', 'info');
+            btnUpdate.disabled = true;
+            btnUpdate.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
+            
+            try {
+                const response = await fetch('/admin/update/perform', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    log('Update repository berhasil.', 'success');
+                    if (result.pullOutput) log(result.pullOutput);
+                    
+                    log('Update dependencies (npm install)...', 'info');
+                    if (result.npmOutput) log(result.npmOutput);
+                    
+                    log('Update database (migrations)...', 'info');
+                    if (result.migrateOutput) log(result.migrateOutput);
+                    
+                    if (result.settingsRestored) {
+                        log('Konfigurasi settings.json dipulihkan dari backup.', 'warning');
+                    }
+                    
+                    log('Update selesai! Silakan restart aplikasi server jika diperlukan.', 'success');
+                    alert('Update Berhasil! Refresh halaman ini.');
+                    location.reload();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                log('Update GAGAL: ' + error.message, 'error');
+                alert('Update Gagal. Cek log.');
+            } finally {
+                btnUpdate.disabled = false;
+                btnUpdate.innerHTML = '<i class="bi bi-cloud-arrow-down"></i> Update Sekarang';
+            }
+        }
+    </script>
+</body>
+</html>

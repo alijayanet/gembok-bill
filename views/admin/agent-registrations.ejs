@@ -1,75 +1,90 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pendaftaran Agent - Admin Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Admin Mobile Optimizations -->
-    <link href="/css/admin-mobile.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
     <style>
         body {
             background: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         .navbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
+
         .card {
             border: none;
             border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
         }
+
         .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
+
         .status-pending {
             background: linear-gradient(135deg, #ffc107, #ff8c00);
             color: white;
         }
+
         .status-approved {
             background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
         }
+
         .status-rejected {
             background: linear-gradient(135deg, #dc3545, #e74c3c);
             color: white;
         }
+
         .agent-card {
             border-left: 4px solid #667eea;
             transition: all 0.3s ease;
         }
+
         .agent-card:hover {
             border-left-color: #28a745;
             transform: translateX(5px);
         }
+
         .btn-action {
             border-radius: 8px;
             font-weight: 600;
             transition: all 0.3s ease;
         }
+
         .btn-approve {
             background: linear-gradient(135deg, #28a745, #20c997);
             border: none;
             color: white;
         }
+
         .btn-approve:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
         }
+
         .btn-reject {
             background: linear-gradient(135deg, #dc3545, #e74c3c);
             border: none;
             color: white;
         }
+
         .btn-reject:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
         }
+
         .stats-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -77,126 +92,118 @@
         }
     </style>
 </head>
+
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/admin/dashboard">
-                <i class="fas fa-user-tie me-2"></i>
-                Admin Panel
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/admin/dashboard">
-                    <i class="fas fa-home me-1"></i>Dashboard
-                </a>
-                <a class="nav-link" href="/admin/agents">
-                    <i class="fas fa-users me-1"></i>Manage Agents
-                </a>
-                <a class="nav-link" href="/admin/logout">
-                    <i class="fas fa-sign-out-alt me-1"></i>Logout
-                </a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container-fluid mt-4">
+    <div class="container-fluid">
         <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>
-                        <i class="fas fa-user-plus me-2"></i>
-                        Pendaftaran Agent
-                    </h2>
-                    <div class="btn-group">
-                        <button class="btn btn-outline-primary" onclick="refreshData()">
-                            <i class="fas fa-sync-alt me-1"></i>Refresh
-                        </button>
-                    </div>
-                </div>
+            <!-- Sidebar -->
+            <%- include('../partials/admin-responsive-sidebar', { page: 'agent-registrations' , settings: typeof
+                settings !=='undefined' ? settings : {} }) %>
 
-                <!-- Stats Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card stats-card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-clock fa-2x mb-2"></i>
-                                <h4 id="pendingCount">0</h4>
-                                <p class="mb-0">Menunggu Approval</p>
+                <!-- Main Content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h2>
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    Pendaftaran Agent
+                                </h2>
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-primary" onclick="refreshData()">
+                                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Stats Cards -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-clock fa-2x mb-2"></i>
+                                            <h4 id="pendingCount">0</h4>
+                                            <p class="mb-0">Menunggu Approval</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                            <h4 id="approvedCount">0</h4>
+                                            <p class="mb-0">Disetujui</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-times-circle fa-2x mb-2"></i>
+                                            <h4 id="rejectedCount">0</h4>
+                                            <p class="mb-0">Ditolak</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-users fa-2x mb-2"></i>
+                                            <h4 id="totalCount">0</h4>
+                                            <p class="mb-0">Total Pendaftaran</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Filter Tabs -->
+                            <ul class="nav nav-tabs mb-4" id="statusTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="pending-tab" data-bs-toggle="tab"
+                                        data-bs-target="#pending" type="button" role="tab">
+                                        <i class="fas fa-clock me-1"></i>Menunggu Approval
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="approved-tab" data-bs-toggle="tab"
+                                        data-bs-target="#approved" type="button" role="tab">
+                                        <i class="fas fa-check-circle me-1"></i>Disetujui
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="rejected-tab" data-bs-toggle="tab"
+                                        data-bs-target="#rejected" type="button" role="tab">
+                                        <i class="fas fa-times-circle me-1"></i>Ditolak
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <!-- Tab Content -->
+                            <div class="tab-content" id="statusTabContent">
+                                <!-- Pending Registrations -->
+                                <div class="tab-pane fade show active" id="pending" role="tabpanel">
+                                    <div class="row" id="pendingAgents">
+                                        <!-- Pending agents will be loaded here -->
+                                    </div>
+                                </div>
+
+                                <!-- Approved Registrations -->
+                                <div class="tab-pane fade" id="approved" role="tabpanel">
+                                    <div class="row" id="approvedAgents">
+                                        <!-- Approved agents will be loaded here -->
+                                    </div>
+                                </div>
+
+                                <!-- Rejected Registrations -->
+                                <div class="tab-pane fade" id="rejected" role="tabpanel">
+                                    <div class="row" id="rejectedAgents">
+                                        <!-- Rejected agents will be loaded here -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card stats-card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-check-circle fa-2x mb-2"></i>
-                                <h4 id="approvedCount">0</h4>
-                                <p class="mb-0">Disetujui</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card stats-card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-times-circle fa-2x mb-2"></i>
-                                <h4 id="rejectedCount">0</h4>
-                                <p class="mb-0">Ditolak</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card stats-card">
-                            <div class="card-body text-center">
-                                <i class="fas fa-users fa-2x mb-2"></i>
-                                <h4 id="totalCount">0</h4>
-                                <p class="mb-0">Total Pendaftaran</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Filter Tabs -->
-                <ul class="nav nav-tabs mb-4" id="statusTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
-                            <i class="fas fa-clock me-1"></i>Menunggu Approval
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved" type="button" role="tab">
-                            <i class="fas fa-check-circle me-1"></i>Disetujui
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="rejected-tab" data-bs-toggle="tab" data-bs-target="#rejected" type="button" role="tab">
-                            <i class="fas fa-times-circle me-1"></i>Ditolak
-                        </button>
-                    </li>
-                </ul>
-
-                <!-- Tab Content -->
-                <div class="tab-content" id="statusTabContent">
-                    <!-- Pending Registrations -->
-                    <div class="tab-pane fade show active" id="pending" role="tabpanel">
-                        <div class="row" id="pendingAgents">
-                            <!-- Pending agents will be loaded here -->
-                        </div>
-                    </div>
-
-                    <!-- Approved Registrations -->
-                    <div class="tab-pane fade" id="approved" role="tabpanel">
-                        <div class="row" id="approvedAgents">
-                            <!-- Approved agents will be loaded here -->
-                        </div>
-                    </div>
-
-                    <!-- Rejected Registrations -->
-                    <div class="tab-pane fade" id="rejected" role="tabpanel">
-                        <div class="row" id="rejectedAgents">
-                            <!-- Rejected agents will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
+                </main>
         </div>
     </div>
 
@@ -227,7 +234,7 @@
         let currentAction = null;
 
         // Load data on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadAgentRegistrations();
         });
 
@@ -236,7 +243,7 @@
             try {
                 const response = await fetch('/admin/api/agent-registrations');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     displayAgents(data.agents);
                     updateStats(data.stats);
@@ -261,7 +268,7 @@
 
             agents.forEach(agent => {
                 const agentCard = createAgentCard(agent);
-                
+
                 if (agent.status === 'pending') {
                     pendingContainer.appendChild(agentCard);
                 } else if (agent.status === 'active') {
@@ -277,11 +284,11 @@
             const col = document.createElement('div');
             col.className = 'col-md-6 col-lg-4 mb-3';
 
-            const statusClass = agent.status === 'pending' ? 'status-pending' : 
-                              agent.status === 'active' ? 'status-approved' : 'status-rejected';
-            
-            const statusText = agent.status === 'pending' ? 'Menunggu Approval' : 
-                             agent.status === 'active' ? 'Disetujui' : 'Ditolak';
+            const statusClass = agent.status === 'pending' ? 'status-pending' :
+                agent.status === 'active' ? 'status-approved' : 'status-rejected';
+
+            const statusText = agent.status === 'pending' ? 'Menunggu Approval' :
+                agent.status === 'active' ? 'Disetujui' : 'Ditolak';
 
             col.innerHTML = `
                 <div class="card agent-card">
@@ -330,7 +337,7 @@
         function showActionModal(agentId, action) {
             currentAgentId = agentId;
             currentAction = action;
-            
+
             const modal = new bootstrap.Modal(document.getElementById('actionModal'));
             const title = document.getElementById('actionModalTitle');
             const body = document.getElementById('actionModalBody');
@@ -369,7 +376,7 @@
         }
 
         // Confirm action
-        document.getElementById('confirmAction').addEventListener('click', async function() {
+        document.getElementById('confirmAction').addEventListener('click', async function () {
             if (currentAction === 'approve') {
                 await approveAgent(currentAgentId);
             } else if (currentAction === 'reject') {
@@ -385,11 +392,12 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     }
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     alert('Agent berhasil disetujui!');
                     bootstrap.Modal.getInstance(document.getElementById('actionModal')).hide();
@@ -413,9 +421,9 @@
                     },
                     body: JSON.stringify({ reason })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     alert('Agent berhasil ditolak!');
                     bootstrap.Modal.getInstance(document.getElementById('actionModal')).hide();
@@ -435,4 +443,5 @@
         }
     </script>
 </body>
+
 </html>
