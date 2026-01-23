@@ -597,6 +597,20 @@ class BillingManager {
             }
         });
 
+        // Tambahkan kolom invoice_type jika belum ada
+        this.db.run("ALTER TABLE invoices ADD COLUMN invoice_type TEXT DEFAULT 'monthly'", (err) => {
+            if (err && !err.message.includes('duplicate column name')) {
+                console.error('Error adding invoice_type column:', err);
+            }
+        });
+
+        // Tambahkan kolom package_name jika belum ada
+        this.db.run("ALTER TABLE invoices ADD COLUMN package_name TEXT", (err) => {
+            if (err && !err.message.includes('duplicate column name')) {
+                console.error('Error adding package_name column:', err);
+            }
+        });
+
         // Buat index untuk tabel ODP dan Cable Network
         this.createODPIndexes();
 
@@ -1597,7 +1611,7 @@ class BillingManager {
     async createInvoice(invoiceData) {
         return new Promise((resolve, reject) => {
             const { customer_id, package_id, amount, due_date, notes, base_amount, tax_rate, invoice_type = 'monthly' } = invoiceData;
-            const invoice_number = this.generateInvoiceNumber();
+            const invoice_number = invoiceData.invoice_number || this.generateInvoiceNumber();
 
             // Check if base_amount and tax_rate columns exist
             let sql, params;
