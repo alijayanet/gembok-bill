@@ -1895,10 +1895,9 @@ class BillingManager {
 
     async recordCollectorPayment(paymentData) {
         return new Promise((resolve, reject) => {
-            const { invoice_id, amount, payment_method, reference_number, notes, collector_id, commission_amount } = paymentData;
-            const self = this; // Store reference to this
+            const { invoice_id, amount, payment_method, reference_number, notes, collector_id, commission_amount, customer_id } = paymentData;
+            const self = this;
 
-            // Set database timeout and WAL mode for better concurrency
             this.db.run('PRAGMA busy_timeout=30000', (err) => {
                 if (err) {
                     reject(err);
@@ -1911,99 +1910,94 @@ class BillingManager {
                         return;
                     }
 
-                    // Mulai transaction untuk operasi kompleks
+                    // Mulai transaction 
                     self.db.run('BEGIN IMMEDIATE TRANSACTION', (err) => {
                         if (err) {
                             reject(err);
                             return;
                         }
 
-                        // Insert payment
-                        const sql = `INSERT INTO payments (
-                            invoice_id, amount, payment_method, reference_number, notes, 
-                            collector_id, commission_amount, payment_type
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'collector')`;
-
-                        self.db.run(sql, [
-                            invoice_id, amount, payment_method, reference_number, notes,
-                            collector_id, commission_amount || 0
-                        ], function (err) {
+                        // 1. Get customer_id if missing
+                        self.db.get('SELECT customer_id FROM invoices WHERE id = ?', [invoice_id], (err, invRow) => {
                             if (err) {
-                                self.db.run('ROLLBACK', (rollbackErr) => {
-                                    if (rollbackErr) console.error('Rollback error:', rollbackErr.message);
-                                    reject(err);
-                                });
+                                self.db.run('ROLLBACK');
+                                reject(err);
                                 return;
                             }
 
-                            const paymentId = this.lastID;
+                            const finalCustomerId = customer_id || (invRow ? invRow.customer_id : 0);
 
-                            // Jika ada komisi, catat sebagai expense
-                            if (commission_amount && commission_amount > 0) {
-                                // Get collector name untuk deskripsi
-                                self.db.get('SELECT name FROM collectors WHERE id = ?', [collector_id], (err, collector) => {
+                            // 2. Insert into payments
+                            const sql = `INSERT INTO payments (
+                                invoice_id, amount, payment_date, payment_method, reference_number, notes, 
+                                collector_id, commission_amount, payment_type, remittance_status
+                            ) VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, 'collector', 'pending')`;
+
+                            self.db.run(sql, [
+                                invoice_id, amount, payment_method, reference_number, notes,
+                                collector_id, commission_amount || 0
+                            ], function (err) {
+                                if (err) {
+                                    self.db.run('ROLLBACK');
+                                    reject(err);
+                                    return;
+                                }
+
+                                const paymentId = this.lastID;
+
+                                // 3. Insert into collector_payments for reports
+                                const cpSql = `INSERT INTO collector_payments (
+                                    collector_id, customer_id, invoice_id, payment_amount, commission_amount, 
+                                    payment_method, notes, status, payment_date, collected_at
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'completed', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`;
+
+                                self.db.run(cpSql, [
+                                    collector_id, finalCustomerId, invoice_id, amount, commission_amount || 0,
+                                    payment_method, notes
+                                ], function (err) {
                                     if (err) {
-                                        self.db.run('ROLLBACK', (rollbackErr) => {
-                                            if (rollbackErr) console.error('Rollback error:', rollbackErr.message);
-                                            reject(err);
-                                        });
+                                        // Jangan batalkan semua jika collector_payments gagal (opsional, tapi demi laporan kita roll back saja)
+                                        self.db.run('ROLLBACK');
+                                        reject(err);
                                         return;
                                     }
 
-                                    const collectorName = collector ? collector.name : 'Unknown Collector';
+                                    // 4. Handle Commission as Expense
+                                    if (commission_amount && commission_amount > 0) {
+                                        self.db.get('SELECT name FROM collectors WHERE id = ?', [collector_id], (err, collector) => {
+                                            const collectorName = collector ? collector.name : 'Unknown Collector';
+                                            const expenseSql = `INSERT INTO expenses (
+                                                description, amount, category, expense_date, 
+                                                payment_method, notes
+                                            ) VALUES (?, ?, ?, DATE('now'), ?, ?)`;
 
-                                    // Insert commission as expense
-                                    const expenseSql = `INSERT INTO expenses (
-                                        description, amount, category, expense_date, 
-                                        payment_method, notes
-                                    ) VALUES (?, ?, ?, DATE('now'), ?, ?)`;
+                                            self.db.run(expenseSql, [
+                                                `Komisi Kolektor - ${collectorName}`,
+                                                commission_amount,
+                                                'Operasional',
+                                                'Transfer Bank',
+                                                `Komisi dari invoice ${invoice_id} via ${collectorName}`
+                                            ], function (err) {
+                                                if (err) {
+                                                    self.db.run('ROLLBACK');
+                                                    reject(err);
+                                                    return;
+                                                }
 
-                                    self.db.run(expenseSql, [
-                                        `Komisi Kolektor - ${collectorName}`,
-                                        commission_amount,
-                                        'Operasional',
-                                        'Transfer Bank', // Default payment method for commission
-                                        `Komisi ${commission_amount}% dari pembayaran invoice ${invoice_id} via kolektor ${collectorName}`
-                                    ], function (err) {
-                                        if (err) {
-                                            self.db.run('ROLLBACK', (rollbackErr) => {
-                                                if (rollbackErr) console.error('Rollback error:', rollbackErr.message);
-                                                reject(err);
-                                            });
-                                            return;
-                                        }
-
-                                        // Commit transaction
-                                        self.db.run('COMMIT', (err) => {
-                                            if (err) {
-                                                reject(err);
-                                            } else {
-                                                resolve({
-                                                    success: true,
-                                                    id: paymentId,
-                                                    expenseId: this.lastID,
-                                                    commissionRecorded: true,
-                                                    ...paymentData
+                                                self.db.run('COMMIT', (err) => {
+                                                    if (err) reject(err);
+                                                    else resolve({ success: true, id: paymentId, ...paymentData });
                                                 });
-                                            }
+                                            });
                                         });
-                                    });
-                                });
-                            } else {
-                                // Commit transaction tanpa expense
-                                self.db.run('COMMIT', (err) => {
-                                    if (err) {
-                                        reject(err);
                                     } else {
-                                        resolve({
-                                            success: true,
-                                            id: paymentId,
-                                            commissionRecorded: false,
-                                            ...paymentData
+                                        self.db.run('COMMIT', (err) => {
+                                            if (err) reject(err);
+                                            else resolve({ success: true, id: paymentId, ...paymentData });
                                         });
                                     }
                                 });
-                            }
+                            });
                         });
                     });
                 });
@@ -2022,16 +2016,16 @@ class BillingManager {
 
     async recordCollectorPaymentRecord(paymentData) {
         return new Promise((resolve, reject) => {
-            const { collector_id, customer_id, amount, payment_amount, commission_amount, payment_method, notes, status } = paymentData;
+            const { collector_id, customer_id, invoice_id, payment_amount, commission_amount, payment_method, notes, status } = paymentData;
 
             const sql = `INSERT INTO collector_payments (
-                collector_id, customer_id, amount, payment_amount, commission_amount,
-                payment_method, notes, status, collected_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
+                collector_id, customer_id, invoice_id, payment_amount, commission_amount,
+                payment_method, notes, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
             this.db.run(sql, [
-                collector_id, customer_id, amount, payment_amount, commission_amount,
-                payment_method, notes, status
+                collector_id, customer_id, invoice_id, payment_amount, commission_amount,
+                payment_method, notes, status || 'completed'
             ], function (err) {
                 if (err) {
                     reject(err);
@@ -2046,13 +2040,16 @@ class BillingManager {
         });
     }
 
-    async getCollectorTodayPayments(collectorId, startOfDay, endOfDay) {
+    async getCollectorTodayPayments(collectorId) {
         return new Promise((resolve, reject) => {
+            // Menggunakan strftime untuk memastikan format tanggal cocok (lokal ke database)
             this.db.get(`
                 SELECT COALESCE(SUM(payment_amount), 0) as total
                 FROM collector_payments 
-                WHERE collector_id = ? AND collected_at >= ? AND collected_at < ? AND status = 'completed'
-            `, [collectorId, startOfDay.toISOString(), endOfDay.toISOString()], (err, row) => {
+                WHERE collector_id = ? 
+                AND DATE(collected_at) = DATE('now', 'localtime')
+                AND status = 'completed'
+            `, [collectorId], (err, row) => {
                 if (err) reject(err);
                 else resolve(Math.round(parseFloat(row ? row.total : 0)));
             });
@@ -2062,17 +2059,13 @@ class BillingManager {
     // Get current month's total commission (reset every month)
     async getCollectorTotalCommission(collectorId) {
         return new Promise((resolve, reject) => {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth() + 1;
-            const startDate = new Date(year, month - 1, 1).toISOString();
-            const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
-
             this.db.get(`
                 SELECT COALESCE(SUM(commission_amount), 0) as total
                 FROM collector_payments 
-                WHERE collector_id = ? AND collected_at >= ? AND collected_at <= ? AND status = 'completed'
-            `, [collectorId, startDate, endDate], (err, row) => {
+                WHERE collector_id = ? 
+                AND strftime('%Y-%m', collected_at) = strftime('%Y-%m', 'now', 'localtime')
+                AND status = 'completed'
+            `, [collectorId], (err, row) => {
                 if (err) reject(err);
                 else resolve(Math.round(parseFloat(row ? row.total : 0)));
             });
@@ -2082,17 +2075,13 @@ class BillingManager {
     // Get current month's total payments count (reset every month)
     async getCollectorTotalPayments(collectorId) {
         return new Promise((resolve, reject) => {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth() + 1;
-            const startDate = new Date(year, month - 1, 1).toISOString();
-            const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
-
             this.db.get(`
                 SELECT COUNT(*) as count
                 FROM collector_payments 
-                WHERE collector_id = ? AND collected_at >= ? AND collected_at <= ? AND status = 'completed'
-            `, [collectorId, startDate, endDate], (err, row) => {
+                WHERE collector_id = ? 
+                AND strftime('%Y-%m', collected_at) = strftime('%Y-%m', 'now', 'localtime')
+                AND status = 'completed'
+            `, [collectorId], (err, row) => {
                 if (err) reject(err);
                 else resolve(parseInt(row ? row.count : 0));
             });
@@ -2106,7 +2095,7 @@ class BillingManager {
                 FROM collector_payments cp
                 LEFT JOIN customers c ON cp.customer_id = c.id
                 WHERE cp.collector_id = ? AND cp.status = 'completed'
-                ORDER BY cp.collected_at DESC
+                ORDER BY cp.collected_at DESC, cp.id DESC
                 LIMIT ?
             `, [collectorId, limit], (err, rows) => {
                 if (err) reject(err);
@@ -2126,20 +2115,21 @@ class BillingManager {
     async getCollectorAllPayments(collectorId) {
         return new Promise((resolve, reject) => {
             this.db.all(`
-                SELECT cp.*, c.name as customer_name, c.phone as customer_phone
-                FROM collector_payments cp
-                LEFT JOIN customers c ON cp.customer_id = c.id
-                WHERE cp.collector_id = ?
-                ORDER BY cp.collected_at DESC
+                SELECT p.*, c.name as customer_name, c.phone as customer_phone, i.invoice_number
+                FROM payments p
+                LEFT JOIN invoices i ON p.invoice_id = i.id
+                LEFT JOIN customers c ON i.customer_id = c.id
+                WHERE p.collector_id = ? AND p.payment_type = 'collector'
+                ORDER BY p.payment_date DESC
             `, [collectorId], (err, rows) => {
                 if (err) reject(err);
                 else {
                     const validRows = (rows || []).map(row => ({
                         ...row,
-                        payment_amount: Math.round(parseFloat(row.payment_amount || 0)),
+                        payment_amount: Math.round(parseFloat(row.amount || 0)),
                         commission_amount: Math.round(parseFloat(row.commission_amount || 0)),
                         customer_name: row.customer_name || 'Unknown Customer',
-                        collected_at: row.collected_at || new Date().toISOString()
+                        collected_at: row.payment_date || new Date().toISOString()
                     }));
                     resolve(validRows);
                 }
