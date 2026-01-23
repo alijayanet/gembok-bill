@@ -2416,7 +2416,11 @@ router.post('/system/update', async (req, res) => {
 
         const updateCmd = [
             `git fetch --all --prune`,
+            // Backup settings.json temporarily if it exists
+            `if [ -f settings.json ]; then cp settings.json settings.json.bak; fi`,
             `git reset --hard origin/${branch}`,
+            // Restore settings.json from backup
+            `if [ -f settings.json.bak ]; then mv settings.json.bak settings.json; fi`,
             `npm ci || npm install`
         ].join(' && ');
 
