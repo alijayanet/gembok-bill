@@ -364,4 +364,150 @@ router.get('/api/maintenance-log', technicianAuth, async (req, res) => {
     }
 });
 
+// ===== ODP CRUD OPERATIONS FOR TECHNICIANS =====
+
+// POST: Create new ODP
+router.post('/api/odp', technicianAuth, async (req, res) => {
+    try {
+        const { name, code, latitude, longitude, address, capacity, notes, status } = req.body;
+        
+        if (!name || !code || !latitude || !longitude) {
+            return res.status(400).json({
+                success: false,
+                message: 'Nama, kode, latitude, dan longitude harus diisi'
+            });
+        }
+        
+        const db = getDatabase();
+        
+        const result = await new Promise((resolve, reject) => {
+            db.run(`
+                INSERT INTO odps (name, code, latitude, longitude, address, capacity, notes, status, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            `, [name, code, latitude, longitude, address, capacity || 16, notes || '', status || 'active'], function(err) {
+                if (err) reject(err);
+                else resolve({ id: this.lastID });
+            });
+        });
+        
+        db.close();
+        
+        res.json({
+            success: true,
+            message: 'ODP berhasil ditambahkan',
+            data: result
+        });
+        
+    } catch (error) {
+        logger.error('Error creating ODP for technician:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal menambahkan ODP'
+        });
+    }
+});
+
+// PUT: Update ODP
+router.put('/api/odp/:id', technicianAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, code, latitude, longitude, address, capacity, notes, status } = req.body;
+        
+        if (!name || !code || !latitude || !longitude) {
+            return res.status(400).json({
+                success: false,
+                message: 'Nama, kode, latitude, dan longitude harus diisi'
+            });
+        }
+        
+        const db = getDatabase();
+        
+        await new Promise((resolve, reject) => {
+            db.run(`
+                UPDATE odps 
+                SET name = ?, code = ?, latitude = ?, longitude = ?, address = ?, 
+                    capacity = ?, notes = ?, status = ?, updated_at = datetime('now')
+                WHERE id = ?
+            `, [name, code, latitude, longitude, address, capacity, notes, status, id], function(err) {
+                if (err) reject(err);
+                else resolve({ changes: this.changes });
+            });
+        });
+        
+        db.close();
+        
+        res.json({
+            success: true,
+            message: 'ODP berhasil diupdate'
+        });
+        
+    } catch (error) {
+        logger.error('Error updating ODP for technician:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal mengupdate ODP'
+        });
+    }
+});
+
+// DELETE: Delete ODP
+router.delete('/api/odp/:id', technicianAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const db = getDatabase();
+        
+        // Check if ODP has connected customers
+        const odp = await new Promise((resolve, reject) => {
+            db.get('SELECT COUNT(*) as count FROM cable_routes WHERE odp_id = ?', [id], (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+        
+        if (odp.count > 0) {
+            db.close();
+            return res.status(400).json({
+                success: false,
+                message: 'Tidak dapat menghapus ODP yang masih memiliki koneksi kabel'
+            });
+        }
+        
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM odps WHERE id = ?', [id], function(err) {
+                if (err) reject(err);
+                else resolve({ changes: this.changes });
+            });
+        });
+        
+        db.close();
+        
+        res.json({
+            success: true,
+            message: 'ODP berhasil dihapus'
+        });
+        
+    } catch (error) {
+        logger.error('Error deleting ODP for technician:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal menghapus ODP'
+        });
+    }
+});
+
+// GET: Render ODP management page
+router.get('/odp', technicianAuth, async (req, res) => {
+    try {
+        const technician = req.technician || {};
+        res.render('technician/odp', { 
+            technician: technician,
+            page: 'odp'
+        });
+    } catch (error) {
+        logger.error('Error rendering ODP page:', error);
+        res.status(500).send('Gagal memuat halaman ODP');
+    }
+});
+
 module.exports = router;
