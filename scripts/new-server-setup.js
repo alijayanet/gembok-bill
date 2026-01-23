@@ -36,6 +36,41 @@ async function ensureAppSettingsTable(db) {
     });
 }
 
+// Function to ensure collectors table has password column
+async function ensureCollectorsPasswordColumn(db) {
+    console.log('🔧 Checking collectors table for password column...');
+    
+    return new Promise((resolve, reject) => {
+        // Check if password column exists
+        db.all('PRAGMA table_info(collectors)', (err, columns) => {
+            if (err) {
+                console.error('❌ Failed to check collectors table structure:', err.message);
+                reject(err);
+                return;
+            }
+            
+            const hasPasswordColumn = columns.some(col => col.name === 'password');
+            
+            if (hasPasswordColumn) {
+                console.log('   ✅ Password column already exists in collectors table');
+                resolve();
+            } else {
+                // Add password column
+                console.log('   ➕ Adding password column to collectors table...');
+                db.run('ALTER TABLE collectors ADD COLUMN password TEXT', (alterErr) => {
+                    if (alterErr) {
+                        console.error('❌ Failed to add password column:', alterErr.message);
+                        reject(alterErr);
+                    } else {
+                        console.log('   ✅ Password column added to collectors table');
+                        resolve();
+                    }
+                });
+            }
+        });
+    });
+}
+
 // Function to ensure essential tables exist
 async function ensureEssentialTables(db) {
     console.log('🔧 Ensuring essential tables exist...');
@@ -232,6 +267,9 @@ async function newServerSetup() {
         
         // Ensure essential tables exist
         await ensureEssentialTables(db);
+        
+        // Ensure collectors table has password column
+        await ensureCollectorsPasswordColumn(db);
         
         // Ensure app_settings table exists
         await ensureAppSettingsTable(db);
