@@ -64,6 +64,9 @@
     <a href="/technician/mapping" class="d-block text-decoration-none p-3 mb-2 technician-sidebar-link <%= (typeof page !== 'undefined' && page === 'mapping') ? 'active' : 'text-white' %>">
         <i class="bi bi-geo-alt me-2"></i> Mapping
     </a>
+    <a href="/technician/odp" class="d-block text-decoration-none p-3 mb-2 technician-sidebar-link <%= (typeof page !== 'undefined' && page === 'odp') ? 'active' : 'text-white' %>">
+        <i class="bi bi-hdd-network me-2"></i> ODP
+    </a>
     
     <% if (typeof technician !== 'undefined' && (technician.role === 'collector' || technician.role === 'field_officer')) { %>
     <a href="/technician/payments" class="d-block text-decoration-none p-3 mb-2 technician-sidebar-link <%= (typeof page !== 'undefined' && page === 'payments') ? 'active' : 'text-white' %>">
