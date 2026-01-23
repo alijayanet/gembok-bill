@@ -14,6 +14,13 @@
         <span class="nav-label">Mapping</span>
     </div>
     
+    <div class="nav-item" onclick="navigateTo('/technician/odp')">
+        <div class="nav-icon <%= currentPage === 'odp' ? 'active' : '' %>">
+            <i class="bx bx-layer"></i>
+        </div>
+        <span class="nav-label">ODP</span>
+    </div>
+    
     <div class="nav-item" onclick="navigateTo('/technician/mobile/customers')">
         <div class="nav-icon <%= currentPage === 'customers' ? 'active' : '' %>">
             <i class="bx bx-user"></i>
@@ -78,14 +85,19 @@
     margin-bottom: 4px;
     transition: all 0.3s ease;
     color: rgba(255, 255, 255, 0.7);
-    font-size: 18px;
+    font-size: 20px;
+    font-weight: normal;
 }
 
 .nav-icon.active {
     background: rgba(255, 255, 255, 0.2);
-    color: white;
+    color: white !important;
     transform: scale(1.1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.nav-icon i {
+    font-size: 20px;
 }
 
 .nav-label {
@@ -108,7 +120,7 @@
 /* Desktop - hide mobile navbar */
 @media (min-width: 769px) {
     .mobile-bottom-nav {
-        display: none;
+        display: none !important;
     }
     
     /* Add bottom padding to body when mobile navbar is hidden */
@@ -120,11 +132,11 @@
 /* Mobile - show navbar and add bottom padding */
 @media (max-width: 768px) {
     body {
-        padding-bottom: 80px;
+        padding-bottom: 80px !important;
     }
     
     .mobile-bottom-nav {
-        display: flex;
+        display: flex !important;
     }
 }
 
