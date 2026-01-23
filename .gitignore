@@ -54,3 +54,8 @@ temp/
 # PM2 files
 .pm2/
 node_modules
+
+# Local Configurations
+settings.json
+settings.json.bak
+data/billing.db*
