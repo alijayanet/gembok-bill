@@ -27,33 +27,33 @@ router.get('/dashboard', technicianAuth, async (req, res) => {
         let genieacsTotal = 0, genieacsOnline = 0, genieacsOffline = 0;
         let mikrotikTotal = 0, mikrotikAktif = 0, mikrotikOffline = 0;
         let settings = {};
-        
+
         try {
             // Import functions for dashboard data
             const { getDevices } = require('../config/genieacs');
             const { getActivePPPoEConnections, getInactivePPPoEUsers } = require('../config/mikrotik');
             const { getSettingsWithCache } = require('../config/settingsManager');
             const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
-            
+
             // Baca settings.json
             settings = getSettingsWithCache();
-            
+
             // GenieACS data
             // ENHANCEMENT: Gunakan cached version untuk performa lebih baik
             const { getDevicesCached } = require('../config/genieacs');
             const devices = await getDevicesCached();
             genieacsTotal = devices.length;
             const now = Date.now();
-            genieacsOnline = devices.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600*1000).length;
+            genieacsOnline = devices.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600 * 1000).length;
             genieacsOffline = genieacsTotal - genieacsOnline;
-            
+
             // Mikrotik data
             const aktifResult = await getActivePPPoEConnections();
             mikrotikAktif = aktifResult.success ? aktifResult.data.length : 0;
             const offlineResult = await getInactivePPPoEUsers();
             mikrotikOffline = offlineResult.success ? offlineResult.totalInactive : 0;
             mikrotikTotal = (offlineResult.success ? offlineResult.totalSecrets : 0);
-            
+
         } catch (e) {
             console.error('Error getting dashboard data for technician:', e);
             // Use default values if error
@@ -89,12 +89,12 @@ router.get('/monitoring', technicianAuth, async (req, res) => {
         // Get the same data as admin GenieACS page
         const { getDevices } = require('../config/genieacs');
         const { getSettingsWithCache } = require('../config/settingsManager');
-        
+
         // Get devices data
         // ENHANCEMENT: Gunakan cached version untuk performa lebih baik
         const { getDevicesCached } = require('../config/genieacs');
         const devicesRaw = await getDevicesCached();
-        
+
         // Use the exact same parameter paths as admin GenieACS
         const parameterPaths = {
             pppUsername: [
@@ -139,13 +139,13 @@ router.get('/monitoring', technicianAuth, async (req, res) => {
                 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.TotalAssociations'
             ]
         };
-        
+
         // Use the exact same getParameterWithPaths function as admin
         function getParameterWithPaths(device, paths) {
             for (const path of paths) {
                 const parts = path.split('.');
                 let value = device;
-                
+
                 for (const part of parts) {
                     if (value && typeof value === 'object' && part in value) {
                         value = value[part];
@@ -155,7 +155,7 @@ router.get('/monitoring', technicianAuth, async (req, res) => {
                         break;
                     }
                 }
-                
+
                 if (value !== undefined && value !== null && value !== '') {
                     // Handle special case for device tags
                     if (path.includes('Tags') || path.includes('_tags')) {
@@ -170,7 +170,7 @@ router.get('/monitoring', technicianAuth, async (req, res) => {
             }
             return '-';
         }
-        
+
         // Map devices data exactly like admin GenieACS
         const devices = devicesRaw.map((device, i) => ({
             id: device._id || '-',
@@ -192,14 +192,14 @@ router.get('/monitoring', technicianAuth, async (req, res) => {
                             ? device._tags
                             : '-'
         }));
-        
+
         // Calculate statistics
         const genieacsTotal = devicesRaw.length;
         const now = Date.now();
-        const genieacsOnline = devicesRaw.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600*1000).length;
+        const genieacsOnline = devicesRaw.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600 * 1000).length;
         const genieacsOffline = genieacsTotal - genieacsOnline;
         const settings = getSettingsWithCache();
-        
+
         // Log activity
         await authManager.logActivity(req.technician.id, 'monitoring_access', 'Mengakses halaman monitoring GenieACS');
 
@@ -242,7 +242,7 @@ router.get('/customers', technicianAuth, async (req, res) => {
         // Ambil data customers & packages
         const allCustomers = await billingManager.getCustomers();
         const packages = await billingManager.getPackages();
-        
+
         // Get ODPs for dropdown selection (termasuk sub ODP)
         const odps = await new Promise((resolve, reject) => {
             const db = getDb();
@@ -327,9 +327,9 @@ router.post('/customers/add', technicianAuth, async (req, res) => {
 
         // Validasi input
         if (!name || !phone || !package_id) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Nama, nomor telepon, dan paket wajib diisi' 
+            return res.status(400).json({
+                success: false,
+                message: 'Nama, nomor telepon, dan paket wajib diisi'
             });
         }
 
@@ -365,7 +365,7 @@ router.post('/customers/add', technicianAuth, async (req, res) => {
             try {
                 const pkg = await billingManager.getPackageById(customerData.package_id);
                 if (pkg && pkg.pppoe_profile) customerData.pppoe_profile = pkg.pppoe_profile;
-            } catch (_) {}
+            } catch (_) { }
         }
 
         // Tambah customer via billing manager
@@ -394,23 +394,23 @@ router.post('/customers/add', technicianAuth, async (req, res) => {
 
         // Log activity
         await authManager.logActivity(
-            req.technician.id, 
-            'customer_add', 
+            req.technician.id,
+            'customer_add',
             `Menambah pelanggan baru: ${name}`,
             { customer_id: newCustomer.id, customer_name: name }
         );
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'Pelanggan berhasil ditambahkan',
             customer: newCustomer
         });
 
     } catch (error) {
         logger.error('Error adding customer by technician:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Gagal menambah pelanggan: ' + error.message 
+        res.status(500).json({
+            success: false,
+            message: 'Gagal menambah pelanggan: ' + error.message
         });
     }
 });
@@ -453,27 +453,27 @@ router.put('/api/customers/:id', technicianAuth, async (req, res) => {
 
         // Validate required fields
         if (!name || !phone) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Nama dan nomor telepon harus diisi' 
+            return res.status(400).json({
+                success: false,
+                message: 'Nama dan nomor telepon harus diisi'
             });
         }
 
         // Validate phone format
         const phoneRegex = /^(\+62|62|0)[0-9]{9,13}$/;
         if (!phoneRegex.test(phone)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Format nomor telepon tidak valid' 
+            return res.status(400).json({
+                success: false,
+                message: 'Format nomor telepon tidak valid'
             });
         }
 
         // Check if customer exists
         const existingCustomer = await billingManager.getCustomerById(customerId);
         if (!existingCustomer) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Customer tidak ditemukan' 
+            return res.status(404).json({
+                success: false,
+                message: 'Customer tidak ditemukan'
             });
         }
 
@@ -482,9 +482,9 @@ router.put('/api/customers/:id', technicianAuth, async (req, res) => {
             const packages = await billingManager.getPackages();
             const packageExists = packages.some(pkg => pkg.id === parseInt(package_id));
             if (!packageExists) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'Package tidak valid' 
+                return res.status(400).json({
+                    success: false,
+                    message: 'Package tidak valid'
                 });
             }
         }
@@ -499,9 +499,9 @@ router.put('/api/customers/:id', technicianAuth, async (req, res) => {
                 });
             });
             if (!odp) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'ODP tidak valid atau tidak aktif' 
+                return res.status(400).json({
+                    success: false,
+                    message: 'ODP tidak valid atau tidak aktif'
                 });
             }
         }
@@ -534,8 +534,8 @@ router.put('/api/customers/:id', technicianAuth, async (req, res) => {
     } catch (error) {
         logger.error('Error updating customer by technician:', error);
         // Tambahkan error detail ke response untuk debugging
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Gagal mengupdate customer',
             error: error && error.message ? error.message : error
         });
@@ -630,9 +630,9 @@ router.get('/api/packages', technicianAuth, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error getting packages for technician:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Gagal mengambil data packages' 
+        res.status(500).json({
+            success: false,
+            message: 'Gagal mengambil data packages'
         });
     }
 });
@@ -652,16 +652,16 @@ router.get('/api/odps', technicianAuth, async (req, res) => {
                 else resolve(rows || []);
             });
         });
-        
+
         res.json({
             success: true,
             odps: odps
         });
     } catch (error) {
         logger.error('Error getting ODPs for technician:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Gagal mengambil data ODPs' 
+        res.status(500).json({
+            success: false,
+            message: 'Gagal mengambil data ODPs'
         });
     }
 });
@@ -680,9 +680,9 @@ router.get('/api/customers', technicianAuth, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error getting customers API for technician:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 });
@@ -711,9 +711,9 @@ router.get('/api/packages', technicianAuth, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error getting packages API for technician:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 });
@@ -726,8 +726,8 @@ router.get('/api/statistics', technicianAuth, async (req, res) => {
         const { getDevicesCached } = require('../config/genieacs');
         const devices = await getDevicesCached();
         const now = Date.now();
-        const onlineDevices = devices.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600*1000).length;
-        
+        const onlineDevices = devices.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600 * 1000).length;
+
         res.json({
             success: true,
             data: {
@@ -738,9 +738,9 @@ router.get('/api/statistics', technicianAuth, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error getting statistics API for technician:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 });
@@ -750,7 +750,7 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
     try {
         const { getDevices } = require('../config/genieacs');
         const { pppoe, phone } = req.query;
-        
+
         // Jika ada parameter query, filter devices berdasarkan kriteria
         if (pppoe || phone) {
             let customer = null;
@@ -761,7 +761,7 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
                 const shortLocal = local.startsWith('0') ? local.slice(1) : local;
                 return Array.from(new Set([norm, local, plus, shortLocal].filter(Boolean)));
             };
-            
+
             // Cari customer berdasarkan parameter
             if (pppoe) {
                 customer = await billingManager.getCustomerByPPPoE(pppoe);
@@ -772,7 +772,7 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
                     if (customer) break;
                 }
             }
-            
+
             if (!customer) {
                 return res.json({
                     success: true,
@@ -792,24 +792,24 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
                     }
                 });
             }
-            
+
             // Cari device berdasarkan customer yang ditemukan
             // ENHANCEMENT: Gunakan cached version untuk performa lebih baik
             const { getDevicesCached } = require('../config/genieacs');
             const devicesRaw = await getDevicesCached();
             const devicesWithCoords = [];
             const devicesWithoutCoords = [];
-            
+
             for (const device of devicesRaw) {
                 let deviceCustomer = null;
                 let coordinateSource = 'none';
-                
+
                 // Coba berbagai cara untuk mencocokkan device dengan customer
                 const devicePPPoE = device.VirtualParameters?.pppoeUsername || device.VirtualParameters?.pppUsername;
                 const tags = Array.isArray(device.Tags) ? device.Tags.join(',') : (device.Tags || device._tags || '');
                 const tagString = typeof tags === 'string' ? tags : '';
                 const variants = buildPhoneVariants(customer.phone);
-                
+
                 if (devicePPPoE && customer.pppoe_username && devicePPPoE === customer.pppoe_username) {
                     deviceCustomer = customer;
                     coordinateSource = 'pppoe_username';
@@ -817,10 +817,10 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
                     deviceCustomer = customer;
                     coordinateSource = 'device_tag';
                 }
-                
+
                 if (deviceCustomer && deviceCustomer.latitude && deviceCustomer.longitude) {
                     const now = Date.now();
-                    const isOnline = device._lastInform && (now - new Date(device._lastInform).getTime()) < 3600*1000;
+                    const isOnline = device._lastInform && (now - new Date(device._lastInform).getTime()) < 3600 * 1000;
                     const ssid5g = device.InternetGatewayDevice?.LANDevice?.['1']?.WLANConfiguration?.['5']?.SSID?._value || '-';
                     const pass5g = device.InternetGatewayDevice?.LANDevice?.['1']?.WLANConfiguration?.['5']?.KeyPassphrase?._value || '-';
                     const pppoeIP = device.InternetGatewayDevice?.WANDevice?.['1']?.WANConnectionDevice?.['1']?.WANPPPConnection?.['1']?.ExternalIPAddress?._value || '-';
@@ -828,7 +828,7 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
                         || device.InternetGatewayDevice?.DeviceInfo?.['1']?.UpTime?._value
                         || device.VirtualParameters?.getdeviceuptime
                         || '-')
-                    
+
                     devicesWithCoords.push({
                         id: device._id,
                         serialNumber: device.DeviceID?.SerialNumber || device._id,
@@ -855,7 +855,7 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
                     });
                 } else {
                     const now = Date.now();
-                    const isOnline = device._lastInform && (now - new Date(device._lastInform).getTime()) < 3600*1000;
+                    const isOnline = device._lastInform && (now - new Date(device._lastInform).getTime()) < 3600 * 1000;
                     const ssid5g = device.InternetGatewayDevice?.LANDevice?.['1']?.WLANConfiguration?.['5']?.SSID?._value || '-';
                     const pass5g = device.InternetGatewayDevice?.LANDevice?.['1']?.WLANConfiguration?.['5']?.KeyPassphrase?._value || '-';
                     const pppoeIP = device.InternetGatewayDevice?.WANDevice?.['1']?.WANConnectionDevice?.['1']?.WANPPPConnection?.['1']?.ExternalIPAddress?._value || '-';
@@ -881,7 +881,7 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
                     });
                 }
             }
-            
+
             return res.json({
                 success: true,
                 data: {
@@ -900,7 +900,7 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
                 }
             });
         }
-        
+
         // Jika tidak ada parameter, kembalikan semua devices dengan koordinat
         // ENHANCEMENT: Gunakan cached version untuk performa lebih baik
         const { getDevicesCached } = require('../config/genieacs');
@@ -908,25 +908,25 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
         const customers = await billingManager.getCustomers();
         const devicesWithCoords = [];
         const devicesWithoutCoords = [];
-        
+
         // Map devices dengan customer coordinates
         for (const device of allDevices) {
             let deviceCustomer = null;
             let coordinateSource = 'none';
-            
+
             const devicePPPoE = device.VirtualParameters?.pppoeUsername || device.VirtualParameters?.pppUsername;
-            
+
             if (devicePPPoE) {
                 deviceCustomer = customers.find(c => c.pppoe_username === devicePPPoE);
                 if (deviceCustomer) {
                     coordinateSource = 'pppoe_username';
                 }
             }
-            
+
             if (deviceCustomer && deviceCustomer.latitude && deviceCustomer.longitude) {
                 const now = Date.now();
-                const isOnline = device._lastInform && (now - new Date(device._lastInform).getTime()) < 3600*1000;
-                
+                const isOnline = device._lastInform && (now - new Date(device._lastInform).getTime()) < 3600 * 1000;
+
                 devicesWithCoords.push({
                     id: device._id,
                     serialNumber: device.DeviceID?.SerialNumber || device._id,
@@ -956,7 +956,7 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
                 });
             }
         }
-        
+
         // Ambil data ODP connections untuk backbone visualization
         let odpConnections = [];
         try {
@@ -1001,7 +1001,7 @@ router.get('/api/mapping/devices', technicianAuth, async (req, res) => {
                 odpConnections: odpConnections
             }
         });
-        
+
     } catch (error) {
         logger.error('Error getting mapping devices for technician:', error);
         res.status(500).json({
@@ -1054,32 +1054,32 @@ router.put('/genieacs/devices/:deviceId', technicianAuth, async (req, res) => {
     try {
         const { deviceId } = req.params;
         const { ssid, password, ssid5g, tag } = req.body;
-        
+
         // Import GenieACS functions
         const { updateDevice } = require('../config/genieacs');
-        
+
         // Prepare device parameters to update
         const updates = {};
-        
+
         if (ssid !== undefined && ssid !== '') {
             updates['InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID'] = ssid;
             // SSID 5GHz: gunakan ssid5g bila dikirim, fallback {ssid}-5G
             const ssid5 = (typeof ssid5g === 'string' && ssid5g.trim()) ? ssid5g.trim() : `${ssid}-5G`;
             updates['InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID'] = ssid5;
         }
-        
+
         if (password !== undefined && password !== '') {
             updates['InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.KeyPassphrase'] = password;
             updates['InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.KeyPassphrase'] = password;
         }
-        
+
         if (tag !== undefined) {
             updates['Tags'] = tag;
         }
-        
+
         // Update device di GenieACS
         const result = await updateDevice(deviceId, updates);
-        
+
         if (result.success) {
             // Log activity
             await authManager.logActivity(
@@ -1088,7 +1088,7 @@ router.put('/genieacs/devices/:deviceId', technicianAuth, async (req, res) => {
                 `Update device ${deviceId}`,
                 { device_id: deviceId, updates: Object.keys(updates) }
             );
-            
+
             res.json({
                 success: true,
                 message: 'Device berhasil diperbarui',
@@ -1149,7 +1149,7 @@ router.get('/installations', technicianAuth, async (req, res) => {
                 ORDER BY ij.installation_date ASC, ij.created_at DESC 
                 LIMIT ? OFFSET ?
             `;
-            
+
             db.all(query, [...params, limit, offset], (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows);
@@ -1185,11 +1185,11 @@ router.get('/installations', technicianAuth, async (req, res) => {
                         completed: 0,
                         cancelled: 0
                     };
-                    
+
                     rows.forEach(row => {
                         statistics[row.status] = row.count;
                     });
-                    
+
                     resolve(statistics);
                 }
             });
@@ -1232,7 +1232,7 @@ router.get('/troubletickets', technicianAuth, async (req, res) => {
     try {
         // Get trouble reports with technician-specific filtering
         const reports = await getTroubleReportsForTechnician(req.technician.id, req.technician.role);
-        
+
         // Calculate stats
         const stats = {
             total: reports.length,
@@ -1280,29 +1280,29 @@ router.get('/troubletickets', technicianAuth, async (req, res) => {
 router.get('/troubletickets/detail/:id', technicianAuth, async (req, res) => {
     try {
         const reportId = req.params.id;
-        
+
         // Import trouble report functions
         const { getTroubleReportById } = require('../config/troubleReport');
         const report = getTroubleReportById(reportId);
-        
+
         if (!report) {
             return res.status(404).send('Laporan gangguan tidak ditemukan');
         }
-        
+
         // Check if technician has access to this report
         const canAccess = await canTechnicianAccessReport(req.technician.id, req.technician.role, report);
         if (!canAccess) {
             return res.status(403).send('Akses ditolak untuk laporan ini');
         }
-        
+
         // Log activity
         await authManager.logActivity(
-            req.technician.id, 
-            'troubleticket_detail_view', 
+            req.technician.id,
+            'troubleticket_detail_view',
             `Melihat detail laporan #${reportId}`,
             { report_id: reportId }
         );
-        
+
         // Render using admin/trouble-report-detail.ejs with technician context
         res.render('admin/trouble-report-detail', {
             title: `Detail Laporan #${reportId} - Portal Teknisi`,
@@ -1324,7 +1324,7 @@ router.get('/troubletickets/detail/:id', technicianAuth, async (req, res) => {
             technician: req.technician,
             technicianRole: req.technician.role
         });
-        
+
     } catch (error) {
         logger.error('Error loading trouble ticket detail:', error);
         res.status(500).send('Internal Server Error');
@@ -1431,43 +1431,42 @@ router.post('/payments/record', technicianAuth, async (req, res) => {
         const { invoice_id, amount, payment_method, reference_number, notes } = req.body;
 
         if (!invoice_id || !amount) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Invoice ID dan jumlah pembayaran wajib diisi' 
+            return res.status(400).json({
+                success: false,
+                message: 'Invoice ID dan jumlah pembayaran wajib diisi'
             });
         }
 
-        // Simpan pembayaran ke tabel collector_payments
-        const paymentData = {
+
+        const paymentId = await billingManager.recordCollectorPayment({
             collector_id: req.technician.id,
             invoice_id: parseInt(invoice_id),
             amount: parseFloat(amount),
             payment_method: payment_method || 'cash',
             reference_number: reference_number || null,
-            notes: notes || null
-        };
-
-        const paymentId = await recordCollectorPayment(paymentData);
+            notes: notes || null,
+            commission_amount: 0 // Default for technicians who aren't in collectors table
+        });
 
         // Log activity
         await authManager.logActivity(
-            req.technician.id, 
-            'payment_record', 
+            req.technician.id,
+            'payment_record',
             `Mencatat pembayaran invoice #${invoice_id}`,
             { invoice_id, amount, payment_method }
         );
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'Pembayaran berhasil dicatat',
             payment_id: paymentId
         });
 
     } catch (error) {
         logger.error('Error recording payment by collector:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Gagal mencatat pembayaran: ' + error.message 
+        res.status(500).json({
+            success: false,
+            message: 'Gagal mencatat pembayaran: ' + error.message
         });
     }
 });
@@ -1485,7 +1484,7 @@ async function getDashboardStats() {
                 (SELECT COUNT(*) FROM invoices WHERE status = 'unpaid') as unpaid_invoices,
                 (SELECT COUNT(*) FROM invoices WHERE status = 'paid') as paid_invoices
         `;
-        
+
         db.get(sql, [], (err, row) => {
             if (err) {
                 reject(err);
@@ -1504,7 +1503,7 @@ async function getRecentActivities(technicianId) {
             ORDER BY created_at DESC 
             LIMIT 10
         `;
-        
+
         db.all(sql, [technicianId], (err, rows) => {
             if (err) {
                 reject(err);
@@ -1518,21 +1517,21 @@ async function getRecentActivities(technicianId) {
 async function getPendingTasks(role) {
     // Return different tasks based on role
     const tasks = [];
-    
+
     if (role === 'technician' || role === 'field_officer') {
         tasks.push(
             { title: 'Laporan Gangguan Pending', count: 0, url: '/technician/troubletickets' },
             { title: 'Instalasi Baru', count: 0, url: '/technician/installations' }
         );
     }
-    
+
     if (role === 'collector' || role === 'field_officer') {
         tasks.push(
             { title: 'Tagihan Belum Ditagih', count: 0, url: '/technician/payments' },
             { title: 'Pembayaran Pending Verifikasi', count: 0, url: '/technician/payments?status=pending' }
         );
     }
-    
+
     return tasks;
 }
 
@@ -1553,17 +1552,17 @@ async function getCustomersForTechnician(search, limit, offset) {
             FROM customers c
             LEFT JOIN packages p ON c.package_id = p.id
         `;
-        
+
         const params = [];
-        
+
         if (search) {
             sql += ` WHERE c.name LIKE ? OR c.phone LIKE ? OR c.username LIKE ?`;
             params.push(`%${search}%`, `%${search}%`, `%${search}%`);
         }
-        
+
         sql += ` ORDER BY c.join_date DESC LIMIT ? OFFSET ?`;
         params.push(limit, offset);
-        
+
         db.all(sql, params, (err, rows) => {
             if (err) {
                 reject(err);
@@ -1578,12 +1577,12 @@ async function getTotalCustomers(search) {
     return new Promise((resolve, reject) => {
         let sql = `SELECT COUNT(*) as total FROM customers`;
         const params = [];
-        
+
         if (search) {
             sql += ` WHERE name LIKE ? OR phone LIKE ? OR username LIKE ?`;
             params.push(`%${search}%`, `%${search}%`, `%${search}%`);
         }
-        
+
         db.get(sql, params, (err, row) => {
             if (err) {
                 reject(err);
@@ -1603,7 +1602,7 @@ async function getCustomersWithCoordinates() {
             WHERE c.latitude IS NOT NULL AND c.longitude IS NOT NULL
             ORDER BY c.name
         `;
-        
+
         db.all(sql, [], (err, rows) => {
             if (err) {
                 reject(err);
@@ -1623,17 +1622,17 @@ async function getInstallationRequests(search, limit, offset, status = 'pending'
             LEFT JOIN packages p ON c.package_id = p.id
             WHERE c.status = ?
         `;
-        
+
         const params = [status];
-        
+
         if (search) {
             sql += ` AND (c.name LIKE ? OR c.phone LIKE ? OR c.username LIKE ?)`;
             params.push(`%${search}%`, `%${search}%`, `%${search}%`);
         }
-        
+
         sql += ` ORDER BY c.join_date DESC LIMIT ? OFFSET ?`;
         params.push(limit, offset);
-        
+
         db.all(sql, params, (err, rows) => {
             if (err) {
                 reject(err);
@@ -1648,12 +1647,12 @@ async function getTotalInstallations(search, status = 'pending') {
     return new Promise((resolve, reject) => {
         let sql = `SELECT COUNT(*) as total FROM customers WHERE status = ?`;
         const params = [status];
-        
+
         if (search) {
             sql += ` AND (name LIKE ? OR phone LIKE ? OR username LIKE ?)`;
             params.push(`%${search}%`, `%${search}%`, `%${search}%`);
         }
-        
+
         db.get(sql, params, (err, row) => {
             if (err) {
                 reject(err);
@@ -1670,12 +1669,12 @@ async function getTroubleReportsForTechnician(technicianId, role) {
     try {
         const { getAllTroubleReports } = require('../config/troubleReport');
         const allReports = getAllTroubleReports();
-        
+
         // Filter berdasarkan role teknisi
         if (role === 'technician') {
             // Teknisi hanya melihat laporan yang assigned ke dia atau belum di-assign
-            return allReports.filter(report => 
-                !report.assigned_technician_id || 
+            return allReports.filter(report =>
+                !report.assigned_technician_id ||
                 report.assigned_technician_id === technicianId
             );
         } else if (role === 'field_officer') {
@@ -1698,17 +1697,17 @@ async function canTechnicianAccessReport(technicianId, role, report) {
         if (role === 'field_officer') {
             return true;
         }
-        
+
         // Technician can access unassigned reports or reports assigned to them
         if (role === 'technician') {
             return !report.assigned_technician_id || report.assigned_technician_id === technicianId;
         }
-        
+
         // Collector can access resolved/closed reports
         if (role === 'collector') {
             return report.status === 'resolved' || report.status === 'closed';
         }
-        
+
         // Default: no access
         return false;
     } catch (error) {
@@ -1720,10 +1719,10 @@ async function canTechnicianAccessReport(technicianId, role, report) {
 async function updateTroubleTicketStatus(ticketId, status, notes, technicianId) {
     try {
         const { updateTroubleReportStatus } = require('../config/troubleReport');
-        
+
         // Format catatan dengan informasi teknisi
         const technicianNote = notes ? `[Teknisi]: ${notes}` : '';
-        
+
         // Call the function with the correct parameter signature
         return updateTroubleReportStatus(ticketId, status, technicianNote, true);
     } catch (error) {
@@ -1742,17 +1741,17 @@ async function getPaymentsForCollector(collectorId, status, limit, offset) {
             JOIN customers c ON i.customer_id = c.id
             WHERE cp.collector_id = ?
         `;
-        
+
         const params = [collectorId];
-        
+
         if (status !== 'all') {
             sql += ` AND cp.status = ?`;
             params.push(status);
         }
-        
+
         sql += ` ORDER BY cp.created_at DESC LIMIT ? OFFSET ?`;
         params.push(limit, offset);
-        
+
         db.all(sql, params, (err, rows) => {
             if (err) {
                 reject(err);
@@ -1767,12 +1766,12 @@ async function getTotalPaymentsForCollector(collectorId, status) {
     return new Promise((resolve, reject) => {
         let sql = `SELECT COUNT(*) as total FROM collector_payments WHERE collector_id = ?`;
         const params = [collectorId];
-        
+
         if (status !== 'all') {
             sql += ` AND status = ?`;
             params.push(status);
         }
-        
+
         db.get(sql, params, (err, row) => {
             if (err) {
                 reject(err);
@@ -1794,37 +1793,12 @@ async function getPaymentStatsForCollector(collectorId) {
             FROM collector_payments 
             WHERE collector_id = ?
         `;
-        
+
         db.get(sql, [collectorId], (err, row) => {
             if (err) {
                 reject(err);
             } else {
                 resolve(row || {});
-            }
-        });
-    });
-}
-
-async function recordCollectorPayment(paymentData) {
-    return new Promise((resolve, reject) => {
-        const sql = `
-            INSERT INTO collector_payments 
-            (collector_id, invoice_id, amount, payment_method, reference_number, notes) 
-            VALUES (?, ?, ?, ?, ?, ?)
-        `;
-        
-        db.run(sql, [
-            paymentData.collector_id,
-            paymentData.invoice_id,
-            paymentData.amount,
-            paymentData.payment_method,
-            paymentData.reference_number,
-            paymentData.notes
-        ], function(err) {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(this.lastID);
             }
         });
     });
@@ -1850,20 +1824,20 @@ function normalizePhone(phone) {
 router.post('/installations/update-status', async (req, res) => {
     try {
         const { jobId, status, notes } = req.body;
-        
+
         if (!jobId || !status) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Job ID dan status diperlukan' 
+            return res.status(400).json({
+                success: false,
+                message: 'Job ID dan status diperlukan'
             });
         }
 
         // Validate status
         const validStatuses = ['scheduled', 'assigned', 'in_progress', 'completed', 'cancelled'];
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Status tidak valid' 
+            return res.status(400).json({
+                success: false,
+                message: 'Status tidak valid'
             });
         }
 
@@ -1876,9 +1850,9 @@ router.post('/installations/update-status', async (req, res) => {
         });
 
         if (!currentJob) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Job instalasi tidak ditemukan' 
+            return res.status(404).json({
+                success: false,
+                message: 'Job instalasi tidak ditemukan'
             });
         }
 
@@ -1891,19 +1865,19 @@ router.post('/installations/update-status', async (req, res) => {
             WHERE id = ?
         `;
 
-        db.run(updateQuery, [status, notes || null, jobId], function(err) {
+        db.run(updateQuery, [status, notes || null, jobId], function (err) {
             if (err) {
                 console.error('Error updating installation status:', err);
-                return res.status(500).json({ 
-                    success: false, 
-                    message: 'Gagal mengupdate status instalasi' 
+                return res.status(500).json({
+                    success: false,
+                    message: 'Gagal mengupdate status instalasi'
                 });
             }
 
             if (this.changes === 0) {
-                return res.status(404).json({ 
-                    success: false, 
-                    message: 'Job instalasi tidak ditemukan' 
+                return res.status(404).json({
+                    success: false,
+                    message: 'Job instalasi tidak ditemukan'
                 });
             }
 
@@ -1914,7 +1888,7 @@ router.post('/installations/update-status', async (req, res) => {
             (async () => {
                 try {
                     const whatsappNotifications = require('../config/whatsapp-notifications');
-                    
+
                     // Get technician details
                     const technician = await new Promise((resolve, reject) => {
                         db.get('SELECT id, name, phone, role FROM technicians WHERE id = ?', [req.session.technicianId], (err, row) => {
@@ -1933,10 +1907,10 @@ router.post('/installations/update-status', async (req, res) => {
 
                         // Send status update notification
                         const notificationResult = await whatsappNotifications.sendInstallationStatusUpdateNotification(
-                            technician, 
-                            currentJob, 
-                            customer, 
-                            status, 
+                            technician,
+                            currentJob,
+                            customer,
+                            status,
                             notes
                         );
 
@@ -1969,8 +1943,8 @@ router.post('/installations/update-status', async (req, res) => {
                 }
             })();
 
-            res.json({ 
-                success: true, 
+            res.json({
+                success: true,
                 message: 'Status instalasi berhasil diupdate',
                 data: {
                     jobId,
@@ -1983,9 +1957,9 @@ router.post('/installations/update-status', async (req, res) => {
 
     } catch (error) {
         console.error('Error in update installation status:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Terjadi kesalahan server' 
+        res.status(500).json({
+            success: false,
+            message: 'Terjadi kesalahan server'
         });
     }
 });
@@ -1994,66 +1968,66 @@ router.post('/installations/update-status', async (req, res) => {
 
 // API endpoint untuk monitoring cache performance
 router.get('/genieacs/api/cache-stats', technicianAuth, async (req, res) => {
-  try {
-    const { getCacheStats } = require('../config/genieacs');
-    const stats = getCacheStats();
-    
-    res.json({
-      success: true,
-      data: {
-        cache: stats,
-        timestamp: new Date().toISOString(),
-        performance: {
-          memoryUsage: process.memoryUsage(),
-          uptime: process.uptime()
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Error getting cache stats:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Gagal mengambil statistik cache'
-    });
-  }
+    try {
+        const { getCacheStats } = require('../config/genieacs');
+        const stats = getCacheStats();
+
+        res.json({
+            success: true,
+            data: {
+                cache: stats,
+                timestamp: new Date().toISOString(),
+                performance: {
+                    memoryUsage: process.memoryUsage(),
+                    uptime: process.uptime()
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error getting cache stats:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal mengambil statistik cache'
+        });
+    }
 });
 
 // API endpoint untuk clear cache
 router.post('/genieacs/api/cache-clear', technicianAuth, async (req, res) => {
-  try {
-    const { clearDeviceCache, clearAllCache } = require('../config/genieacs');
-    const { deviceId, clearAll = false } = req.body;
-    
-    console.log('Cache clear request:', { deviceId, clearAll });
-    
-    if (clearAll) {
-      clearAllCache();
-      res.json({
-        success: true,
-        message: 'All cache cleared successfully'
-      });
-    } else if (deviceId) {
-      clearDeviceCache(deviceId);
-      res.json({
-        success: true,
-        message: `Cache cleared for device ${deviceId}`
-      });
-    } else {
-      // Default: clear all GenieACS devices cache
-      clearDeviceCache();
-      res.json({
-        success: true,
-        message: 'GenieACS devices cache cleared'
-      });
+    try {
+        const { clearDeviceCache, clearAllCache } = require('../config/genieacs');
+        const { deviceId, clearAll = false } = req.body;
+
+        console.log('Cache clear request:', { deviceId, clearAll });
+
+        if (clearAll) {
+            clearAllCache();
+            res.json({
+                success: true,
+                message: 'All cache cleared successfully'
+            });
+        } else if (deviceId) {
+            clearDeviceCache(deviceId);
+            res.json({
+                success: true,
+                message: `Cache cleared for device ${deviceId}`
+            });
+        } else {
+            // Default: clear all GenieACS devices cache
+            clearDeviceCache();
+            res.json({
+                success: true,
+                message: 'GenieACS devices cache cleared'
+            });
+        }
+    } catch (error) {
+        console.error('Error clearing cache:', error);
+        res.status(500).json({
+            success: false,
+            message: `Gagal clear cache: ${error.message}`,
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
-  } catch (error) {
-    console.error('Error clearing cache:', error);
-    res.status(500).json({
-      success: false,
-      message: `Gagal clear cache: ${error.message}`,
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
 });
 
 /**
@@ -2065,12 +2039,12 @@ router.get('/api/genieacs-stats', technicianAuth, async (req, res) => {
     try {
         const { getDevicesCached } = require('../config/genieacs');
         const devices = await getDevicesCached();
-        
+
         const total = devices.length;
         const now = Date.now();
-        const online = devices.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600*1000).length;
+        const online = devices.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600 * 1000).length;
         const offline = total - online;
-        
+
         res.json({
             success: true,
             total,
@@ -2093,7 +2067,7 @@ router.get('/api/customer-stats', technicianAuth, async (req, res) => {
     try {
         const customers = await billingManager.getCustomers();
         const total = customers.length;
-        
+
         res.json({
             success: true,
             total
@@ -2136,7 +2110,7 @@ router.get('/api/mapping-data', technicianAuth, async (req, res) => {
         const sqlite3 = require('sqlite3').verbose();
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Get ODPs data from database
         const odps = await new Promise((resolve, reject) => {
             db.all(`
@@ -2150,7 +2124,7 @@ router.get('/api/mapping-data', technicianAuth, async (req, res) => {
                 else resolve(rows || []);
             });
         });
-        
+
         // Get cables data from database (sesuai struktur tabel yang sebenarnya)
         const cables = await new Promise((resolve, reject) => {
             db.all(`
@@ -2169,7 +2143,7 @@ router.get('/api/mapping-data', technicianAuth, async (req, res) => {
                 else resolve(rows || []);
             });
         });
-        
+
         // Get backbone data from database (menggunakan odp_connections table untuk routing antar ODP)
         const backbone = await new Promise((resolve, reject) => {
             db.all(`
@@ -2189,7 +2163,7 @@ router.get('/api/mapping-data', technicianAuth, async (req, res) => {
                 else resolve(rows || []);
             });
         });
-        
+
         // Get customers data with real coordinates from database
         const customers = await new Promise((resolve, reject) => {
             db.all(`
@@ -2205,7 +2179,7 @@ router.get('/api/mapping-data', technicianAuth, async (req, res) => {
                 else resolve(rows || []);
             });
         });
-        
+
         // Format cables for map (sesuai struktur tabel cable_routes)
         const formattedCables = cables.map(cable => ({
             id: cable.id,
@@ -2220,7 +2194,7 @@ router.get('/api/mapping-data', technicianAuth, async (req, res) => {
             from_odp: cable.odp_name,
             to_customer: cable.customer_name
         }));
-        
+
         // Generate cables dynamically from customers and ODPs
         const dynamicCables = customers
             .filter(cust => cust.odp_id && cust.latitude && cust.longitude)
@@ -2240,7 +2214,7 @@ router.get('/api/mapping-data', technicianAuth, async (req, res) => {
                 };
             })
             .filter(Boolean);
-        
+
         // Format backbone for map (sesuai struktur tabel odp_connections)
         const formattedBackbone = backbone.map(backboneItem => ({
             id: backboneItem.id,
@@ -2256,12 +2230,12 @@ router.get('/api/mapping-data', technicianAuth, async (req, res) => {
             from_odp: backboneItem.start_odp_name,
             to_odp: backboneItem.end_odp_name
         }));
-        
+
         logger.info(`✅ Loaded mapping data: ${odps.length} ODPs, ${customers.length} customers, ${dynamicCables.length} cables, ${formattedBackbone.length} backbone routes`);
-        
+
         // Close database connection
         db.close();
-        
+
         res.json({
             success: true,
             data: {
@@ -2278,7 +2252,7 @@ router.get('/api/mapping-data', technicianAuth, async (req, res) => {
         } catch (closeError) {
             logger.error('Error closing database:', closeError);
         }
-        
+
         logger.error('Error getting mapping data:', error);
         res.json({
             success: false,
@@ -2294,7 +2268,7 @@ router.get('/api/test-mapping-data', async (req, res) => {
         const sqlite3 = require('sqlite3').verbose();
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Get ODPs data from database
         const odps = await new Promise((resolve, reject) => {
             db.all(`SELECT * FROM odps WHERE latitude IS NOT NULL AND longitude IS NOT NULL`, (err, rows) => {
@@ -2302,12 +2276,12 @@ router.get('/api/test-mapping-data', async (req, res) => {
                 else resolve(rows || []);
             });
         });
-        
+
         // Close database connection
         db.close();
-        
+
         console.log(`✅ Test mapping data: ${odps.length} ODPs found`);
-        
+
         res.json({
             success: true,
             data: {
@@ -2351,7 +2325,7 @@ router.get('/api/monitoring-data', technicianAuth, async (req, res) => {
     try {
         const { getDevicesCached } = require('../config/genieacs');
         const devicesRaw = await getDevicesCached();
-        
+
         // ParameterPaths yang sama dengan admin GenieACS
         const parameterPaths = {
             pppUsername: [
@@ -2397,7 +2371,7 @@ router.get('/api/monitoring-data', technicianAuth, async (req, res) => {
             for (const path of paths) {
                 const parts = path.split('.');
                 let value = device;
-                
+
                 for (const part of parts) {
                     if (value && typeof value === 'object' && part in value) {
                         value = value[part];
@@ -2407,7 +2381,7 @@ router.get('/api/monitoring-data', technicianAuth, async (req, res) => {
                         break;
                     }
                 }
-                
+
                 if (value !== undefined && value !== null && value !== '') {
                     // Handle special case for device tags
                     if (path.includes('Tags') || path.includes('_tags')) {
@@ -2431,11 +2405,11 @@ router.get('/api/monitoring-data', technicianAuth, async (req, res) => {
             const diffMinutes = (now - lastInformTime) / (1000 * 60);
             return diffMinutes <= 60 ? 'Online' : 'Offline';
         }
-        
+
         // Process devices data dengan parameter lengkap
         const devices = devicesRaw.map(device => {
             const status = getDeviceStatus(device._lastInform);
-            
+
             return {
                 _id: device._id,
                 id: device._id,
@@ -2454,14 +2428,14 @@ router.get('/api/monitoring-data', technicianAuth, async (req, res) => {
                 tag: getParameterWithPaths(device, parameterPaths.deviceTags)
             };
         });
-        
+
         // Calculate statistics
         const statistics = {
             total: devices.length,
             online: devices.filter(d => d.isOnline).length,
             offline: devices.filter(d => !d.isOnline).length
         };
-        
+
         res.json({
             success: true,
             devices,
@@ -2502,7 +2476,7 @@ router.get('/mobile/customers', technicianAuth, async (req, res) => {
 router.get('/api/customer-data', technicianAuth, async (req, res) => {
     try {
         const customers = await billingManager.getCustomers();
-        
+
         // Calculate statistics
         const statistics = {
             total: customers.length,
@@ -2510,7 +2484,7 @@ router.get('/api/customer-data', technicianAuth, async (req, res) => {
             suspended: customers.filter(c => c.status === 'suspended').length,
             pending: customers.filter(c => c.status === 'pending').length
         };
-        
+
         res.json({
             success: true,
             customers,
@@ -2529,7 +2503,7 @@ router.get('/api/customer-data', technicianAuth, async (req, res) => {
 router.post('/api/suspend-customer/:customerId', technicianAuth, async (req, res) => {
     try {
         const { customerId } = req.params;
-        
+
         // Get customer data
         const customer = await billingManager.getCustomerById(customerId);
         if (!customer) {
@@ -2538,18 +2512,18 @@ router.post('/api/suspend-customer/:customerId', technicianAuth, async (req, res
                 message: 'Customer not found'
             });
         }
-        
+
         // Use service suspension system
         const serviceSuspension = require('../config/serviceSuspension');
         const result = await serviceSuspension.suspendCustomerService(customer);
-        
+
         if (result.success) {
             // Log activity
             await authManager.logActivity(req.technician.id, 'customer_suspend', `Suspended customer ${customer.username || customer.pppoe_username}`, {
                 customerId,
                 customerUsername: customer.username || customer.pppoe_username
             });
-            
+
             res.json({
                 success: true,
                 message: 'Customer suspended successfully'
@@ -2573,7 +2547,7 @@ router.post('/api/suspend-customer/:customerId', technicianAuth, async (req, res
 router.post('/api/restore-customer/:customerId', technicianAuth, async (req, res) => {
     try {
         const { customerId } = req.params;
-        
+
         // Get customer data
         const customer = await billingManager.getCustomerById(customerId);
         if (!customer) {
@@ -2582,18 +2556,18 @@ router.post('/api/restore-customer/:customerId', technicianAuth, async (req, res
                 message: 'Customer not found'
             });
         }
-        
+
         // Use service suspension system
         const serviceSuspension = require('../config/serviceSuspension');
         const result = await serviceSuspension.restoreCustomerService(customer);
-        
+
         if (result.success) {
             // Log activity
             await authManager.logActivity(req.technician.id, 'customer_restore', `Restored customer ${customer.username || customer.pppoe_username}`, {
                 customerId,
                 customerUsername: customer.username || customer.pppoe_username
             });
-            
+
             res.json({
                 success: true,
                 message: 'Customer restored successfully'
@@ -2626,31 +2600,31 @@ router.get('/mobile/dashboard', technicianAuth, async (req, res) => {
         let genieacsTotal = 0, genieacsOnline = 0, genieacsOffline = 0;
         let mikrotikTotal = 0, mikrotikAktif = 0, mikrotikOffline = 0;
         let settings = {};
-        
+
         try {
             // Import functions for dashboard data
             const { getDevices } = require('../config/genieacs');
             const { getActivePPPoEConnections, getInactivePPPoEUsers } = require('../config/mikrotik');
             const { getSettingsWithCache } = require('../config/settingsManager');
-            
+
             // Baca settings.json
             settings = getSettingsWithCache();
-            
+
             // GenieACS data
             const { getDevicesCached } = require('../config/genieacs');
             const devices = await getDevicesCached();
             genieacsTotal = devices.length;
             const now = Date.now();
-            genieacsOnline = devices.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600*1000).length;
+            genieacsOnline = devices.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600 * 1000).length;
             genieacsOffline = genieacsTotal - genieacsOnline;
-            
+
             // Mikrotik data
             const aktifResult = await getActivePPPoEConnections();
             mikrotikAktif = aktifResult.success ? aktifResult.data.length : 0;
             const offlineResult = await getInactivePPPoEUsers();
             mikrotikOffline = offlineResult.success ? offlineResult.totalInactive : 0;
             mikrotikTotal = (offlineResult.success ? offlineResult.totalSecrets : 0);
-            
+
         } catch (e) {
             console.error('Error getting dashboard data for technician mobile:', e);
             // Use default values if error
@@ -2688,11 +2662,11 @@ router.get('/mobile/monitoring', technicianAuth, async (req, res) => {
         // Get the same data as admin GenieACS page
         const { getDevices } = require('../config/genieacs');
         const { getSettingsWithCache } = require('../config/settingsManager');
-        
+
         // Get devices data
         const { getDevicesCached } = require('../config/genieacs');
         const devicesRaw = await getDevicesCached();
-        
+
         // Use the exact same parameter paths as admin GenieACS
         const parameterPaths = {
             pppUsername: [
@@ -2737,13 +2711,13 @@ router.get('/mobile/monitoring', technicianAuth, async (req, res) => {
                 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.TotalAssociations'
             ]
         };
-        
+
         // Use the exact same getParameterWithPaths function as admin
         function getParameterWithPaths(device, paths) {
             for (const path of paths) {
                 const parts = path.split('.');
                 let value = device;
-                
+
                 for (const part of parts) {
                     if (value && typeof value === 'object' && part in value) {
                         value = value[part];
@@ -2753,7 +2727,7 @@ router.get('/mobile/monitoring', technicianAuth, async (req, res) => {
                         break;
                     }
                 }
-                
+
                 if (value !== undefined && value !== null && value !== '') {
                     // Handle special case for device tags
                     if (path.includes('Tags') || path.includes('_tags')) {
@@ -2768,7 +2742,7 @@ router.get('/mobile/monitoring', technicianAuth, async (req, res) => {
             }
             return '-';
         }
-        
+
         // Map devices data exactly like admin GenieACS
         const devices = devicesRaw.map((device, i) => ({
             id: device._id || '-',
@@ -2790,14 +2764,14 @@ router.get('/mobile/monitoring', technicianAuth, async (req, res) => {
                             ? device._tags
                             : '-'
         }));
-        
+
         // Calculate statistics
         const genieacsTotal = devicesRaw.length;
         const now = Date.now();
-        const genieacsOnline = devicesRaw.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600*1000).length;
+        const genieacsOnline = devicesRaw.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600 * 1000).length;
         const genieacsOffline = genieacsTotal - genieacsOnline;
         const settings = getSettingsWithCache();
-        
+
         // Log activity
         await authManager.logActivity(req.technician.id, 'mobile_monitoring_access', 'Mengakses mobile monitoring');
 
@@ -2839,7 +2813,7 @@ router.get('/mobile/customers', technicianAuth, async (req, res) => {
         // Ambil data customers & packages
         const allCustomers = await billingManager.getCustomers();
         const packages = await billingManager.getPackages();
-        
+
         // Get ODPs for dropdown selection (termasuk sub ODP)
         const odps = await new Promise((resolve, reject) => {
             const db = getDb();
@@ -2943,9 +2917,9 @@ router.get('/collectors', technicianAuth, async (req, res) => {
         });
     } catch (error) {
         console.error('Error loading collectors:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Gagal memuat data tukang tagih',
-            error: error 
+            error: error
         });
     }
 });
@@ -2962,9 +2936,9 @@ router.get('/settings', technicianAuth, async (req, res) => {
         });
     } catch (error) {
         console.error('Error loading settings:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Gagal memuat halaman pengaturan',
-            error: error 
+            error: error
         });
     }
 });

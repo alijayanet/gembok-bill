@@ -40,7 +40,7 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const uploadPackageImage = multer({ 
+const uploadPackageImage = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
@@ -92,12 +92,12 @@ router.get('/mobile', getAppSettings, async (req, res) => {
         const totalInvoices = await billingManager.getTotalInvoices();
         const totalRevenue = await billingManager.getTotalRevenue();
         const pendingPayments = await billingManager.getPendingPayments();
-        
+
         // Redirect to responsive desktop dashboard
         res.redirect('/admin/billing/dashboard');
     } catch (error) {
         logger.error('Error loading mobile billing dashboard:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading mobile billing dashboard',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -112,7 +112,7 @@ router.get('/mobile/customers', getAppSettings, async (req, res) => {
         res.redirect('/admin/billing/customers');
     } catch (error) {
         logger.error('Error loading mobile customers:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading mobile customers',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -126,7 +126,7 @@ router.get('/mobile/invoices', getAppSettings, async (req, res) => {
         res.redirect('/admin/billing/invoices');
     } catch (error) {
         logger.error('Error loading mobile invoices:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading mobile invoices',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -140,7 +140,7 @@ router.get('/mobile/payments', getAppSettings, async (req, res) => {
         res.redirect('/admin/billing/payments');
     } catch (error) {
         logger.error('Error loading mobile payments:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading mobile payments',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -151,18 +151,18 @@ router.get('/mobile/payments', getAppSettings, async (req, res) => {
 router.post('/api/monthly-reset', adminAuth, async (req, res) => {
     try {
         console.log('🔄 Manual monthly reset requested...');
-        
+
         const MonthlyResetSystem = require('../scripts/monthly-reset-simple');
         const resetSystem = new MonthlyResetSystem();
-        
+
         const result = await resetSystem.runMonthlyReset();
-        
+
         res.json({
             success: true,
             message: 'Monthly reset completed successfully',
             timestamp: new Date().toISOString()
         });
-        
+
     } catch (error) {
         console.error('Error in manual monthly reset:', error);
         res.status(500).json({
@@ -177,7 +177,7 @@ router.get('/api/monthly-reset-status', adminAuth, async (req, res) => {
     try {
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Get last reset date
         const lastReset = await new Promise((resolve, reject) => {
             db.get(`
@@ -188,7 +188,7 @@ router.get('/api/monthly-reset-status', adminAuth, async (req, res) => {
                 else resolve(row ? row.value : null);
             });
         });
-        
+
         // Get current month stats
         const currentStats = await new Promise((resolve, reject) => {
             const MonthlyResetSystem = require('../scripts/monthly-reset-simple');
@@ -197,9 +197,9 @@ router.get('/api/monthly-reset-status', adminAuth, async (req, res) => {
                 .then(stats => resolve(stats))
                 .catch(err => reject(err));
         });
-        
+
         db.close();
-        
+
         res.json({
             success: true,
             data: {
@@ -208,7 +208,7 @@ router.get('/api/monthly-reset-status', adminAuth, async (req, res) => {
                 nextReset: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString()
             }
         });
-        
+
     } catch (error) {
         console.error('Error getting monthly reset status:', error);
         res.status(500).json({
@@ -224,7 +224,7 @@ router.get('/mobile/collector', getAppSettings, async (req, res) => {
         // Get collectors list for mobile
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Get collectors with statistics - dengan validasi data
         const collectors = await new Promise((resolve, reject) => {
             db.all(`
@@ -254,12 +254,12 @@ router.get('/mobile/collector', getAppSettings, async (req, res) => {
                 }
             });
         });
-        
+
         // Calculate statistics
         const today = new Date();
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-        
+
         const todayPayments = await new Promise((resolve, reject) => {
             db.get(`
                 SELECT COALESCE(SUM(payment_amount), 0) as total
@@ -270,11 +270,11 @@ router.get('/mobile/collector', getAppSettings, async (req, res) => {
                 else resolve(Math.round(parseFloat(row ? row.total : 0))); // Rounding untuk konsistensi
             });
         });
-        
+
         const totalCollectors = collectors.length;
-        
+
         db.close();
-        
+
         res.render('admin/billing/mobile-collector', {
             title: 'Tukang Tagih - Mobile',
             appSettings: req.appSettings,
@@ -286,7 +286,7 @@ router.get('/mobile/collector', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading mobile collectors:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading mobile collectors',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -299,7 +299,7 @@ router.get('/api/customer-invoices/:customerId', adminAuth, async (req, res) => 
         const { customerId } = req.params;
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         const invoices = await new Promise((resolve, reject) => {
             db.all(`
                 SELECT i.*, p.name as package_name
@@ -312,14 +312,14 @@ router.get('/api/customer-invoices/:customerId', adminAuth, async (req, res) => 
                 else resolve(rows || []);
             });
         });
-        
+
         db.close();
-        
+
         res.json({
             success: true,
             data: invoices
         });
-        
+
     } catch (error) {
         console.error('Error getting customer invoices:', error);
         res.status(500).json({
@@ -333,14 +333,14 @@ router.get('/api/customer-invoices/:customerId', adminAuth, async (req, res) => 
 router.post('/api/collector-payment', adminAuth, async (req, res) => {
     try {
         const { collector_id, customer_id, payment_amount, payment_method, notes, invoice_ids } = req.body;
-        
+
         if (!collector_id || !customer_id || !payment_amount) {
             return res.status(400).json({
                 success: false,
                 message: 'Missing required fields'
             });
         }
-        
+
         // Validasi jumlah pembayaran
         const paymentAmountNum = Number(payment_amount);
         if (paymentAmountNum <= 0 || paymentAmountNum > 999999999) {
@@ -349,10 +349,10 @@ router.post('/api/collector-payment', adminAuth, async (req, res) => {
                 message: 'Jumlah pembayaran tidak valid (harus > 0 dan < 999,999,999)'
             });
         }
-        
+
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Mulai transaction untuk operasi kompleks
         await new Promise((resolve, reject) => {
             db.run('BEGIN TRANSACTION', (err) => {
@@ -360,102 +360,95 @@ router.post('/api/collector-payment', adminAuth, async (req, res) => {
                 else resolve();
             });
         });
-        
+
         try {
             // Get collector commission rate
-        const collector = await new Promise((resolve, reject) => {
-            db.get('SELECT commission_rate FROM collectors WHERE id = ?', [collector_id], (err, row) => {
-                if (err) reject(err);
-                else resolve(row);
+            const collector = await new Promise((resolve, reject) => {
+                db.get('SELECT commission_rate FROM collectors WHERE id = ?', [collector_id], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
             });
-        });
-        
-        if (!collector) {
-            return res.status(400).json({
-                success: false,
-                message: 'Collector not found'
-            });
-        }
-        
-        const commissionRate = collector.commission_rate || 5;
-        
-        // Validasi commission rate
-        if (commissionRate < 0 || commissionRate > 100) {
-            return res.status(400).json({
-                success: false,
-                message: 'Rate komisi tidak valid (harus antara 0-100%)'
-            });
-        }
-        
-        const commissionAmount = Math.round((paymentAmountNum * commissionRate) / 100); // Rounding untuk komisi
-        
-        // Insert collector payment (ensure legacy 'amount' column is populated)
-        const paymentId = await new Promise((resolve, reject) => {
-            db.run(`
-                INSERT INTO collector_payments (
-                    collector_id, customer_id, amount, payment_amount, commission_amount,
-                    payment_method, notes, status, collected_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'completed', CURRENT_TIMESTAMP)
-            `, [collector_id, customer_id, paymentAmountNum, paymentAmountNum, commissionAmount, payment_method, notes], function(err) {
-                if (err) reject(err);
-                else resolve(this.lastID);
-            });
-        });
-        
-        // Update invoices if specified, else auto-allocate to oldest unpaid invoices
-        if (invoice_ids && invoice_ids.length > 0) {
-            for (const invoiceId of invoice_ids) {
-                // Tandai invoice lunas
-                await billingManager.updateInvoiceStatus(Number(invoiceId), 'paid', payment_method);
-                // Catat entri payment sesuai nilai invoice dengan collector info
-                const inv = await billingManager.getInvoiceById(Number(invoiceId));
-                const invAmount = parseFloat(inv?.amount || 0) || 0;
-                await billingManager.recordCollectorPayment({
-                    invoice_id: Number(invoiceId),
-                    amount: invAmount,
-                    payment_method,
-                    reference_number: '',
-                    notes: notes || `Collector ${collector_id}`,
-                    collector_id: collector_id,
-                    commission_amount: Math.round((invAmount * commissionRate) / 100)
+
+            if (!collector) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Collector not found'
                 });
             }
-        } else {
-            // Auto allocate payment to unpaid invoices (oldest first)
-            let remaining = Number(payment_amount) || 0;
-            if (remaining > 0) {
-                const unpaidInvoices = await new Promise((resolve, reject) => {
-                    db.all(`
+
+            const commissionRate = collector.commission_rate || 5;
+
+            // Validasi commission rate
+            if (commissionRate < 0 || commissionRate > 100) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Rate komisi tidak valid (harus antara 0-100%)'
+                });
+            }
+
+            const commissionAmount = Math.round((paymentAmountNum * commissionRate) / 100); // Rounding untuk komisi
+
+            let lastPaymentId = null;
+
+            // Update invoices if specified, else auto-allocate to oldest unpaid invoices
+            if (invoice_ids && invoice_ids.length > 0) {
+                for (const invoiceId of invoice_ids) {
+                    // Tandai invoice lunas
+                    await billingManager.updateInvoiceStatus(Number(invoiceId), 'paid', payment_method);
+                    // Catat entri payment sesuai nilai invoice dengan collector info
+                    const inv = await billingManager.getInvoiceById(Number(invoiceId));
+                    const invAmount = parseFloat(inv?.amount || 0) || 0;
+                    const result = await billingManager.recordCollectorPayment({
+                        invoice_id: Number(invoiceId),
+                        amount: invAmount,
+                        customer_id: Number(customer_id),
+                        payment_method,
+                        reference_number: '',
+                        notes: notes || `Collector ${collector_id}`,
+                        collector_id: collector_id,
+                        commission_amount: Math.round((invAmount * commissionRate) / 100)
+                    });
+                    lastPaymentId = result?.id || lastPaymentId;
+                }
+            } else {
+                // Auto allocate payment to unpaid invoices (oldest first)
+                let remaining = Number(payment_amount) || 0;
+                if (remaining > 0) {
+                    const unpaidInvoices = await new Promise((resolve, reject) => {
+                        db.all(`
                         SELECT id, amount FROM invoices 
                         WHERE customer_id = ? AND status = 'unpaid'
                         ORDER BY due_date ASC, id ASC
                     `, [customer_id], (err, rows) => {
-                        if (err) reject(err);
-                        else resolve(rows || []);
-                    });
-                });
-                for (const inv of unpaidInvoices) {
-                    const invAmount = Number(inv.amount) || 0;
-                    if (remaining >= invAmount && invAmount > 0) {
-                        await billingManager.updateInvoiceStatus(inv.id, 'paid', payment_method);
-                        await billingManager.recordCollectorPayment({
-                            invoice_id: inv.id,
-                            amount: invAmount,
-                            payment_method,
-                            reference_number: '',
-                            notes: notes || `Collector ${collector_id}`,
-                            collector_id: collector_id,
-                            commission_amount: Math.round((invAmount * commissionRate) / 100)
+                            if (err) reject(err);
+                            else resolve(rows || []);
                         });
-                        remaining -= invAmount;
-                        if (remaining <= 0) break;
-                    } else {
-                        break; // skip partial for now
+                    });
+                    for (const inv of unpaidInvoices) {
+                        const invAmount = Number(inv.amount) || 0;
+                        if (remaining >= invAmount && invAmount > 0) {
+                            await billingManager.updateInvoiceStatus(inv.id, 'paid', payment_method);
+                            const result = await billingManager.recordCollectorPayment({
+                                invoice_id: inv.id,
+                                amount: invAmount,
+                                customer_id: Number(customer_id),
+                                payment_method,
+                                reference_number: '',
+                                notes: notes || `Collector ${collector_id}`,
+                                collector_id: collector_id,
+                                commission_amount: Math.round((invAmount * commissionRate) / 100)
+                            });
+                            lastPaymentId = result?.id || lastPaymentId;
+                            remaining -= invAmount;
+                            if (remaining <= 0) break;
+                        } else {
+                            break; // skip partial for now
+                        }
                     }
                 }
             }
-        }
-        
+
             // Commit transaction jika semua operasi berhasil
             await new Promise((resolve, reject) => {
                 db.run('COMMIT', (err) => {
@@ -463,7 +456,7 @@ router.post('/api/collector-payment', adminAuth, async (req, res) => {
                     else resolve();
                 });
             });
-            
+
         } catch (error) {
             // Rollback transaction jika ada error
             await new Promise((resolve) => {
@@ -473,14 +466,14 @@ router.post('/api/collector-payment', adminAuth, async (req, res) => {
         } finally {
             db.close();
         }
-        
+
         res.json({
             success: true,
             message: 'Payment recorded successfully',
-            payment_id: paymentId,
+            payment_id: lastPaymentId,
             commission_amount: commissionAmount
         });
-        
+
     } catch (error) {
         console.error('Error recording collector payment:', error);
         res.status(500).json({
@@ -496,7 +489,7 @@ router.get('/mobile/collector/payment', getAppSettings, async (req, res) => {
         // Get collectors and customers for payment form
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         const [collectors, customers] = await Promise.all([
             new Promise((resolve, reject) => {
                 db.all('SELECT * FROM collectors WHERE status = "active" ORDER BY name', (err, rows) => {
@@ -511,9 +504,9 @@ router.get('/mobile/collector/payment', getAppSettings, async (req, res) => {
                 });
             })
         ]);
-        
+
         db.close();
-        
+
         res.render('admin/billing/mobile-collector-payment', {
             title: 'Input Pembayaran - Mobile',
             appSettings: req.appSettings,
@@ -522,7 +515,7 @@ router.get('/mobile/collector/payment', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading collector payment form:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading payment form',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -535,7 +528,7 @@ router.get('/collector-reports', getAppSettings, async (req, res) => {
         const { dateFrom, dateTo, collector } = req.query;
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Check if collectors table exists
         const tableExists = await new Promise((resolve, reject) => {
             db.get(`
@@ -546,7 +539,7 @@ router.get('/collector-reports', getAppSettings, async (req, res) => {
                 else resolve(!!row);
             });
         });
-        
+
         if (!tableExists) {
             db.close();
             return res.render('admin/billing/collector-reports', {
@@ -567,21 +560,21 @@ router.get('/collector-reports', getAppSettings, async (req, res) => {
                 error: 'Tabel kolektor belum tersedia. Silakan tambahkan kolektor terlebih dahulu.'
             });
         }
-        
+
         // Set default date range (last 30 days)
         const defaultDateTo = new Date();
         const defaultDateFrom = new Date();
         defaultDateFrom.setDate(defaultDateFrom.getDate() - 30);
-        
+
         const startDate = dateFrom || defaultDateFrom.toISOString().split('T')[0];
         const endDate = dateTo || defaultDateTo.toISOString().split('T')[0];
-        
+
         // Build date filter
         const dateFilter = `AND cp.collected_at >= '${startDate}' AND cp.collected_at <= '${endDate} 23:59:59'`;
-        
+
         // Build collector filter
         const collectorFilter = collector ? `AND c.id = ${collector}` : '';
-        
+
         // Get collectors with statistics
         const collectors = await new Promise((resolve, reject) => {
             db.all(`
@@ -606,7 +599,7 @@ router.get('/collector-reports', getAppSettings, async (req, res) => {
                 }
             });
         });
-        
+
         // Get summary statistics
         const summary = await new Promise((resolve, reject) => {
             db.get(`
@@ -634,9 +627,9 @@ router.get('/collector-reports', getAppSettings, async (req, res) => {
                 }
             });
         });
-        
+
         db.close();
-        
+
         res.render('admin/billing/collector-reports', {
             title: 'Laporan Kolektor',
             appSettings: req.appSettings,
@@ -648,10 +641,10 @@ router.get('/collector-reports', getAppSettings, async (req, res) => {
                 collector: collector || ''
             }
         });
-        
+
     } catch (error) {
         logger.error('Error loading collector reports:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading collector reports',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -665,15 +658,15 @@ router.get('/collector-details/:id', getAppSettings, async (req, res) => {
         const { dateFrom, dateTo } = req.query;
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Set default date range (last 30 days)
         const defaultDateTo = new Date();
         const defaultDateFrom = new Date();
         defaultDateFrom.setDate(defaultDateFrom.getDate() - 30);
-        
+
         const startDate = dateFrom || defaultDateFrom.toISOString().split('T')[0];
         const endDate = dateTo || defaultDateTo.toISOString().split('T')[0];
-        
+
         // Get collector details
         const collector = await new Promise((resolve, reject) => {
             db.get('SELECT * FROM collectors WHERE id = ?', [id], (err, row) => {
@@ -681,15 +674,15 @@ router.get('/collector-details/:id', getAppSettings, async (req, res) => {
                 else resolve(row);
             });
         });
-        
+
         if (!collector) {
             db.close();
-            return res.status(404).render('error', { 
+            return res.status(404).render('error', {
                 message: 'Kolektor tidak ditemukan',
                 error: {}
             });
         }
-        
+
         // Get collector payments with date filter
         const payments = await new Promise((resolve, reject) => {
             db.all(`
@@ -705,7 +698,7 @@ router.get('/collector-details/:id', getAppSettings, async (req, res) => {
                 else resolve(rows || []);
             });
         });
-        
+
         // Get collector statistics
         const stats = await new Promise((resolve, reject) => {
             db.get(`
@@ -729,9 +722,9 @@ router.get('/collector-details/:id', getAppSettings, async (req, res) => {
                 });
             });
         });
-        
+
         db.close();
-        
+
         res.render('admin/billing/collector-details', {
             title: `Detail Kolektor - ${collector.name}`,
             appSettings: req.appSettings,
@@ -743,10 +736,10 @@ router.get('/collector-details/:id', getAppSettings, async (req, res) => {
                 dateTo: endDate
             }
         });
-        
+
     } catch (error) {
         logger.error('Error loading collector details:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading collector details',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -758,22 +751,22 @@ router.get('/collector-remittance', getAppSettings, async (req, res) => {
     try {
         // Get collectors with pending amounts from payments table
         const collectors = await billingManager.getCollectorsWithPendingAmounts();
-        
+
         // Get recent remittances from expenses table (commission expenses)
         const remittances = await billingManager.getCommissionExpenses();
-        
+
         res.render('admin/billing/collector-remittance', {
             title: 'Terima Setoran Kolektor',
             appSettings: req.appSettings,
             collectors: collectors,
             remittances: remittances
         });
-        
+
     } catch (error) {
         logger.error('Error loading collector remittance:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Gagal memuat data setoran kolektor',
-            error: error.message 
+            error: error.message
         });
     }
 });
@@ -782,14 +775,14 @@ router.get('/collector-remittance', getAppSettings, async (req, res) => {
 router.post('/api/collector-remittance', adminAuth, async (req, res) => {
     try {
         const { collector_id, remittance_amount, payment_method, notes, remittance_date } = req.body;
-        
+
         if (!collector_id || !remittance_amount || !payment_method) {
             return res.status(400).json({
                 success: false,
                 message: 'Semua field wajib diisi'
             });
         }
-        
+
         // Use billing manager to record remittance
         const result = await billingManager.recordCollectorRemittance({
             collector_id,
@@ -798,13 +791,13 @@ router.post('/api/collector-remittance', adminAuth, async (req, res) => {
             notes: notes || '',
             remittance_date: remittance_date || new Date().toISOString()
         });
-        
+
         res.json({
             success: true,
             message: 'Setoran berhasil diterima',
             data: result
         });
-        
+
     } catch (error) {
         console.error('Error recording collector remittance:', error);
         res.status(500).json({
@@ -821,7 +814,7 @@ router.get('/mobile/map', getAppSettings, async (req, res) => {
         res.redirect('/admin/billing/mapping');
     } catch (error) {
         logger.error('Error loading mobile map:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading mobile map',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -843,11 +836,11 @@ router.get('/dashboard', getAppSettings, async (req, res) => {
     try {
         // Jalankan cleanup data konsistensi terlebih dahulu
         await billingManager.cleanupDataConsistency();
-        
+
         const stats = await billingManager.getBillingStats();
         const overdueInvoices = await billingManager.getOverdueInvoices();
         const recentInvoices = await billingManager.getInvoices();
-        
+
         res.render('admin/billing/dashboard', {
             title: 'Dashboard Billing',
             stats,
@@ -857,9 +850,9 @@ router.get('/dashboard', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading billing dashboard:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Gagal memuat dashboard billing',
-            error: error.message 
+            error: error.message
         });
     }
 });
@@ -868,14 +861,14 @@ router.get('/dashboard', getAppSettings, async (req, res) => {
 router.get('/financial-report', getAppSettings, async (req, res) => {
     try {
         const { start_date, end_date, type } = req.query;
-        
+
         // Default date range: current month
         const now = new Date();
         const startDate = start_date || new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
         const endDate = end_date || new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-        
+
         const financialData = await billingManager.getFinancialReport(startDate, endDate, type);
-        
+
         res.render('admin/billing/financial-report', {
             title: 'Laporan Keuangan',
             financialData,
@@ -886,9 +879,9 @@ router.get('/financial-report', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading financial report:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Gagal memuat laporan keuangan',
-            error: error.message 
+            error: error.message
         });
     }
 });
@@ -910,11 +903,11 @@ router.post('/api/cleanup-data', adminAuth, async (req, res) => {
     try {
         await billingManager.cleanupDataConsistency();
         const stats = await billingManager.getBillingStats();
-        
-        res.json({ 
-            success: true, 
+
+        res.json({
+            success: true,
             message: 'Data konsistensi berhasil diperbaiki',
-            stats 
+            stats
         });
     } catch (error) {
         logger.error('Error cleaning up data:', error);
@@ -984,15 +977,15 @@ router.get('/invoice-list', getAppSettings, async (req, res) => {
     try {
         const { page = 1, limit = 50, status, customer_username, type } = req.query;
         const offset = (page - 1) * limit;
-        
+
         // Get all invoices with pagination
         const invoices = await billingManager.getInvoices(null, limit, offset);
         const customers = await billingManager.getCustomers();
         const packages = await billingManager.getPackages();
-        
+
         // Get total count for pagination
         const totalCount = await billingManager.getInvoicesCount();
-        
+
         res.render('admin/billing/invoice-list', {
             title: 'Semua Invoice',
             invoices,
@@ -1028,12 +1021,12 @@ router.get('/invoices-by-type', adminAuth, async (req, res) => {
         const monthlyInvoices = await billingManager.getInvoicesByType('monthly');
         const voucherInvoices = await billingManager.getInvoicesByType('voucher');
         const manualInvoices = await billingManager.getInvoicesByType('manual');
-        
+
         // Get stats by type
         const monthlyStats = await billingManager.getInvoiceStatsByType('monthly');
         const voucherStats = await billingManager.getInvoiceStatsByType('voucher');
         const manualStats = await billingManager.getInvoiceStatsByType('manual');
-        
+
         res.render('admin/billing/invoices-by-type', {
             title: 'Invoice by Type',
             monthlyInvoices: monthlyInvoices.slice(0, 50), // Limit to 50 per type
@@ -1045,9 +1038,9 @@ router.get('/invoices-by-type', adminAuth, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading invoices by type:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Gagal memuat halaman invoice by type',
-            error: error.message 
+            error: error.message
         });
     }
 });
@@ -1056,7 +1049,7 @@ router.get('/invoices-by-type', adminAuth, async (req, res) => {
 router.post('/api/voucher-cleanup', adminAuth, async (req, res) => {
     try {
         const result = await billingManager.cleanupExpiredVoucherInvoices();
-        
+
         res.json({
             success: result.success,
             message: result.message,
@@ -1077,7 +1070,7 @@ router.post('/api/voucher-cleanup', adminAuth, async (req, res) => {
 router.get('/api/expired-vouchers', adminAuth, async (req, res) => {
     try {
         const expiredInvoices = await billingManager.getExpiredVoucherInvoices();
-        
+
         res.json({
             success: true,
             data: expiredInvoices,
@@ -1097,7 +1090,7 @@ router.get('/api/expired-vouchers', adminAuth, async (req, res) => {
 router.get('/monthly-summary', adminAuth, async (req, res) => {
     try {
         const summaries = await billingManager.getAllMonthlySummaries(24); // Last 24 months
-        
+
         res.render('admin/billing/monthly-summary', {
             title: 'Summary Bulanan',
             summaries,
@@ -1105,9 +1098,9 @@ router.get('/monthly-summary', adminAuth, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading monthly summary:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Gagal memuat summary bulanan',
-            error: error.message 
+            error: error.message
         });
     }
 });
@@ -1116,7 +1109,7 @@ router.get('/monthly-summary', adminAuth, async (req, res) => {
 router.post('/api/generate-monthly-summary', adminAuth, async (req, res) => {
     try {
         const result = await billingManager.generateMonthlySummary();
-        
+
         res.json({
             success: result.success,
             message: result.message,
@@ -1138,7 +1131,7 @@ router.post('/api/generate-monthly-summary', adminAuth, async (req, res) => {
 router.post('/api/monthly-reset', adminAuth, async (req, res) => {
     try {
         const result = await billingManager.performMonthlyReset();
-        
+
         res.json({
             success: result.success,
             message: result.message,
@@ -1163,7 +1156,7 @@ router.post('/api/trigger-monthly-reset', adminAuth, async (req, res) => {
     try {
         const scheduler = require('../config/scheduler');
         const result = await scheduler.triggerMonthlyReset();
-        
+
         res.json({
             success: result.success,
             message: result.message,
@@ -1187,7 +1180,7 @@ router.post('/api/trigger-monthly-reset', adminAuth, async (req, res) => {
 router.get('/api/monthly-summary', adminAuth, async (req, res) => {
     try {
         const { year, month } = req.query;
-        
+
         if (year && month) {
             const summary = await billingManager.getMonthlySummary(parseInt(year), parseInt(month));
             res.json({
@@ -1216,10 +1209,10 @@ router.get('/export/monthly-summary.xlsx', adminAuth, async (req, res) => {
     try {
         const ExcelJS = require('exceljs');
         const summaries = await billingManager.getAllMonthlySummaries(24);
-        
+
         // Buat workbook Excel
         const workbook = new ExcelJS.Workbook();
-        
+
         // Sheet 1: Summary Data
         const summarySheet = workbook.addWorksheet('Summary Bulanan');
         summarySheet.columns = [
@@ -1239,7 +1232,7 @@ router.get('/export/monthly-summary.xlsx', adminAuth, async (req, res) => {
             { header: 'Belum Dibayar', key: 'total_unpaid', width: 15 },
             { header: 'Tanggal Generate', key: 'created_at', width: 20 }
         ];
-        
+
         // Tambahkan data summary
         summaries.forEach(summary => {
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1261,13 +1254,13 @@ router.get('/export/monthly-summary.xlsx', adminAuth, async (req, res) => {
                 created_at: new Date(summary.created_at).toLocaleDateString('id-ID')
             });
         });
-        
+
         // Format currency untuk kolom revenue
         summarySheet.getColumn('monthly_revenue').numFmt = '"Rp" #,##0.00';
         summarySheet.getColumn('voucher_revenue').numFmt = '"Rp" #,##0.00';
         summarySheet.getColumn('total_revenue').numFmt = '"Rp" #,##0.00';
         summarySheet.getColumn('total_unpaid').numFmt = '"Rp" #,##0.00';
-        
+
         // Sheet 2: Analisis Trend
         const trendSheet = workbook.addWorksheet('Analisis Trend');
         trendSheet.columns = [
@@ -1277,11 +1270,11 @@ router.get('/export/monthly-summary.xlsx', adminAuth, async (req, res) => {
             { header: 'Growth (%)', key: 'growth', width: 15 },
             { header: 'Status', key: 'status', width: 15 }
         ];
-        
+
         if (summaries.length >= 2) {
             const latest = summaries[0];
             const previous = summaries[1];
-            
+
             const metrics = [
                 { name: 'Total Revenue', latest: latest.total_revenue, previous: previous.total_revenue },
                 { name: 'Monthly Revenue', latest: latest.monthly_revenue, previous: previous.monthly_revenue },
@@ -1291,13 +1284,13 @@ router.get('/export/monthly-summary.xlsx', adminAuth, async (req, res) => {
                 { name: 'Monthly Invoices', latest: latest.monthly_invoices, previous: previous.monthly_invoices },
                 { name: 'Voucher Invoices', latest: latest.voucher_invoices, previous: previous.voucher_invoices }
             ];
-            
+
             metrics.forEach(metric => {
                 const growth = ((metric.latest - metric.previous) / metric.previous * 100).toFixed(1);
                 let status = 'Stable';
                 if (growth > 5) status = 'Growth';
                 else if (growth < -5) status = 'Decline';
-                
+
                 trendSheet.addRow({
                     metric: metric.name,
                     latest: metric.latest,
@@ -1307,7 +1300,7 @@ router.get('/export/monthly-summary.xlsx', adminAuth, async (req, res) => {
                 });
             });
         }
-        
+
         // Sheet 3: KPI Summary
         const kpiSheet = workbook.addWorksheet('KPI Summary');
         kpiSheet.columns = [
@@ -1315,12 +1308,12 @@ router.get('/export/monthly-summary.xlsx', adminAuth, async (req, res) => {
             { header: 'Nilai', key: 'value', width: 20 },
             { header: 'Keterangan', key: 'description', width: 40 }
         ];
-        
+
         if (summaries.length > 0) {
             const latest = summaries[0];
             const avgRevenue = summaries.reduce((sum, s) => sum + s.total_revenue, 0) / summaries.length;
             const bestMonth = summaries.reduce((max, s) => s.total_revenue > max.total_revenue ? s : max);
-            
+
             const kpis = [
                 { kpi: 'Total Revenue Terbaru', value: `Rp ${latest.total_revenue.toLocaleString('id-ID')}`, description: 'Pendapatan total bulan terbaru' },
                 { kpi: 'Rata-rata Revenue', value: `Rp ${avgRevenue.toLocaleString('id-ID')}`, description: 'Rata-rata pendapatan per bulan' },
@@ -1329,20 +1322,20 @@ router.get('/export/monthly-summary.xlsx', adminAuth, async (req, res) => {
                 { kpi: 'Pelanggan Aktif', value: latest.active_customers, description: 'Pelanggan dengan status aktif' },
                 { kpi: 'Collection Rate', value: `${((latest.paid_monthly_invoices + latest.paid_voucher_invoices) / (latest.monthly_invoices + latest.voucher_invoices) * 100).toFixed(1)}%`, description: 'Persentase invoice yang dibayar' }
             ];
-            
+
             kpis.forEach(kpi => {
                 kpiSheet.addRow(kpi);
             });
         }
-        
+
         // Set response header
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename=laporan-keuangan-bulanan-${new Date().toISOString().split('T')[0]}.xlsx`);
-        
+
         // Write to response
         await workbook.xlsx.write(res);
         res.end();
-        
+
     } catch (error) {
         logger.error('Error exporting monthly summary:', error);
         res.status(500).json({ success: false, message: error.message });
@@ -1354,11 +1347,11 @@ router.get('/export/financial-report.xlsx', async (req, res) => {
     try {
         const { start_date, end_date, type } = req.query;
         const financialData = await billingManager.getFinancialReport(start_date, end_date, type);
-        
+
         // Buat workbook Excel
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Laporan Keuangan');
-        
+
         // Set header
         worksheet.columns = [
             { header: 'Tanggal', key: 'date', width: 15 },
@@ -1370,7 +1363,7 @@ router.get('/export/financial-report.xlsx', async (req, res) => {
             { header: 'Pelanggan', key: 'customer_name', width: 25 },
             { header: 'Telepon', key: 'customer_phone', width: 15 }
         ];
-        
+
         // Tambahkan data transaksi
         financialData.transactions.forEach(transaction => {
             worksheet.addRow({
@@ -1384,28 +1377,28 @@ router.get('/export/financial-report.xlsx', async (req, res) => {
                 customer_phone: transaction.customer_phone || '-'
             });
         });
-        
+
         // Tambahkan summary di sheet terpisah
         const summarySheet = workbook.addWorksheet('Ringkasan');
         summarySheet.columns = [
             { header: 'Item', key: 'item', width: 25 },
             { header: 'Nilai', key: 'value', width: 20 }
         ];
-        
+
         summarySheet.addRow({ item: 'Total Pemasukan', value: `Rp ${financialData.summary.totalIncome.toLocaleString('id-ID')}` });
         summarySheet.addRow({ item: 'Total Pengeluaran', value: `Rp ${financialData.summary.totalExpense.toLocaleString('id-ID')}` });
         summarySheet.addRow({ item: 'Laba Bersih', value: `Rp ${financialData.summary.netProfit.toLocaleString('id-ID')}` });
         summarySheet.addRow({ item: 'Jumlah Transaksi', value: financialData.summary.transactionCount });
         summarySheet.addRow({ item: 'Periode', value: `${financialData.dateRange.startDate} - ${financialData.dateRange.endDate}` });
-        
+
         // Set response header
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename=laporan-keuangan-${start_date}-${end_date}.xlsx`);
-        
+
         // Write to response
         await workbook.xlsx.write(res);
         res.end();
-        
+
     } catch (error) {
         logger.error('Error exporting financial report:', error);
         res.status(500).json({ success: false, message: error.message });
@@ -1424,7 +1417,7 @@ router.post('/payment-settings/active-gateway', async (req, res) => {
         pg.active = activeGateway;
         const ok = setSetting('payment_gateway', pg);
         if (!ok) throw new Error('Gagal menyimpan settings.json');
-        try { billingManager.reloadPaymentGateway(); } catch (_) {}
+        try { billingManager.reloadPaymentGateway(); } catch (_) { }
         return res.json({ success: true, message: 'Gateway aktif diperbarui', active: activeGateway });
     } catch (error) {
         logger.error('Error updating active gateway:', error);
@@ -1440,7 +1433,7 @@ router.post('/payment-settings/:gateway', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Gateway tidak dikenali' });
         }
 
-        const toBool = (v, def=false) => {
+        const toBool = (v, def = false) => {
             if (typeof v === 'boolean') return v;
             if (v === 'on' || v === 'true' || v === '1') return true;
             if (v === 'off' || v === 'false' || v === '0') return false;
@@ -1494,7 +1487,7 @@ router.post('/payment-settings/:gateway', async (req, res) => {
         all.payment_gateway = pg;
         const ok = setSetting('payment_gateway', pg);
         if (!ok) throw new Error('Gagal menyimpan settings.json');
-        try { billingManager.reloadPaymentGateway(); } catch (_) {}
+        try { billingManager.reloadPaymentGateway(); } catch (_) { }
         return res.json({ success: true, message: 'Konfigurasi disimpan', gateway });
     } catch (error) {
         logger.error('Error saving per-gateway settings:', error);
@@ -1528,7 +1521,7 @@ router.get('/payment-settings', getAppSettings, async (req, res) => {
 
         // Get current gateway status
         let gatewayStatus = {};
-        try { gatewayStatus = await billingManager.getGatewayStatus(); } catch (_) {}
+        try { gatewayStatus = await billingManager.getGatewayStatus(); } catch (_) { }
 
         res.render('admin/billing/payment-settings', {
             title: 'Payment Gateway Settings',
@@ -1557,7 +1550,7 @@ router.post('/payment-settings', async (req, res) => {
         pg.active = req.body.active || pg.active || 'midtrans';
 
         // Normalize booleans
-        const toBool = (v, def=false) => {
+        const toBool = (v, def = false) => {
             if (typeof v === 'boolean') return v;
             if (v === 'on' || v === 'true' || v === '1') return true;
             if (v === 'off' || v === 'false' || v === '0') return false;
@@ -1599,7 +1592,7 @@ router.post('/payment-settings', async (req, res) => {
         if (!ok) throw new Error('Failed to write settings.json');
 
         // Hot-reload gateways without restarting the server
-        try { billingManager.reloadPaymentGateway(); } catch (_) {}
+        try { billingManager.reloadPaymentGateway(); } catch (_) { }
 
         // Redirect back with success
         return res.redirect('/admin/billing/payment-settings?saved=1');
@@ -1692,10 +1685,10 @@ router.get('/export/customers.xlsx', async (req, res) => {
         // Header lengkap dengan koordinat map dan data lainnya
         const headers = [
             'ID', 'Username', 'Nama', 'Phone', 'PPPoE Username', 'Email', 'Alamat',
-            'Latitude', 'Longitude', 'Package ID', 'Package Name', 'PPPoE Profile', 
+            'Latitude', 'Longitude', 'Package ID', 'Package Name', 'PPPoE Profile',
             'Status', 'Auto Suspension', 'Billing Day', 'Join Date', 'Created At'
         ];
-        
+
         // Set header dengan styling
         const headerRow = worksheet.addRow(headers);
         headerRow.font = { bold: true };
@@ -2019,20 +2012,20 @@ router.get('/auto-invoice', getAppSettings, async (req, res) => {
     try {
         const customers = await billingManager.getCustomers();
         const activeCustomers = customers.filter(c => c.status === 'active' && c.package_id);
-        
+
         const currentDate = new Date();
         const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-        
+
         const thisMonthInvoices = await billingManager.getInvoices();
         const thisMonthInvoicesCount = thisMonthInvoices.filter(invoice => {
             const invoiceDate = new Date(invoice.created_at);
             return invoiceDate >= startOfMonth && invoiceDate <= endOfMonth;
         }).length;
-        
+
         // Calculate next run date
         const nextRunDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
-        
+
         res.render('admin/billing/auto-invoice', {
             title: 'Auto Invoice Management',
             activeCustomersCount: activeCustomers.length,
@@ -2042,7 +2035,7 @@ router.get('/auto-invoice', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading auto invoice page:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading auto invoice page',
             error: error.message,
             appSettings: req.appSettings
@@ -2055,7 +2048,7 @@ router.post('/auto-invoice/generate', async (req, res) => {
     try {
         const invoiceScheduler = require('../config/scheduler');
         await invoiceScheduler.triggerMonthlyInvoices();
-        
+
         res.json({
             success: true,
             message: 'Invoice generation completed',
@@ -2075,13 +2068,13 @@ router.get('/auto-invoice/preview', async (req, res) => {
     try {
         const customers = await billingManager.getCustomers();
         const activeCustomers = customers.filter(c => c.status === 'active' && c.package_id);
-        
+
         const currentDate = new Date();
         const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-        
+
         const customersNeedingInvoices = [];
-        
+
         for (const customer of activeCustomers) {
             // Check if invoice already exists for this month
             const existingInvoices = await billingManager.getInvoicesByCustomerAndDateRange(
@@ -2089,20 +2082,20 @@ router.get('/auto-invoice/preview', async (req, res) => {
                 startOfMonth,
                 endOfMonth
             );
-            
+
             if (existingInvoices.length === 0) {
                 // Get customer's package
                 const package = await billingManager.getPackageById(customer.package_id);
                 if (package) {
                     const dueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 15);
-                    
+
                     // Calculate price with PPN
                     const basePrice = package.price;
                     const taxRate = (package.tax_rate === 0 || (typeof package.tax_rate === 'number' && package.tax_rate > -1))
                         ? Number(package.tax_rate)
                         : 11.00;
                     const priceWithTax = billingManager.calculatePriceWithTax(basePrice, taxRate);
-                    
+
                     customersNeedingInvoices.push({
                         username: customer.username,
                         name: customer.name,
@@ -2115,7 +2108,7 @@ router.get('/auto-invoice/preview', async (req, res) => {
                 }
             }
         }
-        
+
         res.json({
             success: true,
             customers: customersNeedingInvoices
@@ -2133,7 +2126,7 @@ router.get('/auto-invoice/preview', async (req, res) => {
 router.post('/auto-invoice/settings', async (req, res) => {
     try {
         const { due_date_day, auto_invoice_enabled, invoice_notes } = req.body;
-        
+
         // Save settings to database or config file
         // For now, we'll just log the settings
         logger.info('Auto invoice settings updated:', {
@@ -2141,7 +2134,7 @@ router.post('/auto-invoice/settings', async (req, res) => {
             auto_invoice_enabled,
             invoice_notes
         });
-        
+
         res.json({
             success: true,
             message: 'Settings saved successfully'
@@ -2177,7 +2170,7 @@ router.get('/whatsapp-settings/templates', async (req, res) => {
     try {
         const whatsappNotifications = require('../config/whatsapp-notifications');
         const templates = whatsappNotifications.getTemplates();
-        
+
         res.json({
             success: true,
             templates: templates
@@ -2196,10 +2189,10 @@ router.post('/whatsapp-settings/templates', async (req, res) => {
     try {
         const whatsappNotifications = require('../config/whatsapp-notifications');
         const templateData = req.body;
-        
+
         // Update templates (more efficient for multiple updates)
         const updatedCount = whatsappNotifications.updateTemplates(templateData);
-        
+
         res.json({
             success: true,
             message: `${updatedCount} templates saved successfully`
@@ -2233,7 +2226,7 @@ router.get('/whatsapp-settings/rate-limit', async (req, res) => {
             dailyMessageLimit: getSetting('whatsapp_rate_limit.dailyMessageLimit', 0),
             enabled: getSetting('whatsapp_rate_limit.enabled', true)
         };
-        
+
         res.json({
             success: true,
             settings: settings
@@ -2251,7 +2244,7 @@ router.get('/whatsapp-settings/rate-limit', async (req, res) => {
 router.post('/whatsapp-settings/rate-limit', async (req, res) => {
     try {
         const { maxMessagesPerBatch, delayBetweenBatches, delayBetweenMessages, maxRetries, dailyMessageLimit, enabled } = req.body;
-        
+
         // Validate input
         if (maxMessagesPerBatch < 1 || maxMessagesPerBatch > 100) {
             return res.status(400).json({
@@ -2259,35 +2252,35 @@ router.post('/whatsapp-settings/rate-limit', async (req, res) => {
                 message: 'Maksimal pesan per batch harus antara 1-100'
             });
         }
-        
+
         if (delayBetweenBatches < 1 || delayBetweenBatches > 300) {
             return res.status(400).json({
                 success: false,
                 message: 'Jeda antar batch harus antara 1-300 detik'
             });
         }
-        
+
         if (delayBetweenMessages < 0 || delayBetweenMessages > 10) {
             return res.status(400).json({
                 success: false,
                 message: 'Jeda antar pesan harus antara 0-10 detik'
             });
         }
-        
+
         if (maxRetries < 0 || maxRetries > 5) {
             return res.status(400).json({
                 success: false,
                 message: 'Maksimal retry harus antara 0-5'
             });
         }
-        
+
         if (dailyMessageLimit < 0 || dailyMessageLimit > 1000) {
             return res.status(400).json({
                 success: false,
                 message: 'Batas harian harus antara 0-1000'
             });
         }
-        
+
         // Save settings
         const parsed = {
             maxMessagesPerBatch: parseInt(maxMessagesPerBatch),
@@ -2308,7 +2301,7 @@ router.post('/whatsapp-settings/rate-limit', async (req, res) => {
         setSetting('whatsapp_rate_limit', parsed);
         // Ensure new reads reflect immediately
         clearSettingsCache();
-        
+
         res.json({
             success: true,
             message: 'Pengaturan rate limiting berhasil disimpan'
@@ -2455,13 +2448,13 @@ router.get('/whatsapp-settings/status', async (req, res) => {
     try {
         const customers = await billingManager.getCustomers();
         const activeCustomers = customers.filter(c => c.status === 'active' && c.phone);
-        
+
         const invoices = await billingManager.getInvoices();
         const pendingInvoices = invoices.filter(i => i.status === 'unpaid');
-        
+
         // Get WhatsApp status from global
         const whatsappStatus = global.whatsappStatus || { connected: false, status: 'disconnected' };
-        
+
         res.json({
             success: true,
             whatsappStatus: whatsappStatus.connected ? 'Connected' : 'Disconnected',
@@ -2483,7 +2476,7 @@ router.post('/whatsapp-settings/test', async (req, res) => {
     try {
         const whatsappNotifications = require('../config/whatsapp-notifications');
         const { phoneNumber, templateKey } = req.body;
-        
+
         // Test data for different templates
         const testData = {
             invoice_created: {
@@ -2538,9 +2531,9 @@ router.post('/whatsapp-settings/test', async (req, res) => {
                 support_phone: getSetting('contact_whatsapp', '081947215703')
             }
         };
-        
+
         const result = await whatsappNotifications.testNotification(phoneNumber, templateKey, testData[templateKey]);
-        
+
         if (result.success) {
             res.json({
                 success: true,
@@ -2566,9 +2559,9 @@ router.post('/whatsapp-settings/broadcast', async (req, res) => {
     try {
         const whatsappNotifications = require('../config/whatsapp-notifications');
         const { type, message, disruptionType, affectedArea, estimatedResolution } = req.body;
-        
+
         let result;
-        
+
         if (type === 'service_disruption') {
             result = await whatsappNotifications.sendServiceDisruptionNotification({
                 type: disruptionType || 'Gangguan Jaringan',
@@ -2585,7 +2578,7 @@ router.post('/whatsapp-settings/broadcast', async (req, res) => {
                 message: 'Invalid broadcast type'
             });
         }
-        
+
         if (result.success) {
             res.json({
                 success: true,
@@ -2624,7 +2617,7 @@ router.get('/packages', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading packages:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading packages',
             error: error.message,
             appSettings: req.appSettings
@@ -2658,7 +2651,7 @@ router.post('/packages', uploadPackageImage.single('package_image'), async (req,
 
         const newPackage = await billingManager.createPackage(packageData);
         logger.info(`Package created: ${newPackage.name} with tax_rate: ${newPackage.tax_rate}`);
-        
+
         res.json({
             success: true,
             message: 'Paket berhasil ditambahkan',
@@ -2701,7 +2694,7 @@ router.put('/packages/:id', uploadPackageImage.single('package_image'), async (r
 
         const updatedPackage = await billingManager.updatePackage(id, packageData);
         logger.info(`Package updated: ${updatedPackage.name} with tax_rate: ${updatedPackage.tax_rate}`);
-        
+
         res.json({
             success: true,
             message: 'Paket berhasil diupdate',
@@ -2741,7 +2734,7 @@ router.get('/packages/:id', getAppSettings, async (req, res) => {
     try {
         const { id } = req.params;
         const package = await billingManager.getPackageById(parseInt(id));
-        
+
         if (!package) {
             return res.status(404).render('error', {
                 message: 'Paket tidak ditemukan',
@@ -2751,7 +2744,7 @@ router.get('/packages/:id', getAppSettings, async (req, res) => {
         }
 
         const customers = await billingManager.getCustomersByPackage(parseInt(id));
-        
+
         res.render('admin/billing/package-detail', {
             title: 'Detail Paket',
             package,
@@ -2773,14 +2766,14 @@ router.get('/api/packages/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const package = await billingManager.getPackageById(parseInt(id));
-        
+
         if (!package) {
             return res.status(404).json({
                 success: false,
                 message: 'Paket tidak ditemukan'
             });
         }
-        
+
         res.json({
             success: true,
             package: package
@@ -2800,7 +2793,7 @@ router.delete('/packages/:id', async (req, res) => {
         const { id } = req.params;
         await billingManager.deletePackage(id);
         logger.info(`Package deleted: ${id}`);
-        
+
         res.json({
             success: true,
             message: 'Paket berhasil dihapus'
@@ -2820,7 +2813,7 @@ router.get('/customers', getAppSettings, async (req, res) => {
     try {
         const customers = await billingManager.getCustomers();
         const packages = await billingManager.getPackages();
-        
+
         // Get ODPs for dropdown selection (termasuk sub ODP)
         const odps = await new Promise((resolve, reject) => {
             const db = require('../config/billing').db;
@@ -2836,7 +2829,7 @@ router.get('/customers', getAppSettings, async (req, res) => {
                 else resolve(rows || []);
             });
         });
-        
+
         res.render('admin/billing/customers', {
             title: 'Kelola Pelanggan',
             customers,
@@ -2846,7 +2839,7 @@ router.get('/customers', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading customers:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading customers',
             error: error.message,
             appSettings: req.appSettings
@@ -2857,7 +2850,7 @@ router.get('/customers', getAppSettings, async (req, res) => {
 router.post('/customers', async (req, res) => {
     try {
         const { name, username, phone, pppoe_username, email, address, package_id, odp_id, pppoe_profile, auto_suspension, billing_day, create_pppoe_user, pppoe_password, static_ip, assigned_ip, mac_address, latitude, longitude, cable_type, cable_length, port_number, cable_status, cable_notes } = req.body;
-        
+
         // Validate required fields
         if (!name || !username || !phone || !package_id) {
             return res.status(400).json({
@@ -2865,7 +2858,7 @@ router.post('/customers', async (req, res) => {
                 message: 'Nama, username, telepon, dan paket harus diisi'
             });
         }
-        
+
         // Validate username format
         if (!/^[a-z0-9_]+$/.test(username)) {
             return res.status(400).json({
@@ -2922,7 +2915,7 @@ router.post('/customers', async (req, res) => {
                 // determine profile (already computed as profileToUse)
                 const passwordToUse = (pppoe_password && String(pppoe_password).trim())
                     ? String(pppoe_password).trim()
-                    : (Math.random().toString(36).slice(-8) + Math.floor(Math.random()*10));
+                    : (Math.random().toString(36).slice(-8) + Math.floor(Math.random() * 10));
 
                 const { addPPPoEUser } = require('../config/mikrotik');
                 const addRes = await addPPPoEUser({ username: pppoe_username, password: passwordToUse, profile: profileToUse });
@@ -2948,11 +2941,11 @@ router.post('/customers', async (req, res) => {
         });
     } catch (error) {
         logger.error('Error creating customer:', error);
-        
+
         // Handle specific error messages
         let errorMessage = 'Gagal menambahkan pelanggan';
         let statusCode = 500;
-        
+
         if (error.message.includes('UNIQUE constraint failed')) {
             if (error.message.includes('phone')) {
                 errorMessage = 'Nomor telepon sudah terdaftar. Silakan gunakan nomor telepon yang berbeda.';
@@ -2969,7 +2962,7 @@ router.post('/customers', async (req, res) => {
             errorMessage = 'Data wajib tidak boleh kosong. Silakan lengkapi semua field yang diperlukan.';
             statusCode = 400;
         }
-        
+
         res.status(statusCode).json({
             success: false,
             message: errorMessage,
@@ -2983,10 +2976,10 @@ router.get('/customers/:phone', getAppSettings, async (req, res) => {
     try {
         const { phone } = req.params;
         logger.info(`Loading customer detail for phone: ${phone}`);
-        
+
         const customer = await billingManager.getCustomerByPhone(phone);
         logger.info(`Customer found:`, customer);
-        
+
         if (!customer) {
             logger.warn(`Customer not found for phone: ${phone}`);
             return res.status(404).render('error', {
@@ -3006,9 +2999,9 @@ router.get('/customers/:phone', getAppSettings, async (req, res) => {
         } catch (e) {
             logger.warn('Unable to load trouble reports for customer:', e.message);
         }
-        
+
         logger.info(`Rendering customer detail page for: ${phone}`);
-        
+
         // Try to render with minimal data first
         try {
             res.render('admin/billing/customer-detail', {
@@ -3042,9 +3035,9 @@ router.get('/api/customers/:phone', async (req, res) => {
     try {
         const { phone } = req.params;
         logger.info(`API: Loading customer data for editing phone: ${phone}`);
-        
+
         const customer = await billingManager.getCustomerByPhone(phone);
-        
+
         if (!customer) {
             return res.status(404).json({
                 success: false,
@@ -3072,10 +3065,10 @@ router.get('/customers/:username/debug', getAppSettings, async (req, res) => {
     try {
         const { username } = req.params;
         logger.info(`Debug: Loading customer detail for username: ${username}`);
-        
+
         const customer = await billingManager.getCustomerByUsername(username);
         logger.info(`Debug: Customer found:`, customer);
-        
+
         if (!customer) {
             return res.json({
                 success: false,
@@ -3086,7 +3079,7 @@ router.get('/customers/:username/debug', getAppSettings, async (req, res) => {
 
         const invoices = await billingManager.getInvoicesByCustomer(customer.id);
         const packages = await billingManager.getPackages();
-        
+
         return res.json({
             success: true,
             customer: customer,
@@ -3109,10 +3102,10 @@ router.get('/customers/:username/test', async (req, res) => {
     try {
         const { username } = req.params;
         logger.info(`Test: Loading customer detail for username: ${username}`);
-        
+
         const customer = await billingManager.getCustomerByUsername(username);
         logger.info(`Test: Customer found:`, customer);
-        
+
         if (!customer) {
             return res.status(404).render('error', {
                 message: 'Pelanggan tidak ditemukan',
@@ -3123,7 +3116,7 @@ router.get('/customers/:username/test', async (req, res) => {
 
         const invoices = await billingManager.getInvoicesByCustomer(customer.id);
         const packages = await billingManager.getPackages();
-        
+
         logger.info(`Test: Rendering simple template for: ${username}`);
         res.render('admin/billing/customer-detail-test', {
             title: 'Detail Pelanggan - Test',
@@ -3146,8 +3139,8 @@ router.put('/customers/:phone', async (req, res) => {
     try {
         const { phone } = req.params;
         const { name, username, pppoe_username, email, address, package_id, odp_id, pppoe_profile, status, auto_suspension, billing_day, latitude, longitude, static_ip, assigned_ip, mac_address, cable_type, cable_length, port_number, cable_status, cable_notes } = req.body;
-        
-        
+
+
         // Validate required fields
         if (!name || !username || !package_id) {
             return res.status(400).json({
@@ -3155,7 +3148,7 @@ router.put('/customers/:phone', async (req, res) => {
                 message: 'Nama, username, dan paket harus diisi'
             });
         }
-        
+
         // Validate username format
         if (!/^[a-z0-9_]+$/.test(username)) {
             return res.status(400).json({
@@ -3163,7 +3156,7 @@ router.put('/customers/:phone', async (req, res) => {
                 message: 'Username hanya boleh berisi huruf kecil, angka, dan underscore'
             });
         }
-        
+
         // Get current customer data
         const currentCustomer = await billingManager.getCustomerByPhone(phone);
         if (!currentCustomer) {
@@ -3184,7 +3177,7 @@ router.put('/customers/:phone', async (req, res) => {
 
         // Extract new phone from request body, fallback to current if not provided
         const newPhone = req.body.phone || currentCustomer.phone;
-        
+
         const customerData = {
             name: name,
             username: username,
@@ -3197,7 +3190,7 @@ router.put('/customers/:phone', async (req, res) => {
             pppoe_profile: profileToUse,
             status: status || currentCustomer.status,
             auto_suspension: auto_suspension !== undefined ? parseInt(auto_suspension) : currentCustomer.auto_suspension,
-            billing_day: (function(){
+            billing_day: (function () {
                 const v = parseInt(billing_day, 10);
                 if (Number.isFinite(v)) return Math.min(Math.max(v, 1), 28);
                 return currentCustomer.billing_day ?? 1;
@@ -3241,11 +3234,11 @@ router.put('/customers/:phone', async (req, res) => {
         });
     } catch (error) {
         logger.error('Error updating customer:', error);
-        
+
         // Handle specific error messages
         let errorMessage = 'Gagal mengupdate pelanggan';
         let statusCode = 500;
-        
+
         if (error.message.includes('Pelanggan tidak ditemukan')) {
             errorMessage = 'Pelanggan tidak ditemukan';
             statusCode = 404;
@@ -3265,7 +3258,7 @@ router.put('/customers/:phone', async (req, res) => {
             errorMessage = 'Data wajib tidak boleh kosong. Silakan lengkapi semua field yang diperlukan.';
             statusCode = 400;
         }
-        
+
         res.status(statusCode).json({
             success: false,
             message: errorMessage,
@@ -3278,10 +3271,10 @@ router.put('/customers/:phone', async (req, res) => {
 router.delete('/customers/:phone', async (req, res) => {
     try {
         const { phone } = req.params;
-        
+
         const deletedCustomer = await billingManager.deleteCustomer(phone);
         logger.info(`Customer deleted: ${phone}`);
-        
+
         res.json({
             success: true,
             message: 'Pelanggan berhasil dihapus',
@@ -3289,11 +3282,11 @@ router.delete('/customers/:phone', async (req, res) => {
         });
     } catch (error) {
         logger.error('Error deleting customer:', error);
-        
+
         // Handle specific error messages
         let errorMessage = 'Gagal menghapus pelanggan';
         let statusCode = 500;
-        
+
         if (error.message.includes('Customer not found')) {
             errorMessage = 'Pelanggan tidak ditemukan';
             statusCode = 404;
@@ -3304,7 +3297,7 @@ router.delete('/customers/:phone', async (req, res) => {
             errorMessage = 'Tidak dapat menghapus pelanggan karena masih memiliki data terkait. Silakan hapus data terkait terlebih dahulu.';
             statusCode = 400;
         }
-        
+
         res.status(statusCode).json({
             success: false,
             message: errorMessage,
@@ -3319,7 +3312,7 @@ router.get('/invoices', getAppSettings, async (req, res) => {
         const invoices = await billingManager.getInvoices();
         const customers = await billingManager.getCustomers();
         const packages = await billingManager.getPackages();
-        
+
         res.render('admin/billing/invoices', {
             title: 'Kelola Tagihan',
             invoices,
@@ -3329,7 +3322,7 @@ router.get('/invoices', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading invoices:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading invoices',
             error: error.message,
             appSettings: req.appSettings
@@ -3348,7 +3341,7 @@ router.post('/invoices', async (req, res) => {
             due_date: due_date,
             notes: safeNotes
         };
-        
+
         // Add PPN data if available
         if (base_amount !== undefined && tax_rate !== undefined) {
             invoiceData.base_amount = parseFloat(base_amount);
@@ -3364,7 +3357,7 @@ router.post('/invoices', async (req, res) => {
 
         const newInvoice = await billingManager.createInvoice(invoiceData);
         logger.info(`Invoice created: ${newInvoice.invoice_number}`);
-        
+
         // Send WhatsApp notification
         try {
             const whatsappNotifications = require('../config/whatsapp-notifications');
@@ -3373,7 +3366,7 @@ router.post('/invoices', async (req, res) => {
             logger.error('Error sending invoice notification:', notificationError);
             // Don't fail the invoice creation if notification fails
         }
-        
+
         res.json({
             success: true,
             message: 'Tagihan berhasil dibuat',
@@ -3396,7 +3389,7 @@ router.put('/invoices/:id/status', async (req, res) => {
 
         const updatedInvoice = await billingManager.updateInvoiceStatus(id, status, payment_method);
         logger.info(`Invoice status updated: ${id} to ${status}`);
-        
+
         res.json({
             success: true,
             message: 'Status tagihan berhasil diupdate',
@@ -3417,7 +3410,7 @@ router.get('/invoices/:id', getAppSettings, async (req, res) => {
     try {
         const { id } = req.params;
         const invoice = await billingManager.getInvoiceById(id);
-        
+
         if (!invoice) {
             return res.status(404).render('error', {
                 message: 'Invoice tidak ditemukan',
@@ -3425,7 +3418,7 @@ router.get('/invoices/:id', getAppSettings, async (req, res) => {
                 appSettings: req.appSettings
             });
         }
-        
+
         res.render('admin/billing/invoice-detail', {
             title: 'Detail Invoice',
             invoice,
@@ -3446,7 +3439,7 @@ router.get('/invoices/:id/print', getAppSettings, async (req, res) => {
     try {
         const { id } = req.params;
         const invoice = await billingManager.getInvoiceById(id);
-        
+
         if (!invoice) {
             return res.status(404).render('error', {
                 message: 'Invoice tidak ditemukan',
@@ -3454,7 +3447,7 @@ router.get('/invoices/:id/print', getAppSettings, async (req, res) => {
                 appSettings: req.appSettings
             });
         }
-        
+
         res.render('admin/billing/invoice-print', {
             title: 'Cetak Invoice',
             invoice,
@@ -3477,7 +3470,7 @@ router.get('/invoices/:id/edit', getAppSettings, async (req, res) => {
         const invoice = await billingManager.getInvoiceById(id);
         const customers = await billingManager.getCustomers();
         const packages = await billingManager.getPackages();
-        
+
         if (!invoice) {
             return res.status(404).render('error', {
                 message: 'Invoice tidak ditemukan',
@@ -3485,7 +3478,7 @@ router.get('/invoices/:id/edit', getAppSettings, async (req, res) => {
                 appSettings: req.appSettings
             });
         }
-        
+
         res.render('admin/billing/invoice-edit', {
             title: 'Edit Invoice',
             invoice,
@@ -3508,7 +3501,7 @@ router.put('/invoices/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { customer_id, package_id, amount, due_date, notes } = req.body;
-        
+
         const updateData = {
             customer_id: parseInt(customer_id),
             package_id: parseInt(package_id),
@@ -3526,7 +3519,7 @@ router.put('/invoices/:id', async (req, res) => {
 
         const updatedInvoice = await billingManager.updateInvoice(id, updateData);
         logger.info(`Invoice updated: ${updatedInvoice.invoice_number}`);
-        
+
         res.json({
             success: true,
             message: 'Invoice berhasil diperbarui',
@@ -3546,10 +3539,10 @@ router.put('/invoices/:id', async (req, res) => {
 router.delete('/invoices/:id', adminAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         const deletedInvoice = await billingManager.deleteInvoice(id);
         logger.info(`Invoice deleted: ${deletedInvoice.invoice_number}`);
-        
+
         res.json({
             success: true,
             message: 'Invoice berhasil dihapus',
@@ -3601,7 +3594,7 @@ router.post('/invoices/bulk-delete', adminAuth, async (req, res) => {
 router.get('/payments', getAppSettings, async (req, res) => {
     try {
         const payments = await billingManager.getCollectorPayments();
-        
+
         res.render('admin/billing/payments', {
             title: 'Transaksi Kolektor',
             payments,
@@ -3609,7 +3602,7 @@ router.get('/payments', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading payments:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading payments',
             error: error.message,
             appSettings: req.appSettings
@@ -3621,7 +3614,7 @@ router.get('/payments', getAppSettings, async (req, res) => {
 router.get('/all-payments', getAppSettings, async (req, res) => {
     try {
         const payments = await billingManager.getPayments();
-        
+
         res.render('admin/billing/payments', {
             title: 'Riwayat Pembayaran',
             payments,
@@ -3629,7 +3622,7 @@ router.get('/all-payments', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading all payments:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading all payments',
             error: error.message,
             appSettings: req.appSettings
@@ -3640,7 +3633,7 @@ router.get('/all-payments', getAppSettings, async (req, res) => {
 router.post('/payments', async (req, res) => {
     try {
         const { invoice_id, amount, payment_method, reference_number, notes } = req.body;
-        
+
         // Validate required fields first
         if (!invoice_id || !amount || !payment_method) {
             return res.status(400).json({
@@ -3648,7 +3641,7 @@ router.post('/payments', async (req, res) => {
                 message: 'Invoice ID, jumlah, dan metode pembayaran harus diisi'
             });
         }
-        
+
         const paymentData = {
             invoice_id: parseInt(invoice_id),
             amount: parseFloat(amount),
@@ -3658,12 +3651,12 @@ router.post('/payments', async (req, res) => {
         };
 
         const newPayment = await billingManager.recordPayment(paymentData);
-        
+
         // Update invoice status to paid
         await billingManager.updateInvoiceStatus(paymentData.invoice_id, 'paid', paymentData.payment_method);
-        
+
         logger.info(`Payment recorded: ${newPayment.id}`);
-        
+
         // Send WhatsApp notification
         try {
             const whatsappNotifications = require('../config/whatsapp-notifications');
@@ -3672,7 +3665,7 @@ router.post('/payments', async (req, res) => {
             logger.error('Error sending payment notification:', notificationError);
             // Don't fail the payment recording if notification fails
         }
-        
+
         // Attempt immediate restore if eligible
         try {
             const paidInvoice = await billingManager.getInvoiceById(paymentData.invoice_id);
@@ -3689,7 +3682,7 @@ router.post('/payments', async (req, res) => {
         } catch (restoreErr) {
             logger.error('Immediate restore check failed:', restoreErr);
         }
-        
+
         res.json({
             success: true,
             message: 'Pembayaran berhasil dicatat',
@@ -3709,10 +3702,10 @@ router.post('/payments', async (req, res) => {
 router.get('/export/customers', getAppSettings, async (req, res) => {
     try {
         const customers = await billingManager.getCustomers();
-        
+
         // Create CSV content
         let csvContent = 'ID,Username,Nama,Phone,Email,Address,Package,Status,Payment Status,Created At\n';
-        
+
         customers.forEach(customer => {
             const row = [
                 customer.id,
@@ -3726,14 +3719,14 @@ router.get('/export/customers', getAppSettings, async (req, res) => {
                 customer.payment_status,
                 new Date(customer.created_at).toLocaleDateString('id-ID')
             ].map(field => `"${field}"`).join(',');
-            
+
             csvContent += row + '\n';
         });
-        
+
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename=customers.csv');
         res.send(csvContent);
-        
+
     } catch (error) {
         logger.error('Error exporting customers:', error);
         res.status(500).json({
@@ -3748,10 +3741,10 @@ router.get('/export/customers', getAppSettings, async (req, res) => {
 router.get('/export/invoices', getAppSettings, async (req, res) => {
     try {
         const invoices = await billingManager.getInvoices();
-        
+
         // Create CSV content
         let csvContent = 'ID,Invoice Number,Customer,Amount,Status,Due Date,Created At\n';
-        
+
         invoices.forEach(invoice => {
             const row = [
                 invoice.id,
@@ -3762,14 +3755,14 @@ router.get('/export/invoices', getAppSettings, async (req, res) => {
                 new Date(invoice.due_date).toLocaleDateString('id-ID'),
                 new Date(invoice.created_at).toLocaleDateString('id-ID')
             ].map(field => `"${field}"`).join(',');
-            
+
             csvContent += row + '\n';
         });
-        
+
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename=invoices.csv');
         res.send(csvContent);
-        
+
     } catch (error) {
         logger.error('Error exporting invoices:', error);
         res.status(500).json({
@@ -3784,10 +3777,10 @@ router.get('/export/invoices', getAppSettings, async (req, res) => {
 router.get('/export/payments', getAppSettings, async (req, res) => {
     try {
         const payments = await billingManager.getPayments();
-        
+
         // Create CSV content
         let csvContent = 'ID,Invoice Number,Customer,Amount,Payment Method,Payment Date,Reference,Notes\n';
-        
+
         payments.forEach(payment => {
             const row = [
                 payment.id,
@@ -3799,14 +3792,14 @@ router.get('/export/payments', getAppSettings, async (req, res) => {
                 payment.reference_number || '',
                 payment.notes || ''
             ].map(field => `"${field}"`).join(',');
-            
+
             csvContent += row + '\n';
         });
-        
+
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename=payments.csv');
         res.send(csvContent);
-        
+
     } catch (error) {
         logger.error('Error exporting payments:', error);
         res.status(500).json({
@@ -3828,9 +3821,9 @@ router.get('/api/packages', async (req, res) => {
         });
     } catch (error) {
         logger.error('Error getting packages API:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 });
@@ -3854,7 +3847,7 @@ router.get('/api/odps', adminAuth, async (req, res) => {
                 else resolve(rows);
             });
         });
-        
+
         res.json({
             success: true,
             odps: odps
@@ -3871,16 +3864,16 @@ router.get('/api/odps', adminAuth, async (req, res) => {
 // Helper function untuk mendapatkan parameter value dari device
 function getParameterValue(device, parameterName) {
     if (!device || !parameterName) return null;
-    
+
     // Coba akses langsung
     if (device[parameterName] !== undefined) {
         return device[parameterName];
     }
-    
+
     // Coba dengan path array
     const pathParts = parameterName.split('.');
     let current = device;
-    
+
     for (const part of pathParts) {
         if (current && typeof current === 'object' && current[part] !== undefined) {
             current = current[part];
@@ -3888,17 +3881,17 @@ function getParameterValue(device, parameterName) {
             return null;
         }
     }
-    
+
     // Jika current adalah object dengan _value property, return _value
     if (current && typeof current === 'object' && current._value !== undefined) {
         return current._value;
     }
-    
+
     // Jika current adalah string/number, return langsung
     if (typeof current === 'string' || typeof current === 'number') {
         return current;
     }
-    
+
     return current;
 }
 
@@ -3907,7 +3900,7 @@ router.get('/api/pppoe-users', async (req, res) => {
     try {
         const { getPPPoEUsers } = require('../config/mikrotik');
         const pppoeUsers = await getPPPoEUsers();
-        
+
         res.json({
             success: true,
             data: pppoeUsers.map(user => ({
@@ -3932,7 +3925,7 @@ router.get('/api/devices', async (req, res) => {
         console.log('🔍 Loading devices from GenieACS...');
         const { getDevicesCached } = require('../config/genieacs');
         let devices = [];
-        
+
         try {
             devices = await getDevicesCached();
             console.log(`📊 Found ${devices.length} devices from GenieACS`);
@@ -3951,7 +3944,7 @@ router.get('/api/devices', async (req, res) => {
                     else resolve(rows || []);
                 });
             });
-            
+
             devices = customers.map((customer, index) => ({
                 _id: `fallback_${customer.id}`,
                 'Device.DeviceInfo.SerialNumber': `SIM${customer.id.toString().padStart(4, '0')}`,
@@ -3961,19 +3954,19 @@ router.get('/api/devices', async (req, res) => {
                 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username': customer.pppoe_username,
                 _lastInform: new Date().toISOString()
             }));
-            
+
             console.log(`📊 Created ${devices.length} fallback devices from customers`);
         }
-        
+
         // Process devices with customer information
         const processedDevices = [];
-        
+
         for (const device of devices) {
             // Debug: log first device structure
             if (processedDevices.length === 0) {
                 console.log('🔍 Sample device structure:', Object.keys(device));
                 console.log('🔍 Sample device data:', JSON.stringify(device, null, 2).substring(0, 500) + '...');
-                
+
                 // Test parameter extraction
                 console.log('🧪 Testing parameter extraction:');
                 console.log('- Serial from ID:', device._id);
@@ -3987,7 +3980,7 @@ router.get('/api/devices', async (req, res) => {
                 console.log('- Last Inform:', device._lastInform);
                 console.log('- SSID:', getParameterValue(device, 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID'));
                 console.log('- PPPoE Username:', getParameterValue(device, 'VirtualParameters.pppoeUsername'));
-                
+
                 // Test status detection
                 const uptime1 = getParameterValue(device, 'VirtualParameters.getdeviceuptime');
                 const uptime2 = getParameterValue(device, 'Device.DeviceInfo.VirtualParameters.getdeviceuptime');
@@ -3998,32 +3991,32 @@ router.get('/api/devices', async (req, res) => {
                 console.log('- Status Detection - Uptime1:', uptime1, 'Uptime2:', uptime2, 'Uptime3:', uptime3);
                 console.log('- Status Detection - HasUptime:', hasUptime, 'IsRecentInform:', isRecentInform);
                 console.log('- Status Detection - Final Status:', hasUptime || isRecentInform ? 'Online' : 'Offline');
-                
+
                 // Test model extraction
                 const deviceId = device._id || '';
                 const modelMatch = deviceId.match(/-([A-Z0-9]+)-/);
                 console.log('- Model from ID regex:', modelMatch ? modelMatch[1] : 'No match');
             }
-            
+
             // Extract serial number - try multiple sources
             const deviceId = device._id || '';
             const virtualSerial = getParameterValue(device, 'VirtualParameters.getSerialNumber');
             const deviceIdSerial = getParameterValue(device, 'DeviceID.SerialNumber');
             const extractedSerial = deviceId.replace(/%2D/g, '-').replace(/-XPON-.*/, '');
-            
+
             const serialNumber = virtualSerial || deviceIdSerial || extractedSerial || 'N/A';
-            
+
             const processedDevice = {
                 id: device._id,
                 serialNumber: serialNumber,
                 model: (() => {
                     // Try DeviceID.ProductClass first, then extract from device ID
                     const productClass = getParameterValue(device, 'DeviceID.ProductClass');
-                    
+
                     if (productClass && typeof productClass === 'string') {
                         return productClass;
                     }
-                    
+
                     // Extract model from device ID (e.g., "F663NV3A" from "44FB5A-F663NV3A-ZTEGCB7552E1")
                     const modelMatch = deviceId.match(/-([A-Z0-9]+)-/);
                     return modelMatch ? modelMatch[1] : 'Unknown';
@@ -4034,13 +4027,13 @@ router.get('/api/devices', async (req, res) => {
                     const uptime2 = getParameterValue(device, 'Device.DeviceInfo.VirtualParameters.getdeviceuptime');
                     const uptime3 = getParameterValue(device, 'InternetGatewayDevice.DeviceInfo.UpTime');
                     const lastInform = device._lastInform;
-                    
+
                     // Check if device has uptime > 0
                     const hasUptime = (uptime1 && uptime1 > 0) || (uptime2 && uptime2 > 0) || (uptime3 && uptime3 > 0);
-                    
+
                     // Check if device has recent inform (within last 5 minutes)
                     const isRecentInform = lastInform && (Date.now() - new Date(lastInform).getTime()) < 5 * 60 * 1000;
-                    
+
                     // Device is online if it has uptime OR recent inform
                     return hasUptime || isRecentInform ? 'Online' : 'Offline';
                 })(),
@@ -4051,10 +4044,10 @@ router.get('/api/devices', async (req, res) => {
                 customerName: null,
                 customerPhone: null
             };
-            
+
             // Try to find customer by PPPoE username - try multiple sources
-            const pppoeUsername = getParameterValue(device, 'VirtualParameters.pppoeUsername') || 
-                                 getParameterValue(device, 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username');
+            const pppoeUsername = getParameterValue(device, 'VirtualParameters.pppoeUsername') ||
+                getParameterValue(device, 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username');
             if (pppoeUsername && pppoeUsername !== '-') {
                 try {
                     const db = require('../config/billing').db;
@@ -4068,7 +4061,7 @@ router.get('/api/devices', async (req, res) => {
                             else resolve(row);
                         });
                     });
-                    
+
                     if (customer) {
                         processedDevice.latitude = customer.latitude;
                         processedDevice.longitude = customer.longitude;
@@ -4079,12 +4072,12 @@ router.get('/api/devices', async (req, res) => {
                     console.log(`⚠️ Error finding customer for device ${processedDevice.serialNumber}:`, customerError.message);
                 }
             }
-            
+
             processedDevices.push(processedDevice);
         }
-        
+
         console.log(`✅ Processed ${processedDevices.length} devices`);
-        
+
         res.json({
             success: true,
             devices: processedDevices
@@ -4119,7 +4112,7 @@ router.get('/api/cables', adminAuth, async (req, res) => {
                 else resolve(rows);
             });
         });
-        
+
         // Format cables for map
         const formattedCables = cables.map(cable => ({
             id: cable.id,
@@ -4130,7 +4123,7 @@ router.get('/api/cables', adminAuth, async (req, res) => {
             length: cable.length,
             status: cable.status
         }));
-        
+
         res.json({
             success: true,
             cables: formattedCables
@@ -4153,9 +4146,9 @@ router.get('/api/customers', adminAuth, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error getting customers API:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 });
@@ -4175,23 +4168,23 @@ router.get('/api/invoices/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const invoice = await billingManager.getInvoiceById(id);
-        
+
         if (!invoice) {
             return res.status(404).json({
                 success: false,
                 message: 'Invoice tidak ditemukan'
             });
         }
-        
+
         res.json({
             success: true,
             invoice: invoice
         });
     } catch (error) {
         logger.error('Error getting invoice by ID API:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            error: error.message 
+            error: error.message
         });
     }
 });
@@ -4213,7 +4206,7 @@ router.post('/service-suspension/suspend/:username', async (req, res) => {
     try {
         const { username } = req.params;
         const { reason } = req.body;
-        
+
         // Validasi input
         if (!username || username.trim() === '') {
             return res.status(400).json({
@@ -4240,7 +4233,7 @@ router.post('/service-suspension/suspend/:username', async (req, res) => {
 
         const serviceSuspension = require('../config/serviceSuspension');
         const result = await serviceSuspension.suspendCustomerService(customer, reason || 'Manual suspension');
-        
+
         res.json({
             success: result.success,
             message: result.success ? 'Service suspended successfully' : 'Failed to suspend service',
@@ -4261,7 +4254,7 @@ router.post('/service-suspension/restore/:username', async (req, res) => {
     try {
         const { username } = req.params;
         const { reason } = req.body || {};
-        
+
         // Validasi input
         if (!username || username.trim() === '') {
             return res.status(400).json({
@@ -4288,7 +4281,7 @@ router.post('/service-suspension/restore/:username', async (req, res) => {
 
         const serviceSuspension = require('../config/serviceSuspension');
         const result = await serviceSuspension.restoreCustomerService(customer, reason || 'Manual restore');
-        
+
         res.json({
             success: result.success,
             message: result.success ? 'Service restored successfully' : 'Failed to restore service',
@@ -4309,7 +4302,7 @@ router.post('/service-suspension/check-overdue', async (req, res) => {
     try {
         const serviceSuspension = require('../config/serviceSuspension');
         const result = await serviceSuspension.checkAndSuspendOverdueCustomers();
-        
+
         res.json({
             success: true,
             message: 'Overdue customers check completed',
@@ -4328,7 +4321,7 @@ router.post('/service-suspension/check-paid', async (req, res) => {
     try {
         const serviceSuspension = require('../config/serviceSuspension');
         const result = await serviceSuspension.checkAndRestorePaidCustomers();
-        
+
         res.json({
             success: true,
             message: 'Paid customers check completed',
@@ -4352,7 +4345,7 @@ router.get('/service-suspension', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading service suspension page:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading service suspension page',
             error: error.message,
             appSettings: req.appSettings
@@ -4441,7 +4434,7 @@ router.get('/payment-monitor', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading payment monitor:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading payment monitor',
             error: error.message,
             appSettings: req.appSettings
@@ -4460,7 +4453,7 @@ router.get('/payment-settings', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading payment settings:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading payment settings',
             error: error.message,
             appSettings: req.appSettings
@@ -4473,13 +4466,13 @@ router.post('/payment-settings/active-gateway', async (req, res) => {
     try {
         const { activeGateway } = req.body;
         const settings = getSettingsWithCache();
-        
+
         settings.payment_gateway.active = activeGateway;
         // Persist to settings.json via settingsManager
         setSetting('payment_gateway', settings.payment_gateway);
         // Hot-reload gateways
         const reloadInfo = billingManager.reloadPaymentGateway();
-        
+
         res.json({
             success: true,
             message: 'Active gateway updated successfully',
@@ -4501,25 +4494,25 @@ router.post('/payment-settings/:gateway', async (req, res) => {
         const { gateway } = req.params;
         const config = req.body;
         const settings = getSettingsWithCache();
-        
+
         if (!settings.payment_gateway[gateway]) {
             return res.status(400).json({
                 success: false,
                 message: `Gateway ${gateway} not found`
             });
         }
-        
+
         // Update gateway configuration
         settings.payment_gateway[gateway] = {
             ...settings.payment_gateway[gateway],
             ...config
         };
-        
+
         // Persist to settings.json via settingsManager
         setSetting('payment_gateway', settings.payment_gateway);
         // Hot-reload gateways
         const reloadInfo = billingManager.reloadPaymentGateway();
-        
+
         res.json({
             success: true,
             message: `${gateway} configuration updated successfully`,
@@ -4541,7 +4534,7 @@ router.post('/payment-settings/test/:gateway', async (req, res) => {
         const { gateway } = req.params;
         const PaymentGatewayManager = require('../config/paymentGateway');
         const paymentManager = new PaymentGatewayManager();
-        
+
         // Test the gateway by trying to create a test payment
         const testInvoice = {
             invoice_number: 'TEST-001',
@@ -4551,7 +4544,7 @@ router.post('/payment-settings/test/:gateway', async (req, res) => {
             customer_phone: '08123456789',
             customer_email: 'test@example.com'
         };
-        
+
         // Guard: Tripay minimum amount validation to avoid gateway rejection
         if (gateway === 'tripay' && Number(testInvoice.amount) < 10000) {
             return res.status(400).json({
@@ -4559,9 +4552,9 @@ router.post('/payment-settings/test/:gateway', async (req, res) => {
                 message: 'Minimal nominal Tripay adalah Rp 10.000'
             });
         }
-        
+
         const result = await paymentManager.createPayment(testInvoice, gateway);
-        
+
         res.json({
             success: true,
             message: `${gateway} connection test successful`,
@@ -4621,7 +4614,7 @@ router.get('/expenses', getAppSettings, async (req, res) => {
     try {
         const { start_date, end_date } = req.query;
         const expenses = await billingManager.getExpenses(start_date, end_date);
-        
+
         res.render('admin/billing/expenses', {
             title: 'Manajemen Pengeluaran',
             expenses,
@@ -4631,9 +4624,9 @@ router.get('/expenses', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading expenses:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Gagal memuat data pengeluaran',
-            error: error.message 
+            error: error.message
         });
     }
 });
@@ -4642,14 +4635,14 @@ router.get('/expenses', getAppSettings, async (req, res) => {
 router.post('/api/expenses', async (req, res) => {
     try {
         const { description, amount, category, expense_date, payment_method, notes } = req.body;
-        
+
         if (!description || !amount || !category || !expense_date) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Semua field wajib diisi' 
+            return res.status(400).json({
+                success: false,
+                message: 'Semua field wajib diisi'
             });
         }
-        
+
         const expense = await billingManager.addExpense({
             description,
             amount: parseFloat(amount),
@@ -4658,7 +4651,7 @@ router.post('/api/expenses', async (req, res) => {
             payment_method: payment_method || '',
             notes: notes || ''
         });
-        
+
         res.json({ success: true, data: expense, message: 'Pengeluaran berhasil ditambahkan' });
     } catch (error) {
         logger.error('Error adding expense:', error);
@@ -4671,14 +4664,14 @@ router.put('/api/expenses/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { description, amount, category, expense_date, payment_method, notes } = req.body;
-        
+
         if (!description || !amount || !category || !expense_date) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Semua field wajib diisi' 
+            return res.status(400).json({
+                success: false,
+                message: 'Semua field wajib diisi'
             });
         }
-        
+
         const expense = await billingManager.updateExpense(parseInt(id), {
             description,
             amount: parseFloat(amount),
@@ -4687,7 +4680,7 @@ router.put('/api/expenses/:id', async (req, res) => {
             payment_method: payment_method || '',
             notes: notes || ''
         });
-        
+
         res.json({ success: true, data: expense, message: 'Pengeluaran berhasil diperbarui' });
     } catch (error) {
         logger.error('Error updating expense:', error);
@@ -4700,7 +4693,7 @@ router.delete('/api/expenses/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const result = await billingManager.deleteExpense(parseInt(id));
-        
+
         res.json({ success: true, data: result, message: 'Pengeluaran berhasil dihapus' });
     } catch (error) {
         logger.error('Error deleting expense:', error);
@@ -4713,7 +4706,7 @@ router.get('/api/commission-stats', async (req, res) => {
     try {
         const { start_date, end_date } = req.query;
         const stats = await billingManager.getCommissionStats(start_date, end_date);
-        
+
         res.json({ success: true, data: stats });
     } catch (error) {
         logger.error('Error getting commission stats:', error);
@@ -4736,9 +4729,9 @@ router.get('/devices', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         console.error('Error rendering devices page:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading devices page',
-            error: error 
+            error: error
         });
     }
 });
@@ -4753,9 +4746,9 @@ router.get('/mapping-new', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         console.error('Error rendering new mapping page:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading mapping page',
-            error: error 
+            error: error
         });
     }
 });
@@ -4781,12 +4774,12 @@ router.get('/mobile/mapping', getAppSettings, async (req, res) => {
         // Get mapping data for mobile
         const customers = await billingManager.getCustomers();
         const customersWithCoords = customers.filter(c => c.latitude && c.longitude);
-        
+
         // Calculate stats
         const totalCustomers = customersWithCoords.length;
         const activeCustomers = customersWithCoords.filter(c => c.status === 'active').length;
         const suspendedCustomers = customersWithCoords.filter(c => c.status === 'suspended').length;
-        
+
         // Use responsive mapping-new.ejs instead of separate mobile version
         res.redirect('/admin/billing/mapping');
     } catch (error) {
@@ -4803,22 +4796,22 @@ router.get('/mobile/mapping', getAppSettings, async (req, res) => {
 router.get('/api/mapping/data', async (req, res) => {
     try {
         const MappingUtils = require('../utils/mappingUtils');
-        
+
         // Ambil data customers dengan koordinat
         const customers = await billingManager.getCustomers();
         const customersWithCoords = customers.filter(c => c.latitude && c.longitude);
-        
+
         // Validasi koordinat customer
-        const validatedCustomers = customersWithCoords.map(customer => 
+        const validatedCustomers = customersWithCoords.map(customer =>
             MappingUtils.validateCustomerCoordinates(customer)
         );
-        
+
         // Hitung statistik mapping
         const totalCustomers = validatedCustomers.length;
         const validCoordinates = validatedCustomers.filter(c => c.coordinateStatus === 'valid').length;
         const defaultCoordinates = validatedCustomers.filter(c => c.coordinateStatus === 'default').length;
         const invalidCoordinates = validatedCustomers.filter(c => c.coordinateStatus === 'invalid').length;
-        
+
         // Hitung area coverage jika ada minimal 3 koordinat
         let coverageArea = 0;
         if (validCoordinates >= 3) {
@@ -4827,13 +4820,13 @@ router.get('/api/mapping/data', async (req, res) => {
                 .map(c => ({ latitude: c.latitude, longitude: c.longitude }));
             coverageArea = MappingUtils.calculateCoverageArea(validCoords);
         }
-        
+
         // Buat clusters untuk customer
         const customerClusters = MappingUtils.createClusters(
             validatedCustomers.map(c => ({ latitude: c.latitude, longitude: c.longitude })),
             2000 // 2km cluster radius
         );
-        
+
         res.json({
             success: true,
             data: {
@@ -4850,9 +4843,9 @@ router.get('/api/mapping/data', async (req, res) => {
         });
     } catch (error) {
         logger.error('Error getting mapping data:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Gagal mengambil data mapping' 
+        res.status(500).json({
+            success: false,
+            message: 'Gagal mengambil data mapping'
         });
     }
 });
@@ -4861,34 +4854,34 @@ router.get('/api/mapping/data', async (req, res) => {
 router.get('/api/mapping/coverage', async (req, res) => {
     try {
         const MappingUtils = require('../utils/mappingUtils');
-        
+
         // Ambil data customers
         const customers = await billingManager.getCustomers();
         const customersWithCoords = customers.filter(c => c.latitude && c.longitude);
-        
+
         if (customersWithCoords.length < 3) {
             return res.json({
                 success: false,
                 message: 'Minimal 3 koordinat diperlukan untuk analisis coverage'
             });
         }
-        
+
         // Hitung bounding box
-        const coordinates = customersWithCoords.map(c => ({ 
-            latitude: c.latitude, 
-            longitude: c.longitude 
+        const coordinates = customersWithCoords.map(c => ({
+            latitude: c.latitude,
+            longitude: c.longitude
         }));
-        
+
         const boundingBox = MappingUtils.getBoundingBox(coordinates);
         const center = MappingUtils.getCenterCoordinate(coordinates);
         const coverageArea = MappingUtils.calculateCoverageArea(coordinates);
-        
+
         // Analisis density per area
         const clusters = MappingUtils.createClusters(coordinates, 1000); // 1km radius
         const highDensityAreas = clusters.filter(c => c.count >= 5);
         const mediumDensityAreas = clusters.filter(c => c.count >= 3 && c.count < 5);
         const lowDensityAreas = clusters.filter(c => c.count < 3);
-        
+
         res.json({
             success: true,
             data: {
@@ -4910,9 +4903,9 @@ router.get('/api/mapping/coverage', async (req, res) => {
         });
     } catch (error) {
         logger.error('Error analyzing coverage:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Gagal menganalisis coverage area' 
+        res.status(500).json({
+            success: false,
+            message: 'Gagal menganalisis coverage area'
         });
     }
 });
@@ -4922,16 +4915,16 @@ router.put('/api/mapping/customers/:id/coordinates', async (req, res) => {
     try {
         const { id } = req.params;
         const { latitude, longitude } = req.body;
-        
+
         if (!latitude || !longitude) {
             return res.status(400).json({
                 success: false,
                 message: 'Latitude dan longitude wajib diisi'
             });
         }
-        
+
         const MappingUtils = require('../utils/mappingUtils');
-        
+
         // Validasi koordinat
         if (!MappingUtils.isValidCoordinate(latitude, longitude)) {
             return res.status(400).json({
@@ -4939,13 +4932,13 @@ router.put('/api/mapping/customers/:id/coordinates', async (req, res) => {
                 message: 'Koordinat tidak valid'
             });
         }
-        
+
         // Update koordinat customer
         const result = await billingManager.updateCustomerCoordinates(parseInt(id), {
             latitude: parseFloat(latitude),
             longitude: parseFloat(longitude)
         });
-        
+
         if (result) {
             res.json({
                 success: true,
@@ -4976,23 +4969,23 @@ router.put('/api/mapping/customers/:id/coordinates', async (req, res) => {
 router.post('/api/mapping/customers/bulk-coordinates', async (req, res) => {
     try {
         const { coordinates } = req.body;
-        
+
         if (!coordinates || !Array.isArray(coordinates)) {
             return res.status(400).json({
                 success: false,
                 message: 'Data koordinat harus berupa array'
             });
         }
-        
+
         const MappingUtils = require('../utils/mappingUtils');
         const results = [];
         let successCount = 0;
         let errorCount = 0;
-        
+
         for (const coord of coordinates) {
             try {
                 const { customer_id, latitude, longitude } = coord;
-                
+
                 if (!customer_id || !latitude || !longitude) {
                     results.push({
                         customer_id,
@@ -5002,7 +4995,7 @@ router.post('/api/mapping/customers/bulk-coordinates', async (req, res) => {
                     errorCount++;
                     continue;
                 }
-                
+
                 // Validasi koordinat
                 if (!MappingUtils.isValidCoordinate(latitude, longitude)) {
                     results.push({
@@ -5013,13 +5006,13 @@ router.post('/api/mapping/customers/bulk-coordinates', async (req, res) => {
                     errorCount++;
                     continue;
                 }
-                
+
                 // Update koordinat
                 const result = await billingManager.updateCustomerCoordinates(parseInt(customer_id), {
                     latitude: parseFloat(latitude),
                     longitude: parseFloat(longitude)
                 });
-                
+
                 if (result) {
                     results.push({
                         customer_id,
@@ -5049,7 +5042,7 @@ router.post('/api/mapping/customers/bulk-coordinates', async (req, res) => {
                 errorCount++;
             }
         }
-        
+
         res.json({
             success: true,
             message: `Bulk update selesai. ${successCount} berhasil, ${errorCount} gagal`,
@@ -5073,11 +5066,11 @@ router.post('/api/mapping/customers/bulk-coordinates', async (req, res) => {
 router.get('/api/mapping/export', async (req, res) => {
     try {
         const { format = 'json' } = req.query;
-        
+
         // Ambil data mapping
         const customers = await billingManager.getCustomers();
         const customersWithCoords = customers.filter(c => c.latitude && c.longitude);
-        
+
         if (format === 'csv') {
             // Export sebagai CSV
             const csvData = customersWithCoords.map(c => ({
@@ -5091,20 +5084,20 @@ router.get('/api/mapping/export', async (req, res) => {
                 status: c.status,
                 address: c.address || 'N/A'
             }));
-            
+
             res.setHeader('Content-Type', 'text/csv');
             res.setHeader('Content-Disposition', 'attachment; filename="mapping_data.csv"');
-            
+
             // CSV header
             const headers = Object.keys(csvData[0]).join(',');
             const rows = csvData.map(row => Object.values(row).map(val => `"${val}"`).join(','));
-            
+
             res.send([headers, ...rows].join('\n'));
         } else {
             // Export sebagai JSON
             res.setHeader('Content-Type', 'application/json');
             res.setHeader('Content-Disposition', 'attachment; filename="mapping_data.json"');
-            
+
             res.json({
                 exportDate: new Date().toISOString(),
                 totalCustomers: customersWithCoords.length,
@@ -5125,20 +5118,20 @@ router.get('/api/packages/:id/price-with-tax', async (req, res) => {
     try {
         const { id } = req.params;
         const package = await billingManager.getPackageById(parseInt(id));
-        
+
         if (!package) {
             return res.status(404).json({
                 success: false,
                 message: 'Package not found'
             });
         }
-        
+
         const basePrice = package.price;
         const taxRate = (package.tax_rate === 0 || (typeof package.tax_rate === 'number' && package.tax_rate > -1))
             ? Number(package.tax_rate)
             : 11.00;
         const priceWithTax = billingManager.calculatePriceWithTax(basePrice, taxRate);
-        
+
         res.json({
             success: true,
             package: {
@@ -5163,7 +5156,7 @@ router.get('/api/packages/:id/price-with-tax', async (req, res) => {
 router.get('/payments/:id', getAppSettings, async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         // Get payment data (placeholder - implement getPayment method if needed)
         const payment = {
             id: id,
@@ -5175,7 +5168,7 @@ router.get('/payments/:id', getAppSettings, async (req, res) => {
             reference: 'PAY' + id.toString().padStart(6, '0'),
             description: 'Pembayaran tagihan bulanan'
         };
-        
+
         res.render('admin/billing/mobile-payment-detail', {
             title: 'Detail Pembayaran - Mobile',
             appSettings: req.appSettings,
@@ -5183,7 +5176,7 @@ router.get('/payments/:id', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading payment detail:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading payment detail',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -5194,7 +5187,7 @@ router.get('/payments/:id', getAppSettings, async (req, res) => {
 router.get('/settings', getAppSettings, async (req, res) => {
     try {
         const settings = getSettingsWithCache();
-        
+
         res.render('admin/billing/settings', {
             title: 'Pengaturan Billing - Mobile',
             appSettings: req.appSettings,
@@ -5202,7 +5195,7 @@ router.get('/settings', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading billing settings:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading billing settings',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -5289,13 +5282,13 @@ router.get('/api/list-bayar', adminAuth, async (req, res) => {
 router.get('/reports', getAppSettings, async (req, res) => {
     try {
         const settings = getSettingsWithCache();
-        
+
         // Get basic stats for reports
         const totalCustomers = await billingManager.getTotalCustomers();
         const totalInvoices = await billingManager.getTotalInvoices();
         const totalRevenue = await billingManager.getTotalRevenue();
         const pendingPayments = await billingManager.getPendingPayments();
-        
+
         res.render('admin/billing/reports', {
             title: 'Laporan Billing - Mobile',
             appSettings: req.appSettings,
@@ -5308,7 +5301,7 @@ router.get('/reports', getAppSettings, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error loading billing reports:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading billing reports',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });

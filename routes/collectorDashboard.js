@@ -18,17 +18,17 @@ const whatsappNotifications = require('../config/whatsapp-notifications');
 router.get('/dashboard', collectorAuth, async (req, res) => {
     try {
         const collectorId = req.collector.id;
-        
+
         // Get collector info menggunakan BillingManager
         const collector = await billingManager.getCollectorById(collectorId);
-        
+
         if (!collector) {
-            return res.status(404).render('error', { 
+            return res.status(404).render('error', {
                 message: 'Collector not found',
                 error: {}
             });
         }
-        
+
         // Validasi dan format data collector
         const validCollector = {
             ...collector,
@@ -37,15 +37,11 @@ router.get('/dashboard', collectorAuth, async (req, res) => {
             phone: collector.phone || '',
             status: collector.status || 'active'
         };
-        
+
         // Get statistics menggunakan BillingManager
-        const today = new Date();
-        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-        
         const [todayPayments, totalCommission, totalPayments, recentPayments] = await Promise.all([
             // Today's payments - menggunakan data real dari database
-            billingManager.getCollectorTodayPayments(collectorId, startOfDay, endOfDay),
+            billingManager.getCollectorTodayPayments(collectorId),
             // Total commission - menggunakan data real dari database
             billingManager.getCollectorTotalCommission(collectorId),
             // Total payments count - menggunakan data real dari database
@@ -53,9 +49,9 @@ router.get('/dashboard', collectorAuth, async (req, res) => {
             // Recent payments - menggunakan data real dari database
             billingManager.getCollectorRecentPayments(collectorId, 5)
         ]);
-        
+
         const appSettings = await getAppSettings();
-        
+
         res.render('collector/dashboard', {
             title: 'Dashboard Tukang Tagih',
             appSettings: appSettings,
@@ -67,10 +63,10 @@ router.get('/dashboard', collectorAuth, async (req, res) => {
             },
             recentPayments: recentPayments
         });
-        
+
     } catch (error) {
         console.error('Error loading collector dashboard:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading dashboard',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -82,7 +78,7 @@ router.get('/payment', collectorAuth, async (req, res) => {
     try {
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Get active customers
         const customers = await new Promise((resolve, reject) => {
             db.all('SELECT * FROM customers WHERE status = "active" ORDER BY name', (err, rows) => {
@@ -90,22 +86,22 @@ router.get('/payment', collectorAuth, async (req, res) => {
                 else resolve(rows || []);
             });
         });
-        
+
         const appSettings = await getAppSettings();
         const collector = req.collector;
-        
+
         db.close();
-        
+
         res.render('collector/payment', {
             title: 'Input Pembayaran',
             appSettings: appSettings,
             collector: collector,
             customers: customers
         });
-        
+
     } catch (error) {
         console.error('Error loading payment form:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading payment form',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -118,7 +114,7 @@ router.get('/api/customer-invoices/:customerId', collectorAuth, async (req, res)
         const { customerId } = req.params;
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         const invoices = await new Promise((resolve, reject) => {
             db.all(`
                 SELECT i.*, p.name as package_name
@@ -131,14 +127,14 @@ router.get('/api/customer-invoices/:customerId', collectorAuth, async (req, res)
                 else resolve(rows || []);
             });
         });
-        
+
         db.close();
-        
+
         res.json({
             success: true,
             data: invoices
         });
-        
+
     } catch (error) {
         console.error('Error getting customer invoices:', error);
         res.status(500).json({
@@ -152,32 +148,32 @@ router.get('/api/customer-invoices/:customerId', collectorAuth, async (req, res)
 router.get('/payments', collectorAuth, async (req, res) => {
     try {
         const collectorId = req.collector.id;
-        
+
         // Get collector info menggunakan BillingManager
         const collector = await billingManager.getCollectorById(collectorId);
-        
+
         if (!collector) {
-            return res.status(404).render('error', { 
+            return res.status(404).render('error', {
                 message: 'Collector not found',
                 error: {}
             });
         }
-        
+
         // Get all payments menggunakan BillingManager
         const payments = await billingManager.getCollectorAllPayments(collectorId);
-        
+
         const appSettings = await getAppSettings();
-        
+
         res.render('collector/payments', {
             title: 'Riwayat Pembayaran',
             appSettings: appSettings,
             collector: collector,
             payments: payments
         });
-        
+
     } catch (error) {
         console.error('Error loading payments:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading payments',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -197,7 +193,7 @@ router.get('/customers', collectorAuth, async (req, res) => {
         }
         const appSettings = await getAppSettings();
         const collector = req.collector;
-        
+
         res.render('collector/customers', {
             title: 'Daftar Pelanggan',
             appSettings: appSettings,
@@ -205,10 +201,10 @@ router.get('/customers', collectorAuth, async (req, res) => {
             customers: customers,
             currentStatusFilter: validFilters.has(statusFilter) ? statusFilter : ''
         });
-        
+
     } catch (error) {
         console.error('Error loading customers:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading customers',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -221,7 +217,7 @@ router.get('/profile', collectorAuth, async (req, res) => {
         const collectorId = req.collector.id;
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Get collector info
         const collector = await new Promise((resolve, reject) => {
             db.get('SELECT * FROM collectors WHERE id = ?', [collectorId], (err, row) => {
@@ -229,20 +225,20 @@ router.get('/profile', collectorAuth, async (req, res) => {
                 else resolve(row);
             });
         });
-        
+
         const appSettings = await getAppSettings();
-        
+
         db.close();
-        
+
         res.render('collector/profile', {
             title: 'Profil Saya',
             appSettings: appSettings,
             collector: collector
         });
-        
+
     } catch (error) {
         console.error('Error loading profile:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading profile',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -255,7 +251,7 @@ router.get('/profile/edit', collectorAuth, async (req, res) => {
         const collectorId = req.collector.id;
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Get collector info
         const collector = await new Promise((resolve, reject) => {
             db.get('SELECT * FROM collectors WHERE id = ?', [collectorId], (err, row) => {
@@ -263,20 +259,20 @@ router.get('/profile/edit', collectorAuth, async (req, res) => {
                 else resolve(row);
             });
         });
-        
+
         const appSettings = await getAppSettings();
-        
+
         db.close();
-        
+
         res.render('collector/profile-edit', {
             title: 'Edit Profil',
             appSettings: appSettings,
             collector: collector
         });
-        
+
     } catch (error) {
         console.error('Error loading edit profile:', error);
-        res.status(500).render('error', { 
+        res.status(500).render('error', {
             message: 'Error loading edit profile',
             error: process.env.NODE_ENV === 'development' ? error : {}
         });
@@ -288,17 +284,17 @@ router.post('/api/profile/update', collectorAuth, async (req, res) => {
     try {
         const collectorId = req.collector.id;
         const { name, phone, email } = req.body;
-        
+
         if (!name || name.trim() === '') {
             return res.status(400).json({
                 success: false,
                 message: 'Nama tidak boleh kosong'
             });
         }
-        
+
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Update collector info
         await new Promise((resolve, reject) => {
             db.run(`
@@ -310,14 +306,14 @@ router.post('/api/profile/update', collectorAuth, async (req, res) => {
                 else resolve();
             });
         });
-        
+
         db.close();
-        
+
         res.json({
             success: true,
             message: 'Profil berhasil diperbarui'
         });
-        
+
     } catch (error) {
         console.error('Error updating profile:', error);
         res.status(500).json({
@@ -332,24 +328,24 @@ router.post('/api/profile/update-password', collectorAuth, async (req, res) => {
     try {
         const collectorId = req.collector.id;
         const { currentPassword, newPassword } = req.body;
-        
+
         if (!currentPassword || !newPassword) {
             return res.status(400).json({
                 success: false,
                 message: 'Password lama dan password baru harus diisi'
             });
         }
-        
+
         if (newPassword.length < 6) {
             return res.status(400).json({
                 success: false,
                 message: 'Password baru minimal 6 karakter'
             });
         }
-        
+
         const dbPath = path.join(__dirname, '../data/billing.db');
         const db = new sqlite3.Database(dbPath);
-        
+
         // Get current collector data
         const collector = await new Promise((resolve, reject) => {
             db.get('SELECT * FROM collectors WHERE id = ?', [collectorId], (err, row) => {
@@ -357,7 +353,7 @@ router.post('/api/profile/update-password', collectorAuth, async (req, res) => {
                 else resolve(row);
             });
         });
-        
+
         if (!collector) {
             db.close();
             return res.status(404).json({
@@ -365,10 +361,10 @@ router.post('/api/profile/update-password', collectorAuth, async (req, res) => {
                 message: 'Tukang tagih tidak ditemukan'
             });
         }
-        
+
         // Verify current password using bcrypt
         const validPassword = collector.password ? bcrypt.compareSync(currentPassword, collector.password) : false;
-        
+
         if (!validPassword) {
             db.close();
             return res.status(400).json({
@@ -376,10 +372,10 @@ router.post('/api/profile/update-password', collectorAuth, async (req, res) => {
                 message: 'Password lama tidak benar'
             });
         }
-        
+
         // Hash new password
         const hashedNewPassword = bcrypt.hashSync(newPassword, 10);
-        
+
         // Update password
         await new Promise((resolve, reject) => {
             db.run(`
@@ -391,14 +387,14 @@ router.post('/api/profile/update-password', collectorAuth, async (req, res) => {
                 else resolve();
             });
         });
-        
+
         db.close();
-        
+
         res.json({
             success: true,
             message: 'Password berhasil diperbarui'
         });
-        
+
     } catch (error) {
         console.error('Error updating password:', error);
         res.status(500).json({
@@ -430,14 +426,14 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
             }
         }
         parsedInvoiceIds = parsedInvoiceIds.map(v => Number(String(v).trim())).filter(v => !Number.isNaN(v));
-        
+
         if (!customer_id || !paymentAmountNum) {
             return res.status(400).json({
                 success: false,
                 message: 'Customer ID dan jumlah pembayaran harus diisi'
             });
         }
-        
+
         // Validasi jumlah pembayaran
         if (paymentAmountNum <= 0) {
             return res.status(400).json({
@@ -445,26 +441,26 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
                 message: 'Jumlah pembayaran harus lebih dari 0'
             });
         }
-        
+
         if (paymentAmountNum > 999999999) {
             return res.status(400).json({
                 success: false,
                 message: 'Jumlah pembayaran terlalu besar (maksimal 999,999,999)'
             });
         }
-        
+
         // Get collector commission rate using BillingManager
         const collector = await billingManager.getCollectorById(collectorId);
-        
+
         if (!collector) {
             return res.status(400).json({
                 success: false,
                 message: 'Collector not found'
             });
         }
-        
+
         const commissionRate = collector.commission_rate || 5;
-        
+
         // Validasi commission rate
         if (commissionRate < 0 || commissionRate > 100) {
             return res.status(400).json({
@@ -472,22 +468,10 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
                 message: 'Rate komisi tidak valid (harus antara 0-100%)'
             });
         }
-        
+
         const commissionAmount = Math.round((paymentAmountNum * commissionRate) / 100); // Rounding untuk komisi
-        
-        // Insert collector payment record
-        const paymentId = await billingManager.recordCollectorPaymentRecord({
-            collector_id: collectorId,
-            customer_id: customer_id,
-            amount: paymentAmountNum,
-            payment_amount: paymentAmountNum,
-            commission_amount: commissionAmount,
-            payment_method: payment_method,
-            notes: notes,
-            status: 'completed'
-        });
-        
-        let lastPaymentId = null;
+
+        let lastPaymentId = null; // Inisialisasi di awal untuk menghindari undefined
 
         // Update invoices if specified, else auto-allocate to oldest unpaid invoices
         if (parsedInvoiceIds && parsedInvoiceIds.length > 0) {
@@ -500,6 +484,7 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
                 const newPayment = await billingManager.recordCollectorPayment({
                     invoice_id: invoiceId,
                     amount: invAmount,
+                    customer_id: Number(customer_id),
                     payment_method,
                     reference_number: '',
                     notes: notes || `Collector ${collectorId}`,
@@ -523,6 +508,7 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
                         const newPayment = await billingManager.recordCollectorPayment({
                             invoice_id: inv.id,
                             amount: invAmount,
+                            customer_id: Number(customer_id),
                             payment_method,
                             reference_number: '',
                             notes: notes || `Collector ${collectorId}`,
@@ -569,10 +555,10 @@ router.post('/api/payment', collectorAuth, async (req, res) => {
         res.json({
             success: true,
             message: 'Payment recorded successfully',
-            payment_id: paymentId,
+            payment_id: lastPaymentId,
             commission_amount: commissionAmount
         });
-        
+
     } catch (error) {
         console.error('Error recording payment:', error);
         res.status(500).json({
