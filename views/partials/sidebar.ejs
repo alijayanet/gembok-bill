@@ -8,7 +8,7 @@
   <!-- Version Info -->
   <div class="version-info text-center mb-3">
     <small class="text-muted">
-      <span id="versionDisplay">v1.0.0</span> | Build: <span id="buildDisplay">001</span>
+      <span id="versionDisplay"><%= typeof versionInfo !== 'undefined' ? 'v' + versionInfo.version : 'v1.0.0' %></span> | Build: <span id="buildDisplay"><%= typeof versionInfo !== 'undefined' ? versionInfo.buildNumber : '001' %></span>
     </small>
   </div>
   
