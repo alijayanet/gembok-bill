@@ -39,53 +39,49 @@
         .mobile-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1rem;
+            padding: 0.5rem;
             text-align: center;
         }
         .balance-card {
             background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
             color: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin: 1rem;
-            text-align: center;
-        }
-        .quick-action {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
+            border-radius: 10px;
+            padding: 0.75rem;
             margin: 0.5rem;
             text-align: center;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .quick-action-sm {
+            background: white;
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
             cursor: pointer;
+            border: 2px solid transparent;
         }
-        .quick-action:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        .quick-action-sm:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
         }
-        .quick-action i {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+        .quick-action-sm i {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
         }
-        .quick-action.primary { border-left: 4px solid #667eea; }
-        .quick-action.success { border-left: 4px solid #28a745; }
-        .quick-action.warning { border-left: 4px solid #ffc107; }
-        .quick-action.info { border-left: 4px solid #17a2b8; }
         .stats-card {
             background: white;
-            border-radius: 15px;
-            padding: 1rem;
-            margin: 0.5rem;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            padding: 0.5rem !important;
+            margin: 0.25rem !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .notification-item {
             background: white;
-            border-radius: 10px;
-            padding: 1rem;
-            margin: 0.5rem;
-            border-left: 4px solid #667eea;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin: 0.25rem;
+            border-left: 3px solid #667eea;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
         }
         .notification-item.unread {
             background: #f8f9ff;
@@ -140,103 +136,142 @@
         .nav-item span {
             font-size: 0.75rem;
         }
+        .stat-item {
+            background: #f8f9fa !important;
+            border-radius: 8px !important;
+            padding: 0.5rem !important;
+            margin-bottom: 0.25rem !important;
+        }
     </style>
 </head>
 <body>
     <div class="mobile-container">
         <!-- Header -->
         <div class="mobile-header">
-            <h4 class="mb-1">
+            <h5 class="mb-0">
                 <i class="fas fa-user-tie me-2"></i>
                 Agent Portal
-            </h4>
-            <p class="mb-0 opacity-75">Selamat datang, <%= agent.name %>!</p>
-        </div>
-
-        <!-- Balance Card -->
-        <div class="balance-card">
-            <h5 class="mb-2">
-                <i class="fas fa-wallet me-2"></i>
-                Saldo Tersedia
             </h5>
-            <h2 class="mb-0">Rp <%= balance.toLocaleString() %></h2>
-            <small class="opacity-75">Saldo dapat digunakan untuk menjual voucher</small>
+            <small class="opacity-75">Selamat datang, <%= agent.name %>!</small>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="row mx-1">
+        <!-- 2x2 Grid Layout -->
+        <div class="row g-1 mx-1 mt-2" style="max-height: 50vh;">
+            <!-- Balance Card -->
             <div class="col-6">
-                <div class="quick-action primary" onclick="location.href='/agent/vouchers'">
-                    <i class="fas fa-ticket-alt text-primary"></i>
-                    <h6 class="mb-1">Jual Voucher</h6>
-                    <small class="text-muted">Buat voucher hotspot</small>
+                <div class="stats-card" style="height: auto !important;">
+                    <h6 class="mb-0 small">
+                        <i class="fas fa-wallet me-1"></i>
+                        Saldo
+                    </h6>
+                    <h5 class="text-success mb-0">Rp <%= balance.toLocaleString() %></h5>
                 </div>
             </div>
-            <div class="col-6">
-                <div class="quick-action success" onclick="location.href='/agent/payments'">
-                    <i class="fas fa-credit-card text-success"></i>
-                    <h6 class="mb-1">Terima Pembayaran</h6>
-                    <small class="text-muted">Proses pembayaran</small>
-                </div>
-            </div>
-        </div>
 
-        <div class="row mx-1">
+            <!-- Quick Actions -->
             <div class="col-6">
-                <div class="quick-action warning" onclick="location.href='/agent/balance'">
-                    <i class="fas fa-wallet text-warning"></i>
-                    <h6 class="mb-1">Kelola Saldo</h6>
-                    <small class="text-muted">Request saldo</small>
+                <div class="stats-card" style="height: auto !important;">
+                    <h6 class="mb-0 small">
+                        <i class="fas fa-bolt me-1"></i>
+                        Aksi
+                    </h6>
+                    <div class="row g-1">
+                        <div class="col-6">
+                            <div class="quick-action-sm" onclick="location.href='/agent/vouchers'">
+                                <i class="fas fa-ticket-alt text-primary small"></i>
+                                <small class="d-block">Voucher</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="quick-action-sm" onclick="location.href='/agent/payments'">
+                                <i class="fas fa-credit-card text-success small"></i>
+                                <small class="d-block">Bayar</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="quick-action-sm" onclick="location.href='/agent/balance'">
+                                <i class="fas fa-wallet text-warning small"></i>
+                                <small class="d-block">Saldo</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="quick-action-sm" onclick="location.href='/agent/transactions'">
+                                <i class="fas fa-history text-info small"></i>
+                                <small class="d-block">Riwayat</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-6">
-                <div class="quick-action info" onclick="location.href='/agent/transactions'">
-                    <i class="fas fa-history text-info"></i>
-                    <h6 class="mb-1">Riwayat</h6>
-                    <small class="text-muted">Lihat transaksi</small>
-                </div>
-            </div>
-        </div>
 
-        <!-- Statistics -->
-        <div class="stats-card">
-            <h6 class="mb-3">
-                <i class="fas fa-chart-pie me-2"></i>
-                Statistik Hari Ini
-            </h6>
-            <div class="row text-center">
-                <div class="col-4">
-                    <h6 class="text-primary mb-1"><%= stats.total_vouchers || 0 %></h6>
-                    <small class="text-muted">Voucher</small>
+            <!-- Statistics -->
+            <div class="col-6">
+                <div class="stats-card" style="height: auto !important;">
+                    <h6 class="mb-0 small">
+                        <i class="fas fa-chart-pie me-1"></i>
+                        Statistik
+                    </h6>
+                    <div class="row text-center g-1">
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h6 class="text-primary mb-0 small"><%= stats.total_vouchers || 0 %></h6>
+                                <small class="text-muted small">Voucher</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h6 class="text-success mb-0 small"><%= stats.total_payments || 0 %></h6>
+                                <small class="text-muted small">Pembayaran</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h6 class="text-warning mb-0 small">Rp <%= (stats.total_spent_vouchers || 0).toLocaleString() %></h6>
+                                <small class="text-muted small">Penjualan</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h6 class="text-info mb-0 small">Rp <%= ((stats.voucher_commission || 0) + (stats.payment_commission || 0)).toLocaleString() %></h6>
+                                <small class="text-muted small">Komisi</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-4">
-                    <h6 class="text-success mb-1"><%= stats.total_payments || 0 %></h6>
-                    <small class="text-muted">Pembayaran</small>
-                </div>
-                <div class="col-4">
-                    <h6 class="text-warning mb-1">Rp <%= (stats.voucher_commission || 0).toLocaleString() %></h6>
-                    <small class="text-muted">Komisi</small>
+            </div>
+
+            <!-- Net Profit -->
+            <div class="col-6">
+                <div class="stats-card" style="height: auto !important;">
+                    <h6 class="mb-0 small">
+                        <i class="fas fa-coins me-1"></i>
+                        Keuntungan
+                    </h6>
+                    <div class="text-center">
+                        <h5 class="text-success mb-0">Rp <%= ((stats.voucher_commission || 0) + (stats.payment_commission || 0)).toLocaleString() %></h5>
+                        <small class="text-muted small">Total komisi hari ini</small>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Recent Notifications -->
         <div class="stats-card">
-            <h6 class="mb-3">
+            <h6 class="mb-2">
                 <i class="fas fa-bell me-2"></i>
                 Notifikasi Terbaru
             </h6>
             <% if (notifications.length > 0) { %>
-                <% notifications.slice(0, 3).forEach(notification => { %>
+                <% notifications.slice(0, 2).forEach(notification => { %>
                     <div class="notification-item <%= notification.is_read ? '' : 'unread' %>">
                         <div class="d-flex align-items-center">
-                            <div class="me-3">
-                                <i class="fas fa-<%= notification.notification_type === 'voucher_sold' ? 'ticket-alt' : notification.notification_type === 'payment_received' ? 'credit-card' : notification.notification_type === 'balance_updated' ? 'wallet' : 'bell' %> text-<%= notification.notification_type === 'voucher_sold' ? 'info' : notification.notification_type === 'payment_received' ? 'success' : notification.notification_type === 'balance_updated' ? 'warning' : 'primary' %>"></i>
+                            <div class="me-2">
+                                <i class="fas fa-<%= notification.notification_type === 'voucher_sold' ? 'ticket-alt' : notification.notification_type === 'payment_received' ? 'credit-card' : notification.notification_type === 'balance_updated' ? 'wallet' : 'bell' %> text-<%= notification.notification_type === 'voucher_sold' ? 'info' : notification.notification_type === 'payment_received' ? 'success' : notification.notification_type === 'balance_updated' ? 'warning' : 'primary' %> small"></i>
                             </div>
                             <div class="flex-grow-1">
-                                <h6 class="mb-1"><%= notification.title %></h6>
-                                <p class="mb-1 text-muted small"><%= notification.message %></p>
-                                <small class="text-muted">
+                                <h6 class="mb-0 small"><%= notification.title %></h6>
+                                <p class="mb-0 text-muted small text-truncate"><%= notification.message %></p>
+                                <small class="text-muted small">
                                     <i class="fas fa-clock me-1"></i>
                                     <%= new Date(notification.created_at).toLocaleString('id-ID') %>
                                 </small>
@@ -245,32 +280,32 @@
                     </div>
                 <% }); %>
             <% } else { %>
-                <div class="text-center text-muted py-3">
-                    <i class="fas fa-bell-slash fa-2x mb-2"></i>
-                    <p>Tidak ada notifikasi</p>
+                <div class="text-center text-muted py-2">
+                    <i class="fas fa-bell-slash mb-1"></i>
+                    <p class="small mb-0">Tidak ada notifikasi</p>
                 </div>
             <% } %>
         </div>
 
         <!-- Recent Transactions -->
         <div class="stats-card">
-            <h6 class="mb-3">
+            <h6 class="mb-2">
                 <i class="fas fa-receipt me-2"></i>
                 Transaksi Terbaru
             </h6>
             <% if (recentTransactions.length > 0) { %>
-                <% recentTransactions.slice(0, 3).forEach(transaction => { %>
+                <% recentTransactions.slice(0, 2).forEach(transaction => { %>
                     <div class="notification-item">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-1"><%= transaction.description %></h6>
-                                <small class="text-muted">
+                                <h6 class="mb-0 small text-truncate" style="max-width: 150px;"><%= transaction.description %></h6>
+                                <small class="text-muted small">
                                     <i class="fas fa-clock me-1"></i>
                                     <%= new Date(transaction.created_at).toLocaleString('id-ID') %>
                                 </small>
                             </div>
                             <div class="text-end">
-                                <span class="fw-bold <%= transaction.amount > 0 ? 'text-success' : 'text-danger' %>">
+                                <span class="fw-bold small <%= transaction.amount > 0 ? 'text-success' : 'text-danger' %>">
                                     <%= transaction.amount > 0 ? '+' : '' %>Rp <%= Math.abs(transaction.amount).toLocaleString() %>
                                 </span>
                             </div>
@@ -278,9 +313,9 @@
                     </div>
                 <% }); %>
             <% } else { %>
-                <div class="text-center text-muted py-3">
-                    <i class="fas fa-receipt fa-2x mb-2"></i>
-                    <p>Belum ada transaksi</p>
+                <div class="text-center text-muted py-2">
+                    <i class="fas fa-receipt mb-1"></i>
+                    <p class="small mb-0">Belum ada transaksi</p>
                 </div>
             <% } %>
         </div>

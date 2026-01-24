@@ -1,24 +1,52 @@
 <nav class="col-md-2 sidebar d-flex flex-column" id="adminSidebar">
     <div class="sidebar-header mb-4 text-center">
-        <img src="/img/<%= typeof settings !== 'undefined' && settings.logo_filename ? settings.logo_filename : 'logo.png' %>?ts=<%= Date.now() %>" alt="Logo" style="max-width:120px;max-height:60px;">
+        <img src="/img/<%= typeof settings !== 'undefined' && settings.logo_filename ? settings.logo_filename : 'logo.png' %>?ts=<%= Date.now() %>"
+            alt="Logo" style="max-width:120px;max-height:60px;">
     </div>
-    <a href="/admin/dashboard" class="<%= typeof page !== 'undefined' && page === 'dashboard' ? 'active' : '' %>"><i class="bi bi-house"></i> Dashboard</a>
-    <a href="/admin/billing/dashboard" class="<%= typeof page !== 'undefined' && page === 'billing' ? 'active' : '' %>"><i class="bi bi-receipt"></i> Billing</a>
-    <a href="/admin/installations" class="<%= typeof page !== 'undefined' && page === 'installations' ? 'active' : '' %>"><i class="bi bi-tools"></i> Installation Jobs</a>
-    <a href="/admin/technicians" class="<%= typeof page !== 'undefined' && page === 'technicians' ? 'active' : '' %>"><i class="bi bi-people-fill"></i> Kelola Teknisi</a>
-    <a href="/admin/cable-network/odp" class="<%= typeof page !== 'undefined' && page === 'cable-network-odp' ? 'active' : '' %>"><i class="bi bi-broadcast"></i> ODP Management</a>
-    <a href="/admin/cable-network/cables" class="<%= typeof page !== 'undefined' && page === 'cable-network-cables' ? 'active' : '' %>"><i class="bi bi-diagram-3"></i> Cable Routes</a>
-    <a href="/admin/cable-network/analytics" class="<%= typeof page !== 'undefined' && page === 'cable-network-analytics' ? 'active' : '' %>"><i class="bi bi-bar-chart-alt-2"></i> Network Analytics</a>
-    <a href="/admin/billing/mapping-new" class="<%= typeof page !== 'undefined' && page === 'mapping-new' ? 'active' : '' %>"><i class="bi bi-map"></i> Network Mapping</a>
-    <a href="/admin/genieacs" class="<%= typeof page !== 'undefined' && page === 'genieacs' ? 'active' : '' %>"><i class="bi bi-hdd-network"></i> GenieACS</a>
-    <a href="/admin/mikrotik" class="<%= typeof page !== 'undefined' && page === 'mikrotik' ? 'active' : '' %>"><i class="bi bi-router"></i> PPPoE</a>
-    <a href="/admin/mikrotik/profiles" class="<%= typeof page !== 'undefined' && page === 'mikrotik-profiles' ? 'active' : '' %>"><i class="bi bi-person-badge"></i> Profile PPPoE</a>
-    <a href="/admin/mikrotik/hotspot-profiles" class="<%= typeof page !== 'undefined' && page === 'hotspot-profiles' ? 'active' : '' %>"><i class="bi bi-wifi"></i> Profile Hotspot</a>
-    <a href="/admin/hotspot" class="<%= typeof page !== 'undefined' && page === 'hotspot' ? 'active' : '' %>"><i class="bi bi-wifi"></i> Hotspot</a>
-    <a href="/admin/hotspot/voucher" class="<%= typeof page !== 'undefined' && page === 'voucher' ? 'active' : '' %>"><i class="bi bi-ticket-perforated"></i> Voucher Hotspot</a>
-    <a href="/admin/trouble" class="<%= typeof page !== 'undefined' && page === 'trouble' ? 'active' : '' %>"><i class="bi bi-exclamation-triangle"></i> Trouble Report</a>
-    <a href="/admin/settings" class="<%= typeof page !== 'undefined' && page === 'setting' ? 'active' : '' %>"><i class="bi bi-gear"></i> Setting</a>
-    <a href="/admin/cache" class="<%= typeof page !== 'undefined' && page === 'cache' ? 'active' : '' %>"><i class="bi bi-database"></i> Cache Management</a>
+    <a href="/admin/dashboard" class="<%= typeof page !== 'undefined' && page === 'dashboard' ? 'active' : '' %>"><i
+            class="bi bi-house"></i> Dashboard</a>
+    <a href="/admin/billing/dashboard"
+        class="<%= typeof page !== 'undefined' && page === 'billing' ? 'active' : '' %>"><i class="bi bi-receipt"></i>
+        Billing</a>
+    <a href="/admin/installations"
+        class="<%= typeof page !== 'undefined' && page === 'installations' ? 'active' : '' %>"><i
+            class="bi bi-tools"></i> Installation Jobs</a>
+    <a href="/admin/technicians" class="<%= typeof page !== 'undefined' && page === 'technicians' ? 'active' : '' %>"><i
+            class="bi bi-people-fill"></i> Kelola Teknisi</a>
+    <a href="/admin/cable-network/odp"
+        class="<%= typeof page !== 'undefined' && page === 'cable-network-odp' ? 'active' : '' %>"><i
+            class="bi bi-broadcast"></i> ODP Management</a>
+    <a href="/admin/cable-network/cables"
+        class="<%= typeof page !== 'undefined' && page === 'cable-network-cables' ? 'active' : '' %>"><i
+            class="bi bi-diagram-3"></i> Cable Routes</a>
+    <a href="/admin/cable-network/analytics"
+        class="<%= typeof page !== 'undefined' && page === 'cable-network-analytics' ? 'active' : '' %>"><i
+            class="bi bi-bar-chart-alt-2"></i> Network Analytics</a>
+    <a href="/admin/billing/mapping-new"
+        class="<%= typeof page !== 'undefined' && page === 'mapping-new' ? 'active' : '' %>"><i class="bi bi-map"></i>
+        Network Mapping</a>
+    <a href="/admin/genieacs" class="<%= typeof page !== 'undefined' && page === 'genieacs' ? 'active' : '' %>"><i
+            class="bi bi-hdd-network"></i> GenieACS</a>
+    <a href="/admin/mikrotik" class="<%= typeof page !== 'undefined' && page === 'mikrotik' ? 'active' : '' %>"><i
+            class="bi bi-router"></i> PPPoE</a>
+    <a href="/admin/mikrotik/profiles"
+        class="<%= typeof page !== 'undefined' && page === 'mikrotik-profiles' ? 'active' : '' %>"><i
+            class="bi bi-person-badge"></i> Profile PPPoE</a>
+    <a href="/admin/mikrotik/hotspot-profiles"
+        class="<%= typeof page !== 'undefined' && page === 'hotspot-profiles' ? 'active' : '' %>"><i
+            class="bi bi-wifi"></i> Profile Hotspot</a>
+    <a href="/admin/hotspot" class="<%= typeof page !== 'undefined' && page === 'hotspot' ? 'active' : '' %>"><i
+            class="bi bi-wifi"></i> Hotspot</a>
+    <a href="/admin/hotspot/voucher" class="<%= typeof page !== 'undefined' && page === 'voucher' ? 'active' : '' %>"><i
+            class="bi bi-ticket-perforated"></i> Voucher Hotspot</a>
+    <a href="/admin/trouble" class="<%= typeof page !== 'undefined' && page === 'trouble' ? 'active' : '' %>"><i
+            class="bi bi-exclamation-triangle"></i> Trouble Report</a>
+    <a href="/admin/settings" class="<%= typeof page !== 'undefined' && page === 'setting' ? 'active' : '' %>"><i
+            class="bi bi-gear"></i> Setting</a>
+    <a href="/admin/cache" class="<%= typeof page !== 'undefined' && page === 'cache' ? 'active' : '' %>"><i
+            class="bi bi-database"></i> Cache Management</a>
+    <a href="/admin/update" class="<%= typeof page !== 'undefined' && page === 'update' ? 'active' : '' %>"><i
+            class="bi bi-cloud-arrow-down"></i> Update System</a>
     <a href="#" id="restartMikrotikBtn"><i class="bi bi-arrow-repeat"></i> Restart Mikrotik</a>
     <a href="/admin/logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
 </nav>

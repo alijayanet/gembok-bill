@@ -45,21 +45,13 @@
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/admin/agents">
-                <i class="bi bi-arrow-left me-2"></i>Kembali ke Agent
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/admin/logout">
-                    <i class="bi bi-box-arrow-right"></i> Logout
-                </a>
-            </div>
-        </div>
-    </nav>
-    
-    <div class="container-fluid mt-4">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <%- include('../partials/admin-responsive-sidebar') %>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
         <!-- Alert Container -->
         <div id="alertContainer"></div>
         
@@ -662,6 +654,8 @@
             loadHotspotProfiles();
         });
     </script>
+    </main>
     </div>
+</div>
 </body>
 </html>

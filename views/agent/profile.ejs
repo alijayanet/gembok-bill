@@ -229,7 +229,7 @@
                             <i class="fas fa-wallet me-2"></i>
                             Saldo Tersedia
                         </h6>
-                        <h4 class="mb-0">Rp <%= agent.balance.toLocaleString() %></h4>
+                        <h4 class="mb-0">Rp <%= (agent.balance || 0).toLocaleString() %></h4>
                     </div>
                 </div>
             </div>

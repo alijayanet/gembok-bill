@@ -86,6 +86,65 @@
             border: 2px solid #667eea;
             margin-bottom: 1rem;
         }
+
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #ffc107, #ff8c00);
+            color: white;
+        }
+
+        .status-approved {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .status-rejected {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+            color: white;
+        }
+
+        .agent-card {
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .agent-card:hover {
+            border-left-color: #28a745;
+            transform: translateX(5px);
+        }
+
+        .btn-action {
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-approve {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-reject {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+            border: none;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        }
     </style>
 </head>
 
@@ -126,32 +185,143 @@
                         </div>
                     </div>
 
-                    <!-- Balance Requests -->
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-money-bill-wave me-2"></i>
-                                Request Saldo Agent
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div id="balanceRequests">
-                                <!-- Balance requests will be loaded here -->
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs mb-4" id="agentTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="agents-tab" data-bs-toggle="tab"
+                                data-bs-target="#agents-content" type="button" role="tab">
+                                <i class="fas fa-users me-2"></i>Daftar Agent
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="registrations-tab" data-bs-toggle="tab"
+                                data-bs-target="#registrations-content" type="button" role="tab">
+                                <i class="fas fa-user-plus me-2"></i>Pendaftaran Agent
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="agentTabContent">
+                        <!-- Agents List Tab -->
+                        <div class="tab-pane fade show active" id="agents-content" role="tabpanel">
+                            <!-- Balance Requests -->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-money-bill-wave me-2"></i>
+                                        Request Saldo Agent
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="balanceRequests">
+                                        <!-- Balance requests will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Agents List -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-users me-2"></i>
+                                        Daftar Agent
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="agentsList">
+                                        <!-- Agents will be loaded here -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Agents List -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-users me-2"></i>
-                                Daftar Agent
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div id="agentsList">
-                                <!-- Agents will be loaded here -->
+                        <!-- Registrations Tab -->
+                        <div class="tab-pane fade" id="registrations-content" role="tabpanel">
+                            <!-- Stats Cards -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-clock fa-2x mb-2"></i>
+                                            <h4 id="pendingCount">0</h4>
+                                            <p class="mb-0">Menunggu Approval</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                            <h4 id="approvedCount">0</h4>
+                                            <p class="mb-0">Disetujui</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-times-circle fa-2x mb-2"></i>
+                                            <h4 id="rejectedCount">0</h4>
+                                            <p class="mb-0">Ditolak</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-users fa-2x mb-2"></i>
+                                            <h4 id="totalCount">0</h4>
+                                            <p class="mb-0">Total Pendaftaran</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Filter Tabs -->
+                            <ul class="nav nav-tabs mb-4" id="statusTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="pending-tab" data-bs-toggle="tab"
+                                        data-bs-target="#pending" type="button" role="tab">
+                                        <i class="fas fa-clock me-1"></i>Menunggu Approval
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="approved-tab" data-bs-toggle="tab"
+                                        data-bs-target="#approved" type="button" role="tab">
+                                        <i class="fas fa-check-circle me-1"></i>Disetujui
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="rejected-tab" data-bs-toggle="tab"
+                                        data-bs-target="#rejected" type="button" role="tab">
+                                        <i class="fas fa-times-circle me-1"></i>Ditolak
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <!-- Tab Content -->
+                            <div class="tab-content" id="statusTabContent">
+                                <!-- Pending Registrations -->
+                                <div class="tab-pane fade show active" id="pending" role="tabpanel">
+                                    <div class="row" id="pendingAgents">
+                                        <!-- Pending agents will be loaded here -->
+                                    </div>
+                                </div>
+
+                                <!-- Approved Registrations -->
+                                <div class="tab-pane fade" id="approved" role="tabpanel">
+                                    <div class="row" id="approvedAgents">
+                                        <!-- Approved agents will be loaded here -->
+                                    </div>
+                                </div>
+
+                                <!-- Rejected Registrations -->
+                                <div class="tab-pane fade" id="rejected" role="tabpanel">
+                                    <div class="row" id="rejectedAgents">
+                                        <!-- Rejected agents will be loaded here -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -404,6 +574,27 @@
                         <i class="fas fa-times me-2"></i>
                         Tolak Request
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Action Modal -->
+    <div class="modal fade" id="registrationActionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registrationActionTitle">Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="registrationActionBody">
+                        <!-- Modal content will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="confirmRegistrationAction">Konfirmasi</button>
                 </div>
             </div>
         </div>
@@ -807,13 +998,224 @@
         document.addEventListener('DOMContentLoaded', function () {
             loadBalanceRequests();
             loadAgents();
+            loadAgentRegistrations();
         });
 
         // Auto refresh every 30 seconds
         setInterval(function () {
             loadBalanceRequests();
             loadAgents();
+            loadAgentRegistrations();
         }, 30000);
+
+        // Load agent registrations
+        async function loadAgentRegistrations() {
+            try {
+                const response = await fetch('/admin/api/agent-registrations');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayRegistrations(data.agents);
+                    updateRegistrationStats(data.stats);
+                } else {
+                    console.error('Error loading agent registrations:', data.message);
+                }
+            } catch (error) {
+                console.error('Error loading agent registrations:', error);
+            }
+        }
+
+        // Display registrations by status
+        function displayRegistrations(agents) {
+            const pendingContainer = document.getElementById('pendingAgents');
+            const approvedContainer = document.getElementById('approvedAgents');
+            const rejectedContainer = document.getElementById('rejectedAgents');
+
+            if (pendingContainer) pendingContainer.innerHTML = '';
+            if (approvedContainer) approvedContainer.innerHTML = '';
+            if (rejectedContainer) rejectedContainer.innerHTML = '';
+
+            agents.forEach(agent => {
+                const agentCard = createRegistrationCard(agent);
+
+                if (agent.status === 'pending' && pendingContainer) {
+                    pendingContainer.appendChild(agentCard);
+                } else if (agent.status === 'active' && approvedContainer) {
+                    approvedContainer.appendChild(agentCard);
+                } else if (agent.status === 'rejected' && rejectedContainer) {
+                    rejectedContainer.appendChild(agentCard);
+                }
+            });
+        }
+
+        // Create registration card
+        function createRegistrationCard(agent) {
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4 mb-3';
+
+            const statusClass = agent.status === 'pending' ? 'status-pending' :
+                agent.status === 'active' ? 'status-approved' : 'status-rejected';
+
+            const statusText = agent.status === 'pending' ? 'Menunggu Approval' :
+                agent.status === 'active' ? 'Disetujui' : 'Ditolak';
+
+            col.innerHTML = `
+                <div class="card agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="card-title mb-1">${agent.name}</h6>
+                                <small class="text-muted">@${agent.username}</small>
+                            </div>
+                            <span class="badge ${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <p class="mb-1"><i class="fas fa-phone me-2"></i>${agent.phone}</p>
+                            ${agent.email ? `<p class="mb-1"><i class="fas fa-envelope me-2"></i>${agent.email}</p>` : ''}
+                            <p class="mb-1"><i class="fas fa-map-marker-alt me-2"></i>${agent.address}</p>
+                            <p class="mb-0"><i class="fas fa-calendar me-2"></i>${new Date(agent.created_at).toLocaleDateString('id-ID')}</p>
+                        </div>
+
+                        ${agent.status === 'pending' ? `
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-approve btn-action" onclick="showRegistrationActionModal(${agent.id}, 'approve')">
+                                    <i class="fas fa-check me-1"></i>Setujui
+                                </button>
+                                <button class="btn btn-reject btn-action" onclick="showRegistrationActionModal(${agent.id}, 'reject')">
+                                    <i class="fas fa-times me-1"></i>Tolak
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            return col;
+        }
+
+        // Update registration stats
+        function updateRegistrationStats(stats) {
+            if (document.getElementById('pendingCount')) {
+                document.getElementById('pendingCount').textContent = stats.pending || 0;
+            }
+            if (document.getElementById('approvedCount')) {
+                document.getElementById('approvedCount').textContent = stats.approved || 0;
+            }
+            if (document.getElementById('rejectedCount')) {
+                document.getElementById('rejectedCount').textContent = stats.rejected || 0;
+            }
+            if (document.getElementById('totalCount')) {
+                document.getElementById('totalCount').textContent = stats.total || 0;
+            }
+        }
+
+        // Show registration action modal
+        let currentRegistrationId = null;
+        let currentRegistrationAction = null;
+
+        function showRegistrationActionModal(agentId, action) {
+            currentRegistrationId = agentId;
+            currentRegistrationAction = action;
+
+            const modal = new bootstrap.Modal(document.getElementById('registrationActionModal'));
+            const title = document.getElementById('registrationActionTitle');
+            const body = document.getElementById('registrationActionBody');
+            const confirmBtn = document.getElementById('confirmRegistrationAction');
+
+            if (action === 'approve') {
+                title.textContent = 'Setujui Pendaftaran Agent';
+                body.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Konfirmasi Persetujuan</strong><br>
+                        Agent akan dapat login dan mulai transaksi setelah disetujui.
+                    </div>
+                    <p>Apakah Anda yakin ingin menyetujui pendaftaran agent ini?</p>
+                `;
+                confirmBtn.className = 'btn btn-success';
+                confirmBtn.innerHTML = '<i class="fas fa-check me-1"></i>Setujui';
+            } else {
+                title.textContent = 'Tolak Pendaftaran Agent';
+                body.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Konfirmasi Penolakan</strong><br>
+                        Agent tidak akan dapat login dan harus mendaftar ulang.
+                    </div>
+                    <div class="mb-3">
+                        <label for="registrationRejectReason" class="form-label">Alasan Penolakan (Opsional)</label>
+                        <textarea class="form-control" id="registrationRejectReason" rows="3" placeholder="Masukkan alasan penolakan..."></textarea>
+                    </div>
+                `;
+                confirmBtn.className = 'btn btn-danger';
+                confirmBtn.innerHTML = '<i class="fas fa-times me-1"></i>Tolak';
+            }
+
+            modal.show();
+        }
+
+        // Confirm registration action
+        document.getElementById('confirmRegistrationAction').addEventListener('click', async function () {
+            if (currentRegistrationAction === 'approve') {
+                await approveRegistration(currentRegistrationId);
+            } else if (currentRegistrationAction === 'reject') {
+                const reason = document.getElementById('registrationRejectReason').value;
+                await rejectRegistration(currentRegistrationId, reason);
+            }
+        });
+
+        // Approve registration
+        async function approveRegistration(agentId) {
+            try {
+                const response = await fetch(`/admin/api/agent-registrations/${agentId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Agent berhasil disetujui!');
+                    bootstrap.Modal.getInstance(document.getElementById('registrationActionModal')).hide();
+                    loadAgentRegistrations();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error approving agent:', error);
+                alert('Terjadi kesalahan saat menyetujui agent');
+            }
+        }
+
+        // Reject registration
+        async function rejectRegistration(agentId, reason) {
+            try {
+                const response = await fetch(`/admin/api/agent-registrations/${agentId}/reject`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reason })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Agent berhasil ditolak!');
+                    bootstrap.Modal.getInstance(document.getElementById('registrationActionModal')).hide();
+                    loadAgentRegistrations();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error rejecting agent:', error);
+                alert('Terjadi kesalahan saat menolak agent');
+            }
+        }
     </script>
 </body>
 
