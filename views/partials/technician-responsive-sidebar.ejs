@@ -46,6 +46,13 @@
 <nav class="col-md-2 sidebar" id="technicianSidebar" style="background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; min-height: 100vh; padding: 2rem;">
     <h6 class="text-center mb-4 fw-bold">Portal Teknisi</h6>
     
+    <!-- Version Info -->
+    <div class="version-info text-center mb-3">
+        <small class="text-white-50">
+            <span id="versionDisplay">v1.0.0</span> | Build: <span id="buildDisplay">001</span>
+        </small>
+    </div>
+    
     <a href="/technician/dashboard" class="d-block text-decoration-none p-3 mb-2 technician-sidebar-link <%= (typeof page !== 'undefined' && (page === 'dashboard' || page === 'monitoring')) ? 'active' : 'text-white' %>">
         <i class="bi bi-house me-2"></i> Dashboard
     </a>

@@ -3,6 +3,14 @@
         <img src="/img/<%= typeof settings !== 'undefined' && settings.logo_filename ? settings.logo_filename : 'logo.png' %>?ts=<%= Date.now() %>"
             alt="Logo" style="max-width:120px;max-height:60px;">
     </div>
+    
+    <!-- Version Info -->
+    <div class="version-info text-center mb-3">
+        <small class="text-muted">
+            <span id="versionDisplay">v1.0.0</span> | Build: <span id="buildDisplay">001</span>
+        </small>
+    </div>
+    
     <a href="/admin/dashboard" class="<%= typeof page !== 'undefined' && page === 'dashboard' ? 'active' : '' %>"><i
             class="bi bi-house"></i> Dashboard</a>
     <a href="/admin/billing/dashboard"
