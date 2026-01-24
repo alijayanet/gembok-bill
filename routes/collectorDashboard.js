@@ -226,6 +226,49 @@ router.get('/profile', collectorAuth, async (req, res) => {
             });
         });
 
+        // Get statistics
+        const [totalPayments, totalCommission, customersServed] = await Promise.all([
+            // Total payments this month
+            new Promise((resolve, reject) => {
+                db.get(`
+                    SELECT COALESCE(SUM(payment_amount), 0) as total
+                    FROM collector_payments 
+                    WHERE collector_id = ? 
+                    AND strftime('%Y-%m', collected_at) = strftime('%Y-%m', 'now', 'localtime')
+                    AND status = 'completed'
+                `, [collectorId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(Math.round(parseFloat(row ? row.total : 0)));
+                });
+            }),
+            // Total commission this month
+            new Promise((resolve, reject) => {
+                db.get(`
+                    SELECT COALESCE(SUM(commission_amount), 0) as total
+                    FROM collector_payments 
+                    WHERE collector_id = ? 
+                    AND strftime('%Y-%m', collected_at) = strftime('%Y-%m', 'now', 'localtime')
+                    AND status = 'completed'
+                `, [collectorId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(Math.round(parseFloat(row ? row.total : 0)));
+                });
+            }),
+            // Count unique customers served this month
+            new Promise((resolve, reject) => {
+                db.get(`
+                    SELECT COUNT(DISTINCT customer_id) as count
+                    FROM collector_payments 
+                    WHERE collector_id = ? 
+                    AND strftime('%Y-%m', collected_at) = strftime('%Y-%m', 'now', 'localtime')
+                    AND status = 'completed'
+                `, [collectorId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(parseInt(row ? row.count : 0));
+                });
+            })
+        ]);
+
         const appSettings = await getAppSettings();
 
         db.close();
@@ -233,7 +276,12 @@ router.get('/profile', collectorAuth, async (req, res) => {
         res.render('collector/profile', {
             title: 'Profil Saya',
             appSettings: appSettings,
-            collector: collector
+            collector: collector,
+            statistics: {
+                totalPayments: totalPayments,
+                totalCommission: totalCommission,
+                customersServed: customersServed
+            }
         });
 
     } catch (error) {
