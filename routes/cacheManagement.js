@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const cacheManager = require('../config/cacheManager');
+const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 const logger = require('../config/logger');
 
 // Middleware untuk admin authentication - menggunakan format yang sama dengan adminAuth.js
@@ -35,7 +36,9 @@ const adminAuth = (req, res, next) => {
 router.get('/', adminAuth, (req, res) => {
     res.render('admin/cache-management', {
         page: 'cache',
-        title: 'Cache Management'
+        title: 'Cache Management',
+        versionInfo: getVersionInfo(),
+        versionBadge: getVersionBadge()
     });
 });
 

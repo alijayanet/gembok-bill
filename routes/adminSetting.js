@@ -40,7 +40,11 @@ const settingsPath = path.join(__dirname, '../settings.json');
 // GET: Render halaman Setting
 router.get('/', (req, res) => {
     const settings = getSettingsWithCache();
-    res.render('adminSetting', { settings });
+    res.render('adminSetting', { 
+        settings,
+        versionInfo: getVersionInfo(),
+        versionBadge: getVersionBadge()
+    });
 });
 
 // GET: Ambil semua setting

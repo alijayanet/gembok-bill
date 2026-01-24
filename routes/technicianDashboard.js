@@ -72,7 +72,9 @@ router.get('/dashboard', technicianAuth, async (req, res) => {
             mikrotikTotal,
             mikrotikAktif,
             mikrotikOffline,
-            settings
+            settings,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -211,10 +213,11 @@ router.get('/monitoring', technicianAuth, async (req, res) => {
             genieacsTotal,
             genieacsOnline,
             genieacsOffline,
-            // Add technician context to differentiate from admin
             isTechnicianView: true,
             technician: req.technician,
-            technicianRole: req.technician.role
+            technicianRole: req.technician.role,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -229,7 +232,9 @@ router.get('/monitoring', technicianAuth, async (req, res) => {
             error: 'Gagal mengambil data device.',
             isTechnicianView: true,
             technician: req.technician,
-            technicianRole: req.technician.role
+            technicianRole: req.technician.role,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     }
 });
@@ -309,7 +314,9 @@ router.get('/customers', technicianAuth, async (req, res) => {
             },
             isTechnicianView: true,
             technician: req.technician,
-            technicianRole: req.technician.role
+            technicianRole: req.technician.role,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -1033,7 +1040,9 @@ router.get('/mapping', technicianAuth, async (req, res) => {
             customers,
             isTechnicianView: true,
             technician: req.technician,
-            technicianRole: req.technician.role
+            technicianRole: req.technician.role,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -1216,7 +1225,9 @@ router.get('/installations', technicianAuth, async (req, res) => {
             settings: {
                 company_header: getSetting('company_header', 'GEMBOK'),
                 footer_info: getSetting('footer_info', 'Portal Teknisi')
-            }
+            },
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -1262,6 +1273,8 @@ router.get('/troubletickets', technicianAuth, async (req, res) => {
                 company_header: getSetting('company_header', 'GEMBOK'),
                 footer_info: getSetting('footer_info', 'Portal Teknisi')
             },
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge(),
             // Add technician context to differentiate from admin
             isTechnicianView: true,
             technician: req.technician,
@@ -1319,6 +1332,8 @@ router.get('/troubletickets/detail/:id', technicianAuth, async (req, res) => {
                 company_header: getSetting('company_header', 'GEMBOK'),
                 footer_info: getSetting('footer_info', 'Portal Teknisi')
             },
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge(),
             // Add technician context to differentiate from admin
             isTechnicianView: true,
             technician: req.technician,
@@ -1409,7 +1424,9 @@ router.get('/payments', technicianAuth, async (req, res) => {
             settings: {
                 company_header: getSetting('company_header', 'GEMBOK'),
                 footer_info: getSetting('footer_info', 'Portal Teknisi')
-            }
+            },
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -2095,7 +2112,9 @@ router.get('/mobile/mapping', technicianAuth, async (req, res) => {
 
         res.render('technician/mapping', {
             title: 'Network Mapping - Teknisi',
-            technician: req.technician
+            technician: req.technician,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     } catch (error) {
         logger.error('Error loading technician mapping:', error);
@@ -2312,7 +2331,9 @@ router.get('/mobile/monitoring', technicianAuth, async (req, res) => {
 
         res.render('technician/monitoring', {
             title: 'Device Monitoring - Teknisi',
-            technician: req.technician
+            technician: req.technician,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     } catch (error) {
         logger.error('Error loading technician monitoring:', error);
@@ -2464,7 +2485,9 @@ router.get('/mobile/customers', technicianAuth, async (req, res) => {
 
         res.render('technician/customers', {
             title: 'Customer Management - Teknisi',
-            technician: req.technician
+            technician: req.technician,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     } catch (error) {
         logger.error('Error loading technician customers:', error);
@@ -2645,7 +2668,9 @@ router.get('/mobile/dashboard', technicianAuth, async (req, res) => {
             mikrotikOffline,
             settings,
             technician: req.technician,
-            isTechnicianView: true
+            isTechnicianView: true,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -2785,7 +2810,9 @@ router.get('/mobile/monitoring', technicianAuth, async (req, res) => {
             genieacsOffline,
             isTechnicianView: true,
             technician: req.technician,
-            technicianRole: req.technician.role
+            technicianRole: req.technician.role,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -2800,7 +2827,9 @@ router.get('/mobile/monitoring', technicianAuth, async (req, res) => {
             error: 'Gagal mengambil data device.',
             isTechnicianView: true,
             technician: req.technician,
-            technicianRole: req.technician.role
+            technicianRole: req.technician.role,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     }
 });
@@ -2878,7 +2907,9 @@ router.get('/mobile/customers', technicianAuth, async (req, res) => {
             },
             isTechnicianView: true,
             technician: req.technician,
-            technicianRole: req.technician.role
+            technicianRole: req.technician.role,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -2913,7 +2944,9 @@ router.get('/collectors', technicianAuth, async (req, res) => {
         res.render('technician/collectors', {
             title: 'Tukang Tagih - Portal Teknisi',
             technician: req.technician,
-            collectors: collectors
+            collectors: collectors,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     } catch (error) {
         console.error('Error loading collectors:', error);
@@ -2932,7 +2965,9 @@ router.get('/settings', technicianAuth, async (req, res) => {
 
         res.render('technician/settings', {
             title: 'Pengaturan - Portal Teknisi',
-            technician: req.technician
+            technician: req.technician,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     } catch (error) {
         console.error('Error loading settings:', error);
@@ -3021,3 +3056,4 @@ router.post('/settings/update-password', technicianAuth, async (req, res) => {
 });
 
 module.exports = router;
+

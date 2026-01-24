@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getSetting } = require('../config/settingsManager');
+const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 const { findDeviceByTag } = require('../config/addWAN');
 const { 
   createTroubleReport, 
@@ -64,7 +65,9 @@ router.get('/report', customerAuth, async (req, res) => {
     categories,
     previousReports,
     companyHeader: getSetting('company_header', 'ISP Monitor'),
-    footerInfo: getSetting('footer_info', '')
+    footerInfo: getSetting('footer_info', ''),
+    versionInfo: getVersionInfo(),
+    versionBadge: getVersionBadge()
   });
 });
 
@@ -213,7 +216,9 @@ router.get('/list', customerAuth, (req, res) => {
     phone,
     reports,
     companyHeader: getSetting('company_header', 'ISP Monitor'),
-    footerInfo: getSetting('footer_info', '')
+    footerInfo: getSetting('footer_info', ''),
+    versionInfo: getVersionInfo(),
+    versionBadge: getVersionBadge()
   });
 });
 
@@ -235,7 +240,9 @@ router.get('/detail/:id', customerAuth, (req, res) => {
     phone,
     report,
     companyHeader: getSetting('company_header', 'ISP Monitor'),
-    footerInfo: getSetting('footer_info', '')
+    footerInfo: getSetting('footer_info', ''),
+    versionInfo: getVersionInfo(),
+    versionBadge: getVersionBadge()
   });
 });
 

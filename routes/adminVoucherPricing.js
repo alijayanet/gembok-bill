@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const sqlite3 = require('sqlite3').verbose();
 const MikrotikAPI = require('../config/mikrotik');
+const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 
 // Get pricing list
 router.get('/api/list', (req, res) => {
@@ -170,7 +171,9 @@ router.delete('/api/delete/:id', (req, res) => {
 router.get('/', (req, res) => {
     res.render('admin/voucher-pricing', {
         page: 'voucher-pricing',
-        title: 'Kelola Harga Voucher'
+        title: 'Kelola Harga Voucher',
+        versionInfo: getVersionInfo(),
+        versionBadge: getVersionBadge()
     });
 });
 

@@ -6,6 +6,7 @@ const {
   getTroubleReportById, 
   updateTroubleReportStatus 
 } = require('../config/troubleReport');
+const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 
 // Middleware admin auth untuk semua route
 router.use(adminAuth);
@@ -28,7 +29,9 @@ router.get('/', (req, res) => {
   res.render('admin/trouble-reports', {
     reports,
     stats,
-    title: 'Manajemen Laporan Gangguan'
+    title: 'Manajemen Laporan Gangguan',
+    versionInfo: getVersionInfo(),
+    versionBadge: getVersionBadge()
   });
 });
 
@@ -48,7 +51,9 @@ router.get('/detail/:id', (req, res) => {
   // Render halaman detail laporan
   res.render('admin/trouble-report-detail', {
     report,
-    title: `Detail Laporan #${reportId}`
+    title: `Detail Laporan #${reportId}`,
+    versionInfo: getVersionInfo(),
+    versionBadge: getVersionBadge()
   });
 });
 

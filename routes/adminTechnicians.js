@@ -3,6 +3,7 @@ const router = express.Router();
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const { getSetting } = require('../config/settingsManager');
+const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 const { adminAuth } = require('./adminAuth');
 const logger = require('../config/logger');
 
@@ -82,16 +83,8 @@ router.get('/', adminAuth, async (req, res) => {
                 logo_filename: getSetting('logo_filename', 'logo.png'),
                 company_header: getSetting('company_header', 'GEMBOK')
             },
-            versionInfo: {
-                version: '2.1.2',
-                buildNumber: '20251013',
-                versionDate: '2025-10-13',
-                companyHeader: getSetting('company_header', 'GEMBOK')
-            },
-            versionBadge: {
-                class: 'badge-primary',
-                text: 'v2.1.2'
-            }
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {

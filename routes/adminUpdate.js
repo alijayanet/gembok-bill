@@ -4,6 +4,7 @@ const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const { getSettingsWithCache } = require('../config/settingsManager');
+const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 
 // Helper untuk menjalankan command shell
 function runCommand(command, cwd) {
@@ -47,7 +48,9 @@ router.get('/', async (req, res) => {
             latestCommitMsg,
             lastUpdate,
             user: req.session.user || { name: 'Admin', role: 'admin' },
-            page: 'update'
+            page: 'update',
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     } catch (error) {
         console.error('Render update page error:', error);

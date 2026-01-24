@@ -9,6 +9,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bcrypt = require('bcrypt');
 const { getSetting } = require('../config/settingsManager');
+const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 const { adminAuth } = require('./adminAuth');
 
 // List collectors
@@ -40,8 +41,10 @@ router.get('/', adminAuth, async (req, res) => {
         
         res.render('admin/collectors', {
             title: 'Kelola Tukang Tagih',
-            appSettings: appSettings,
-            collectors: collectors
+            appSettings,
+            collectors: collectors,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
         
     } catch (error) {
@@ -62,7 +65,9 @@ router.get('/add', adminAuth, async (req, res) => {
             title: 'Tambah Tukang Tagih',
             appSettings: appSettings,
             collector: null,
-            action: 'add'
+            action: 'add',
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
         
     } catch (error) {
@@ -103,7 +108,9 @@ router.get('/:id/edit', adminAuth, async (req, res) => {
             title: 'Edit Tukang Tagih',
             appSettings: appSettings,
             collector: collector,
-            action: 'edit'
+            action: 'edit',
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
         
     } catch (error) {
