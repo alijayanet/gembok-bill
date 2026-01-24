@@ -4,6 +4,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const crypto = require('crypto');
 const { getSetting } = require('../config/settingsManager');
+const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 const logger = require('../config/logger');
 
 // Database connection
@@ -256,7 +257,9 @@ router.get('/login', (req, res) => {
         success: null,
         step: 'phone',
         phone: null,
-        settings 
+        settings,
+        versionInfo: getVersionInfo(),
+        versionBadge: getVersionBadge()
     });
 });
 
@@ -272,7 +275,9 @@ router.post('/request-otp', async (req, res) => {
                 success: null,
                 step: 'phone',
                 phone: null,
-                settings: { company_header: getSetting('company_header', 'GEMBOK') }
+                settings: { company_header: getSetting('company_header', 'GEMBOK') },
+                versionInfo: getVersionInfo(),
+                versionBadge: getVersionBadge()
             });
         }
 
@@ -293,7 +298,9 @@ router.post('/request-otp', async (req, res) => {
                 success: null,
                 step: 'phone',
                 phone: null,
-                settings: { company_header: getSetting('company_header', 'GEMBOK') }
+                settings: { company_header: getSetting('company_header', 'GEMBOK') },
+                versionInfo: getVersionInfo(),
+                versionBadge: getVersionBadge()
             });
         }
 
@@ -321,7 +328,9 @@ router.post('/request-otp', async (req, res) => {
                     settings: { 
                         company_header: getSetting('company_header', 'GEMBOK'),
                         otp_length: authManager.otpLength 
-                    }
+                    },
+                    versionInfo: getVersionInfo(),
+                    versionBadge: getVersionBadge()
                 });
             } catch (whatsappError) {
                 logger.error('Failed to send OTP:', whatsappError);
@@ -330,7 +339,9 @@ router.post('/request-otp', async (req, res) => {
                     success: null,
                     step: 'phone',
                     phone: null,
-                    settings: { company_header: getSetting('company_header', 'GEMBOK') }
+                    settings: { company_header: getSetting('company_header', 'GEMBOK') },
+                    versionInfo: getVersionInfo(),
+                    versionBadge: getVersionBadge()
                 });
             }
         } else {
@@ -359,7 +370,9 @@ router.post('/request-otp', async (req, res) => {
                     success: null,
                     step: 'phone',
                     phone: null,
-                    settings: { company_header: getSetting('company_header', 'GEMBOK') }
+                    settings: { company_header: getSetting('company_header', 'GEMBOK') },
+                    versionInfo: getVersionInfo(),
+                    versionBadge: getVersionBadge()
                 });
             }
         }
@@ -371,7 +384,9 @@ router.post('/request-otp', async (req, res) => {
             success: null,
             step: 'phone',
             phone: null,
-            settings: { company_header: getSetting('company_header', 'GEMBOK') }
+            settings: { company_header: getSetting('company_header', 'GEMBOK') },
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     }
 });
@@ -398,7 +413,9 @@ router.post('/verify-otp', async (req, res) => {
                 settings: { 
                     company_header: getSetting('company_header', 'GEMBOK'),
                     otp_length: authManager.otpLength 
-                }
+                },
+                versionInfo: getVersionInfo(),
+                versionBadge: getVersionBadge()
             });
         }
 

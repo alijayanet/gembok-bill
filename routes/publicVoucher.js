@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getHotspotProfiles } = require('../config/mikrotik');
 const { getSettingsWithCache } = require('../config/settingsManager');
+const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 const billingManager = require('../config/billing');
 const logger = require('../config/logger');
 
@@ -289,7 +290,9 @@ router.get('/', async (req, res) => {
             profiles,
             settings,
             error: req.query.error,
-            success: req.query.success
+            success: req.query.success,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -300,7 +303,9 @@ router.get('/', async (req, res) => {
             profiles: [],
             settings: {},
             error: 'Gagal memuat halaman voucher: ' + error.message,
-            success: null
+            success: null,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     }
 });
@@ -609,7 +614,9 @@ router.get('/success/:purchaseId', async (req, res) => {
             return res.render('voucherError', {
                 title: 'Voucher Tidak Ditemukan',
                 error: 'Voucher tidak ditemukan',
-                message: 'Purchase ID tidak valid atau voucher sudah expired'
+                message: 'Purchase ID tidak valid atau voucher sudah expired',
+                versionInfo: getVersionInfo(),
+                versionBadge: getVersionBadge()
             });
         }
 
@@ -649,7 +656,9 @@ router.get('/success/:purchaseId', async (req, res) => {
             success: true,
             company_header,
             adminContact,
-            settings
+            settings,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -664,7 +673,9 @@ router.get('/success/:purchaseId', async (req, res) => {
             error: 'Gagal memuat halaman voucher',
             message: error.message,
             company_header,
-            settings
+            settings,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     }
 });
@@ -683,7 +694,9 @@ router.get('/finish', async (req, res) => {
                 error: 'Order ID tidak ditemukan',
                 message: 'Parameter order_id tidak ditemukan dalam URL',
                 company_header,
-                settings
+                settings,
+                versionInfo: getVersionInfo(),
+                versionBadge: getVersionBadge()
             });
         }
 
@@ -703,7 +716,9 @@ router.get('/finish', async (req, res) => {
                 error: 'Voucher tidak ditemukan',
                 message: 'Purchase dengan order ID tersebut tidak ditemukan',
                 company_header,
-                settings
+                settings,
+                versionInfo: getVersionInfo(),
+                versionBadge: getVersionBadge()
             });
         }
 
@@ -740,7 +755,9 @@ router.get('/finish', async (req, res) => {
             order_id,
             company_header,
             adminContact,
-            settings
+            settings,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
 
     } catch (error) {
@@ -755,7 +772,9 @@ router.get('/finish', async (req, res) => {
             error: 'Gagal memuat halaman hasil pembayaran',
             message: error.message,
             company_header,
-            settings
+            settings,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     }
 });
