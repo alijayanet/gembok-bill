@@ -83,14 +83,14 @@ router.get('/', adminAuth, async (req, res) => {
                 company_header: getSetting('company_header', 'GEMBOK')
             },
             versionInfo: {
-                version: '1.0.0',
-                buildNumber: '001',
-                versionDate: '2024-01-01',
+                version: '2.1.2',
+                buildNumber: '20251013',
+                versionDate: '2025-10-13',
                 companyHeader: getSetting('company_header', 'GEMBOK')
             },
             versionBadge: {
                 class: 'badge-primary',
-                text: 'v1.0.0'
+                text: 'v2.1.2'
             }
         });
 

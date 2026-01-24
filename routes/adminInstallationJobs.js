@@ -132,14 +132,14 @@ router.get('/', adminAuth, async (req, res) => {
                 company_header: getSetting('company_header', 'GEMBOK')
             },
             versionInfo: {
-                version: require('../package.json').version || '1.0.0',
-                buildNumber: '20260118',
-                versionDate: new Date().toISOString().split('T')[0],
+                version: '2.1.2',
+                buildNumber: '20251013',
+                versionDate: '2025-10-13',
                 companyHeader: getSetting('company_header', 'GEMBOK')
             },
             versionBadge: {
                 class: 'badge-success',
-                text: 'v' + (require('../package.json').version || '1.0.0')
+                text: 'v2.1.2'
             }
         });
 
@@ -175,14 +175,14 @@ router.get('/create', adminAuth, async (req, res) => {
                 company_header: getSetting('company_header', 'GEMBOK')
             },
             versionInfo: {
-                version: '1.0.0',
-                buildNumber: '001',
-                versionDate: '2024-01-01',
+                version: '2.1.2',
+                buildNumber: '20251013',
+                versionDate: '2025-10-13',
                 companyHeader: getSetting('company_header', 'GEMBOK')
             },
             versionBadge: {
                 class: 'badge-primary',
-                text: 'v1.0.0'
+                text: 'v2.1.2'
             }
         });
 
@@ -407,14 +407,14 @@ router.get('/edit/:id', adminAuth, async (req, res) => {
                 company_header: getSetting('company_header', 'GEMBOK')
             },
             versionInfo: {
-                version: '1.0.0',
-                buildNumber: '001',
-                versionDate: '2024-01-01',
+                version: '2.1.2',
+                buildNumber: '20251013',
+                versionDate: '2025-10-13',
                 companyHeader: getSetting('company_header', 'GEMBOK')
             },
             versionBadge: {
                 class: 'badge-primary',
-                text: 'v1.0.0'
+                text: 'v2.1.2'
             }
         });
 
@@ -806,14 +806,14 @@ router.get('/view/:id', adminAuth, async (req, res) => {
                     company_header: getSetting('company_header', 'GEMBOK')
                 },
                 versionInfo: {
-                    version: '1.0.0',
-                    buildNumber: '001',
-                    versionDate: '2024-01-01',
+                    version: '2.1.2',
+                    buildNumber: '20251013',
+                    versionDate: '2025-10-13',
                     companyHeader: getSetting('company_header', 'GEMBOK')
                 },
                 versionBadge: {
                     class: 'badge-primary',
-                    text: 'v1.0.0'
+                    text: 'v2.1.2'
                 }
             });
         }
@@ -848,14 +848,14 @@ router.get('/view/:id', adminAuth, async (req, res) => {
                 company_header: getSetting('company_header', 'GEMBOK')
             },
             versionInfo: {
-                version: '1.0.0',
-                buildNumber: '001',
-                versionDate: '2024-01-01',
+                version: '2.1.2',
+                buildNumber: '20251013',
+                versionDate: '2025-10-13',
                 companyHeader: getSetting('company_header', 'GEMBOK')
             },
             versionBadge: {
                 class: 'badge-primary',
-                text: 'v1.0.0'
+                text: 'v2.1.2'
             }
         });
 
@@ -869,14 +869,14 @@ router.get('/view/:id', adminAuth, async (req, res) => {
                 company_header: getSetting('company_header', 'GEMBOK')
             },
             versionInfo: {
-                version: '1.0.0',
-                buildNumber: '001',
-                versionDate: '2024-01-01',
+                version: '2.1.2',
+                buildNumber: '20251013',
+                versionDate: '2025-10-13',
                 companyHeader: getSetting('company_header', 'GEMBOK')
             },
             versionBadge: {
                 class: 'badge-primary',
-                text: 'v1.0.0'
+                text: 'v2.1.2'
             }
         });
     }
