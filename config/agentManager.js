@@ -550,11 +550,11 @@ class AgentManager {
         }
         
         // Create comment
-        let comment = `Agent: ${optimizedName} (${cleanPhone}) - ${optimizedPackage}`;
+        let comment = `vc Agent: ${optimizedName} (${cleanPhone}) - ${optimizedPackage}`;
         
         // If still too long, use abbreviated format
         if (comment.length > maxLength) {
-            comment = `Agt: ${optimizedName.substring(0, 15)} (${cleanPhone}) - ${optimizedPackage.substring(0, 15)}`;
+            comment = `vc Agt: ${optimizedName.substring(0, 15)} (${cleanPhone}) - ${optimizedPackage.substring(0, 15)}`;
         }
         
         return comment;
