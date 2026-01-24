@@ -7,6 +7,7 @@ const billingManager = require('../config/billing');
 const logger = require('../config/logger');
 const serviceSuspension = require('../config/serviceSuspension');
 const { getSetting, getSettingsWithCache, setSetting, clearSettingsCache } = require('../config/settingsManager');
+const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 const { exec } = require('child_process');
 const multer = require('multer');
 const upload = multer();
@@ -846,7 +847,9 @@ router.get('/dashboard', getAppSettings, async (req, res) => {
             stats,
             overdueInvoices: overdueInvoices.slice(0, 10),
             recentInvoices: recentInvoices.slice(0, 10),
-            appSettings: req.appSettings
+            appSettings: req.appSettings,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     } catch (error) {
         logger.error('Error loading billing dashboard:', error);
