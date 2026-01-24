@@ -167,9 +167,9 @@ router.get('/genieacs', adminAuth, async (req, res) => {
     const genieacsOnline = devicesRaw.filter(dev => dev._lastInform && (now - new Date(dev._lastInform).getTime()) < 3600*1000).length;
     const genieacsOffline = genieacsTotal - genieacsOnline;
     const settings = getSettingsWithCache();
-    res.render('adminGenieacs', { title: 'Device GenieACS', devices, settings, genieacsTotal, genieacsOnline, genieacsOffline });
+    res.render('adminGenieacs', { title: 'Device GenieACS', devices, settings, genieacsTotal, genieacsOnline, genieacsOffline, versionInfo: getVersionInfo(), versionBadge: getVersionBadge() });
   } catch (err) {
-    res.render('adminGenieacs', { title: 'Device GenieACS', devices: [], error: 'Gagal mengambil data device.' });
+    res.render('adminGenieacs', { title: 'Device GenieACS', devices: [], error: 'Gagal mengambil data device.', versionInfo: getVersionInfo(), versionBadge: getVersionBadge() });
   }
 });
 

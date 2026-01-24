@@ -469,7 +469,9 @@ router.get('/voucher', async (req, res) => {
             error: req.query.error,
             company_header,
             adminKontak,
-            settings
+            settings,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     } catch (error) {
         console.error('Error rendering voucher page:', error);
@@ -479,7 +481,9 @@ router.get('/voucher', async (req, res) => {
             voucherHistory: [],
             voucherOnlineSettings: {},
             success: null,
-            error: 'Gagal memuat halaman voucher: ' + error.message
+            error: 'Gagal memuat halaman voucher: ' + error.message,
+            versionInfo: getVersionInfo(),
+            versionBadge: getVersionBadge()
         });
     }
 });
