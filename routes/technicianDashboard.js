@@ -4,6 +4,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const { getSetting } = require('../config/settingsManager');
 const { technicianAuth, authManager } = require('./technicianAuth');
+const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 const logger = require('../config/logger');
 
 // Database connection
