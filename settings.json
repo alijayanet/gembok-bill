@@ -6,9 +6,9 @@
   "genieacs_username": "admin",
   "genieacs_password": "admin",
   "mikrotik_host": "192.168.8.1",
-  "mikrotik_port": "8700",
-  "mikrotik_user": "alijaya",
-  "mikrotik_password": "060111",
+  "mikrotik_port": "8728",
+  "mikrotik_user": "admin",
+  "mikrotik_password": "admin",
   "main_interface": "ether1-ISP",
   "pppoe_monitor_enable": true,
   "technician_numbers.0": "",
@@ -137,7 +137,7 @@
   "voucher_cleanup.log_cleanup_actions": true,
   "telegram_bot": {
     "enabled": true,
-    "bot_token": "883632178:AAHEM6H2lYhOXHZhlRLAugt0LbqsMNB8VxY",
+    "bot_token": "883632178:AAHEM6H2lYhOxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     "session_timeout_hours": 24,
     "auto_session_cleanup": true,
     "allowed_users": [
