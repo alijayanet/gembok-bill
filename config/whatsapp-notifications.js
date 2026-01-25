@@ -143,8 +143,10 @@ Halo {customer_name},
 Selamat datang di layanan internet kami!
 
 📦 *Paket:* {package_name} ({package_speed})
-🔑 *Password WiFi:* {wifi_password}
 📞 *Support:* {support_phone}
+
+📱 *Untuk menggunakan layanan WhatsApp:*
+Ketik: REG {customer_name}
 
 Terima kasih telah memilih layanan kami.`,
                 enabled: true

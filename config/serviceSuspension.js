@@ -430,6 +430,7 @@ class ServiceSuspensionManager {
             try {
                 const whatsappNotifications = require('./whatsapp-notifications');
                 await whatsappNotifications.sendServiceRestorationNotification(customer, reason);
+                logger.info(`Service restoration notification sent to ${customer.name} (${customer.phone})`);
             } catch (notificationError) {
                 logger.error(`WhatsApp notification failed for ${customer.username}:`, notificationError.message);
             }
