@@ -16,6 +16,22 @@
             <%- include('../partials/admin-responsive-sidebar', { page: 'technicians', settings: settings, versionInfo: versionInfo, versionBadge: versionBadge }) %>
 
             <main class="col-md-10 ms-sm-auto main-content">
+                <h3 class="mb-4">Teknisi & Instalasi</h3>
+
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link <%= page === 'installations' ? 'active' : '' %>" href="/admin/installations">
+                            <i class="bi bi-tools"></i> Instalasi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= page === 'technicians' ? 'active' : '' %>" href="/admin/technicians">
+                            <i class="bi bi-people-fill"></i> Kelola Teknisi
+                        </a>
+                    </li>
+                </ul>
+
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">
                         <i class="bi bi-people-fill me-2"></i>Kelola Teknisi

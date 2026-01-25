@@ -363,6 +363,22 @@
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <h3 class="mb-4">Pelanggan & Paket</h3>
+
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'customers' ? 'active' : '' %>" href="/admin/billing/customers">
+                            <i class="bi bi-people"></i> Pelanggan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'packages' ? 'active' : '' %>" href="/admin/billing/packages">
+                            <i class="bi bi-box"></i> Paket
+                        </a>
+                    </li>
+                </ul>
+
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">
                         <i class="bx bx-user"></i> <%= title || 'Kelola Pelanggan' %>
@@ -370,18 +386,18 @@
                     
                     <!-- Desktop: Show all buttons -->
                     <div class="d-none d-lg-block">
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
-                            <i class="bx bx-plus"></i> Tambah Pelanggan
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCustomerModal" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                            <i class="bx bx-plus"></i> Tambah
                         </button>
                         <div class="btn-group ms-2" role="group" aria-label="Backup Restore Pelanggan">
-                            <button id="exportCustomersJsonBtn" type="button" class="btn btn-outline-success">
-                                <i class="bi bi-cloud-download"></i> Backup Pelanggan (JSON)
+                            <button id="exportCustomersJsonBtn" type="button" class="btn btn-outline-success btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <i class="bi bi-cloud-download"></i> Backup JSON
                             </button>
-                            <button id="exportCustomersXlsxBtn" type="button" class="btn btn-outline-success">
-                                <i class="bi bi-file-earmark-spreadsheet"></i> Backup Pelanggan (XLSX)
+                            <button id="exportCustomersXlsxBtn" type="button" class="btn btn-outline-success btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <i class="bi bi-file-earmark-spreadsheet"></i> Backup XLSX
                             </button>
-                            <button id="openImportCustomersModalBtn" type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#importCustomersModal">
-                                <i class="bi bi-cloud-upload"></i> Restore Pelanggan
+                            <button id="openImportCustomersModalBtn" type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#importCustomersModal" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <i class="bi bi-cloud-upload"></i> Restore
                             </button>
                         </div>
                     </div>

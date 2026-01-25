@@ -9,6 +9,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
+    <link href="/css/mobile-sidebar.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
     <style>
         .toast {
             position: fixed;
@@ -34,20 +36,20 @@
                     
                     <!-- Desktop: Show all buttons -->
                     <div class="d-none d-lg-block">
-                        <a href="/admin/billing/monthly-summary" class="btn btn-secondary me-2">
-                            <i class="bx bx-calendar"></i> Summary Bulanan
+                        <a href="/admin/billing/monthly-summary" class="btn btn-secondary btn-sm me-1" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                            <i class="bx bx-calendar"></i> Summary
                         </a>
-                        <a href="/admin/billing/invoices-by-type" class="btn btn-info me-2">
-                            <i class="bx bx-receipt"></i> Invoice by Type
+                        <a href="/admin/billing/invoices-by-type" class="btn btn-info btn-sm me-1" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                            <i class="bx bx-receipt"></i> Invoice
                         </a>
-                        <button id="cleanupVoucherBtn" class="btn btn-danger me-2" onclick="cleanupVouchers()">
-                            <i class="bx bx-trash"></i> Hapus Voucher Expired
+                        <button id="cleanupVoucherBtn" class="btn btn-danger btn-sm me-1" onclick="cleanupVouchers()" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                            <i class="bx bx-trash"></i> Hapus Voucher
                         </button>
-                        <button id="cleanupDataBtn" class="btn btn-warning me-2" onclick="cleanupData()">
-                            <i class="bx bx-refresh"></i> Perbaiki Data
+                        <button id="cleanupDataBtn" class="btn btn-warning btn-sm me-1" onclick="cleanupData()" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                            <i class="bx bx-refresh"></i> Perbaiki
                         </button>
-                        <a href="/admin/billing/payment-settings" class="btn btn-primary">
-                            <i class="bx bx-cog"></i> Payment Settings
+                        <a href="/admin/billing/payment-settings" class="btn btn-primary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                            <i class="bx bx-cog"></i> Settings
                         </a>
                     </div>
                     

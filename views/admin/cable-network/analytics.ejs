@@ -131,6 +131,27 @@
 
                 <!-- Main Content -->
                 <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                    <h3 class="mb-4">Jaringan Kabel</h3>
+
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs mb-4">
+                        <li class="nav-item">
+                            <a class="nav-link <%= page === 'cable-network-odp' ? 'active' : '' %>" href="/admin/cable-network/odp">
+                                <i class="bi bi-broadcast"></i> ODP
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= page === 'cable-network-cables' ? 'active' : '' %>" href="/admin/cable-network/cables">
+                                <i class="bi bi-cable-car"></i> Cable Routes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= page === 'cable-network-analytics' ? 'active' : '' %>" href="/admin/cable-network/analytics">
+                                <i class="bi bi-bar-chart-alt-2"></i> Analytics
+                            </a>
+                        </li>
+                    </ul>
+
                     <!-- Header -->
                     <div class="row mb-4">
                         <div class="col-12">

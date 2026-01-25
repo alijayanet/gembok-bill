@@ -255,6 +255,26 @@
         </div>
     </div>
 
+    <!-- Tab Navigation -->
+    <h3 class="mb-4">Laporan</h3>
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link <%= typeof page !== 'undefined' && page === 'reports' ? 'active' : '' %>" href="/admin/billing/reports">
+                <i class="bi bi-analytics"></i> Laporan Analisis
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= typeof page !== 'undefined' && page === 'financial-report' ? 'active' : '' %>" href="/admin/billing/financial-report">
+                <i class="bi bi-line-chart"></i> Laporan Keuangan
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= typeof page !== 'undefined' && page === 'collector-reports' ? 'active' : '' %>" href="/admin/billing/collector-reports">
+                <i class="bi bi-bar-chart"></i> Laporan Kolektor
+            </a>
+        </li>
+    </ul>
+
     <!-- Main Content -->
     <div class="container-fluid">
         <div class="row">
@@ -417,7 +437,7 @@
                     const elMonth = document.getElementById('rev-month');
                     if(elToday) elToday.textContent = fmt(d.todayRevenue);
                     if(elWeek) elWeek.textContent = fmt(d.weekRevenue);
-                    if(elMonth && !<%= !!stats.totalRevenue %>) elMonth.textContent = fmt(d.monthRevenue);
+                    if(elMonth && !document.getElementById('totalRevenue')?.textContent) elMonth.textContent = fmt(d.monthRevenue);
                 }
             }).catch(()=>{});
     })();

@@ -18,7 +18,36 @@
     <div class="row">
         <%- include('../../partials/billing-sidebar') %>
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content py-4">
-    <h3 class="mb-3">Transaksi Kolektor</h3>
+    <h3 class="mb-3">Pembayaran & Keuangan</h3>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link <%= typeof page !== 'undefined' && page === 'payments' ? 'active' : '' %>" href="/admin/billing/payments">
+                <i class="bi bi-credit-card"></i> Transaksi Kolektor
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= typeof page !== 'undefined' && page === 'all-payments' ? 'active' : '' %>" href="/admin/billing/all-payments">
+                <i class="bi bi-list-ul"></i> Riwayat Pembayaran
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= typeof page !== 'undefined' && page === 'financial-report' ? 'active' : '' %>" href="/admin/billing/financial-report">
+                <i class="bi bi-line-chart"></i> Laporan Keuangan
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= typeof page !== 'undefined' && page === 'reports' ? 'active' : '' %>" href="/admin/billing/reports">
+                <i class="bi bi-analytics"></i> Laporan Analisis
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <%= typeof page !== 'undefined' && page === 'expenses' ? 'active' : '' %>" href="/admin/billing/expenses">
+                <i class="bi bi-money-withdraw"></i> Manajemen Pengeluaran
+            </a>
+        </li>
+    </ul>
 
     <form class="row g-2 align-items-end mb-3">
         <div class="col-auto">
@@ -91,11 +120,19 @@
     </div>
 </div>
 
+    <!-- Hidden element to store payments data for export -->
+    <script id="paymentsData" type="application/json"><%= JSON.stringify(payments || []) %></script>
+
 <script>
         // Export payments to CSV
         document.getElementById('exportPayments').addEventListener('click', function(){
             const headers = ['Date','Collector','Customer','Phone','Amount','Commission','Method','Status','Remittance','Notes'];
-            const paymentsData = <%- JSON.stringify(payments||[]) %>;
+            const paymentsDataElement = document.getElementById('paymentsData');
+            if (!paymentsDataElement || !paymentsDataElement.textContent) {
+                alert('Tidak ada data untuk di-export');
+                return;
+            }
+            const paymentsData = JSON.parse(paymentsDataElement.textContent);
             const rows = paymentsData.map(p=>[
                 p.payment_date,
                 p.collector_name,

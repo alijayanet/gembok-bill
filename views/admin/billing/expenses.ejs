@@ -19,6 +19,37 @@
         <div class="row">
             <%- include('../../partials/billing-sidebar') %>
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <h3 class="mb-4">Pembayaran & Keuangan</h3>
+
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'payments' ? 'active' : '' %>" href="/admin/billing/payments">
+                            <i class="bi bi-credit-card"></i> Transaksi Kolektor
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'all-payments' ? 'active' : '' %>" href="/admin/billing/all-payments">
+                            <i class="bi bi-list-ul"></i> Riwayat Pembayaran
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'financial-report' ? 'active' : '' %>" href="/admin/billing/financial-report">
+                            <i class="bi bi-line-chart"></i> Laporan Keuangan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'reports' ? 'active' : '' %>" href="/admin/billing/reports">
+                            <i class="bi bi-analytics"></i> Laporan Analisis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'expenses' ? 'active' : '' %>" href="/admin/billing/expenses">
+                            <i class="bi bi-money-withdraw"></i> Manajemen Pengeluaran
+                        </a>
+                    </li>
+                </ul>
+
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2"><i class="bx bx-money-withdraw"></i> Manajemen Pengeluaran</h1>
                     <div>
@@ -182,6 +213,9 @@
         </div>
     </div>
 
+    <!-- Hidden element to store expenses data for export -->
+    <script id="expensesData" type="application/json"><%= JSON.stringify(expenses || []) %></script>
+
     <!-- Add Expense Modal -->
     <div class="modal fade" id="addExpenseModal" tabindex="-1">
         <div class="modal-dialog">
@@ -333,8 +367,13 @@
 
         // Export to CSV function
         function exportToCSV() {
-            <% if (expenses && expenses.length > 0) { %>
-            const expenses = <%- JSON.stringify(expenses) %>;
+            const expensesDataElement = document.getElementById('expensesData');
+            if (!expensesDataElement) {
+                alert('Tidak ada data untuk di-export');
+                return;
+            }
+
+            const expenses = JSON.parse(expensesDataElement.textContent);
             const csvHeaders = ['Tanggal', 'Deskripsi', 'Kategori', 'Jumlah', 'Metode Pembayaran', 'Catatan'];
             
             const csvRows = [csvHeaders.join(',')];
@@ -359,9 +398,6 @@
             a.download = `pengeluaran-${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             URL.revokeObjectURL(url);
-            <% } else { %>
-            alert('Tidak ada data untuk di-export');
-            <% } %>
         }
 
         // Add expense form submission

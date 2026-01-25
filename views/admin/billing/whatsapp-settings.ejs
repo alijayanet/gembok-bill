@@ -141,6 +141,37 @@
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <h3 class="mb-4">Pengaturan</h3>
+
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'payment-settings' ? 'active' : '' %>" href="/admin/billing/payment-settings">
+                            <i class="bi bi-cog"></i> Pengaturan Pembayaran
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'whatsapp-settings' ? 'active' : '' %>" href="/admin/billing/whatsapp-settings">
+                            <i class="bi bi-chat-dots"></i> Pengaturan WhatsApp
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'service-suspension' ? 'active' : '' %>" href="/admin/billing/service-suspension">
+                            <i class="bi bi-pause-circle"></i> Pengaturan ISOLIR
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'mapping-new' ? 'active' : '' %>" href="/admin/billing/mapping-new">
+                            <i class="bi bi-map"></i> Network Mapping
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'genieacs' ? 'active' : '' %>" href="/admin/genieacs">
+                            <i class="bi bi-wifi"></i> GenieACS
+                        </a>
+                    </li>
+                </ul>
+
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">
                         <i class="bx bx-whatsapp"></i> WhatsApp Settings

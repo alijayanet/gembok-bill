@@ -198,6 +198,27 @@
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <h3 class="mb-4">Kolektor</h3>
+
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'collectors' ? 'active' : '' %>" href="/admin/collectors">
+                            <i class="bi bi-people"></i> Tukang Tagih
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'collector-reports' ? 'active' : '' %>" href="/admin/billing/collector-reports">
+                            <i class="bi bi-bar-chart"></i> Laporan Kolektor
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'collector-remittance' ? 'active' : '' %>" href="/admin/billing/collector-remittance">
+                            <i class="bi bi-money"></i> Terima Setoran
+                        </a>
+                    </li>
+                </ul>
+
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">
                         <i class="bi bi-cash-coin me-2"></i>Terima Setoran Kolektor
@@ -218,7 +239,7 @@
                     <div class="row">
                         <% collectors.forEach(function(collector) { %>
                             <div class="col-md-6 col-lg-4 mb-3">
-                                <div class="collector-card" onclick="selectCollector(this, <%= collector.id %>, '<%= collector.name %>', <%= collector.pending_amount || 0 %>)">
+                                <div class="collector-card" data-collector-id="<%= collector.id %>" data-collector-name="<%= collector.name %>" data-pending-amount="<%= collector.pending_amount || 0 %>">
                                     <div class="collector-name"><%= collector.name %></div>
                                     <div class="collector-info">
                                         <i class="bi bi-telephone me-1"></i>
@@ -396,7 +417,17 @@
             const amount = document.getElementById('remittanceAmount').value;
             document.getElementById('displayAmount').textContent = `Rp ${parseInt(amount || 0).toLocaleString('id-ID')}`;
         }
-        
+
+        // Add event listeners for collector cards
+        document.querySelectorAll('.collector-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const id = parseInt(this.dataset.collectorId);
+                const name = this.dataset.collectorName;
+                const pendingAmount = parseFloat(this.dataset.pendingAmount);
+                selectCollector(this, id, name, pendingAmount);
+            });
+        });
+
         // Add event listener for amount input
         document.getElementById('remittanceAmount').addEventListener('input', updateDisplayAmount);
         

@@ -61,7 +61,37 @@
     <div class="row">
         <%- include('../../partials/billing-sidebar') %>
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content py-4">
-                
+                <h3 class="mb-4">Pembayaran & Keuangan</h3>
+
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'payments' ? 'active' : '' %>" href="/admin/billing/payments">
+                            <i class="bi bi-credit-card"></i> Transaksi Kolektor
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'all-payments' ? 'active' : '' %>" href="/admin/billing/all-payments">
+                            <i class="bi bi-list-ul"></i> Riwayat Pembayaran
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'financial-report' ? 'active' : '' %>" href="/admin/billing/financial-report">
+                            <i class="bi bi-line-chart"></i> Laporan Keuangan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'reports' ? 'active' : '' %>" href="/admin/billing/reports">
+                            <i class="bi bi-analytics"></i> Laporan Analisis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'expenses' ? 'active' : '' %>" href="/admin/billing/expenses">
+                            <i class="bi bi-money-withdraw"></i> Manajemen Pengeluaran
+                        </a>
+                    </li>
+                </ul>
+
                 <!-- Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -275,10 +305,18 @@
     </div>
 </div>
 
+    <!-- Hidden element to store transactions data for export -->
+    <script id="transactionsData" type="application/json"><%= JSON.stringify(financialData && financialData.transactions ? financialData.transactions : []) %></script>
+
 <script>
         function exportToCSV() {
-            <% if (financialData && financialData.transactions && financialData.transactions.length > 0) { %>
-            const transactions = <%- JSON.stringify(financialData.transactions) %>;
+            const transactionsDataElement = document.getElementById('transactionsData');
+            if (!transactionsDataElement || !transactionsDataElement.textContent) {
+                alert('Tidak ada data untuk di-export');
+                return;
+            }
+
+            const transactions = JSON.parse(transactionsDataElement.textContent);
             const csvHeaders = ['Tanggal', 'Tipe', 'Jumlah', 'Metode Pembayaran', 'Gateway', 'Kolektor', 'Komisi', 'Keterangan', 'Invoice', 'Pelanggan'];
             
             const csvRows = [csvHeaders.join(',')];
@@ -307,9 +345,6 @@
             a.download = `laporan-keuangan-${document.querySelector('input[name="start_date"]').value}-${document.querySelector('input[name="end_date"]').value}.csv`;
             a.click();
     URL.revokeObjectURL(url);
-            <% } else { %>
-            alert('Tidak ada data untuk di-export');
-            <% } %>
         }
 </script>
 </body>

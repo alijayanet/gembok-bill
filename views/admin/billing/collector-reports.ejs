@@ -219,6 +219,27 @@
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <h3 class="mb-4">Kolektor</h3>
+
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'collectors' ? 'active' : '' %>" href="/admin/collectors">
+                            <i class="bi bi-people"></i> Tukang Tagih
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'collector-reports' ? 'active' : '' %>" href="/admin/billing/collector-reports">
+                            <i class="bi bi-bar-chart"></i> Laporan Kolektor
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'collector-remittance' ? 'active' : '' %>" href="/admin/billing/collector-remittance">
+                            <i class="bi bi-money"></i> Terima Setoran
+                        </a>
+                    </li>
+                </ul>
+
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">
                         <i class="bi bi-graph-up me-2"></i>Laporan Kolektor
@@ -336,7 +357,7 @@
                                         <i class="bi bi-percent me-1"></i>
                                         Komisi: <%= collector.commission_rate || 5 %>%
                                     </small>
-                                    <button class="btn btn-outline-primary btn-sm" onclick="viewCollectorDetails(<%= collector.id %>)">
+                                    <button class="btn btn-outline-primary btn-sm btn-view-collector" data-collector-id="<%= collector.id %>">
                                         <i class="bi bi-eye me-1"></i>Detail
                                     </button>
                                 </div>
@@ -392,6 +413,14 @@
             
             window.location.href = `/admin/billing/collector-reports/export?${params.toString()}`;
         }
+
+        // Add event listeners for view collector buttons
+        document.querySelectorAll('.btn-view-collector').forEach(button => {
+            button.addEventListener('click', function() {
+                const collectorId = this.dataset.collectorId;
+                viewCollectorDetails(collectorId);
+            });
+        });
     </script>
 </body>
 </html>
