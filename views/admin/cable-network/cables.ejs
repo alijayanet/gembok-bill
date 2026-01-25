@@ -74,17 +74,20 @@
                     <!-- Tab Navigation -->
                     <ul class="nav nav-tabs mb-4">
                         <li class="nav-item">
-                            <a class="nav-link <%= page === 'cable-network-odp' ? 'active' : '' %>" href="/admin/cable-network/odp">
+                            <a class="nav-link <%= page === 'cable-network-odp' ? 'active' : '' %>"
+                                href="/admin/cable-network/odp">
                                 <i class="bi bi-broadcast"></i> ODP
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <%= page === 'cable-network-cables' ? 'active' : '' %>" href="/admin/cable-network/cables">
+                            <a class="nav-link <%= page === 'cable-network-cables' ? 'active' : '' %>"
+                                href="/admin/cable-network/cables">
                                 <i class="bi bi-cable-car"></i> Cable Routes
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <%= page === 'cable-network-analytics' ? 'active' : '' %>" href="/admin/cable-network/analytics">
+                            <a class="nav-link <%= page === 'cable-network-analytics' ? 'active' : '' %>"
+                                href="/admin/cable-network/analytics">
                                 <i class="bi bi-bar-chart-alt-2"></i> Analytics
                             </a>
                         </li>
@@ -317,20 +320,25 @@
 
                                                     <div class="d-flex justify-content-between">
                                                         <button class="btn btn-sm btn-outline-primary"
-                                                            onclick="editCable(<%= cable.id %>)">
+                                                            data-action="edit" data-cable-id="<%= cable.id %>">
                                                             <i class="bx bx-edit"></i> Edit
                                                         </button>
                                                         <div class="btn-group">
                                                             <button class="btn btn-sm btn-outline-success"
-                                                                onclick="updateCableStatus(<%= cable.id %>, 'connected')">
+                                                                data-action="update-status"
+                                                                data-cable-id="<%= cable.id %>" data-status="connected">
                                                                 <i class="bx bx-check"></i>
                                                             </button>
                                                             <button class="btn btn-sm btn-outline-danger"
-                                                                onclick="updateCableStatus(<%= cable.id %>, 'disconnected')">
+                                                                data-action="update-status"
+                                                                data-cable-id="<%= cable.id %>"
+                                                                data-status="disconnected">
                                                                 <i class="bx bx-x"></i>
                                                             </button>
                                                             <button class="btn btn-sm btn-outline-warning"
-                                                                onclick="updateCableStatus(<%= cable.id %>, 'maintenance')">
+                                                                data-action="update-status"
+                                                                data-cable-id="<%= cable.id %>"
+                                                                data-status="maintenance">
                                                                 <i class="bx bx-wrench"></i>
                                                             </button>
                                                         </div>
@@ -368,7 +376,8 @@
                                                                 </small>
                                                             </p>
                                                             <button class="btn btn-sm btn-warning"
-                                                                onclick="assignCableToCustomer(<%= customer.id %>)">
+                                                                data-action="assign-cable"
+                                                                data-customer-id="<%= customer.id %>">
                                                                 <i class="bx bx-plus"></i> Sambungkan Kabel
                                                             </button>
                                                         </div>
@@ -563,6 +572,26 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Event delegation for action buttons
+        document.addEventListener('click', function (e) {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+
+            const action = target.dataset.action;
+
+            if (action === 'edit') {
+                const cableId = target.dataset.cableId;
+                editCable(cableId);
+            } else if (action === 'update-status') {
+                const cableId = target.dataset.cableId;
+                const status = target.dataset.status;
+                updateCableStatus(cableId, status);
+            } else if (action === 'assign-cable') {
+                const customerId = target.dataset.customerId;
+                assignCableToCustomer(customerId);
+            }
+        });
+
         // Filter functionality
         document.getElementById('statusFilter').addEventListener('change', filterCables);
         document.getElementById('odpFilter').addEventListener('change', filterCables);

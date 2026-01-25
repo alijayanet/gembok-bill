@@ -67,17 +67,20 @@
                     <!-- Tab Navigation -->
                     <ul class="nav nav-tabs mb-4">
                         <li class="nav-item">
-                            <a class="nav-link <%= page === 'cable-network-odp' ? 'active' : '' %>" href="/admin/cable-network/odp">
+                            <a class="nav-link <%= page === 'cable-network-odp' ? 'active' : '' %>"
+                                href="/admin/cable-network/odp">
                                 <i class="bi bi-broadcast"></i> ODP
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <%= page === 'cable-network-cables' ? 'active' : '' %>" href="/admin/cable-network/cables">
+                            <a class="nav-link <%= page === 'cable-network-cables' ? 'active' : '' %>"
+                                href="/admin/cable-network/cables">
                                 <i class="bi bi-cable-car"></i> Cable Routes
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <%= page === 'cable-network-analytics' ? 'active' : '' %>" href="/admin/cable-network/analytics">
+                            <a class="nav-link <%= page === 'cable-network-analytics' ? 'active' : '' %>"
+                                href="/admin/cable-network/analytics">
                                 <i class="bi bi-bar-chart-alt-2"></i> Analytics
                             </a>
                         </li>
@@ -240,10 +243,13 @@
                                                 </small>
                                             </div>
                                             <div class="progress">
-                                                <div class="progress-bar capacity-bar <%= 
-                                    ((odp.used_ports || 0) / (odp.capacity || 1) * 100) >= 90 ? 'bg-danger' :
-                                    ((odp.used_ports || 0) / (odp.capacity || 1) * 100) >= 70 ? 'bg-warning' : 'bg-success'
-                                %>" style="width: <%= ((odp.used_ports || 0) / (odp.capacity || 1) * 100) %>%"></div>
+                                                <% const utilization=((odp.used_ports || 0) / (odp.capacity || 1) *
+                                                    100); const barClass=utilization>= 90 ? 'bg-danger' : utilization >=
+                                                    70 ? 'bg-warning' : 'bg-success';
+                                                    %>
+                                                    <div class="progress-bar capacity-bar <%= barClass %>"
+                                                        style="--width: <%= utilization %>%; width: var(--width);">
+                                                    </div>
                                             </div>
                                         </div>
 
@@ -267,17 +273,17 @@
                                         </div>
 
                                         <div class="d-flex justify-content-between">
-                                            <button class="btn btn-sm btn-outline-primary"
-                                                onclick="editODP(<%= odp.id %>)">
+                                            <button class="btn btn-sm btn-outline-primary" data-action="edit-odp"
+                                                data-odp-id="<%= odp.id %>">
                                                 <i class="bx bx-edit"></i> Edit
                                             </button>
-                                            <button class="btn btn-sm btn-outline-info"
-                                                onclick="viewODPDetails(<%= odp.id %>)">
+                                            <button class="btn btn-sm btn-outline-info" data-action="view-odp-details"
+                                                data-odp-id="<%= odp.id %>">
                                                 <i class="bx bx-info-circle"></i> Details
                                             </button>
-                                            <button class="btn btn-sm btn-outline-danger"
-                                                onclick="deleteODP(<%= odp.id %>)" <%=(odp.used_ports || 0)> 0 ?
-                                                'disabled' : '' %>>
+                                            <button class="btn btn-sm btn-outline-danger" data-action="delete-odp"
+                                                data-odp-id="<%= odp.id %>" <%=(odp.used_ports || 0)> 0 ? 'disabled' :
+                                                '' %>>
                                                 <i class="bx bx-trash"></i> Delete
                                             </button>
                                         </div>
@@ -753,6 +759,25 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // Event delegation for ODP action buttons
+        document.addEventListener('click', function (e) {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+
+            const action = target.dataset.action;
+            const odpId = target.dataset.odpId;
+
+            if (action === 'edit-odp') {
+                editODP(odpId);
+            } else if (action === 'view-odp-details') {
+                viewODPDetails(odpId);
+            } else if (action === 'delete-odp') {
+                if (!target.disabled) {
+                    deleteODP(odpId);
+                }
+            }
+        });
+
         // Toggle ODP Connection Fields
         document.getElementById('enableODPConnection').addEventListener('change', function () {
             const connectionFields = document.getElementById('odpConnectionFields');
