@@ -231,11 +231,19 @@ router.get('/', async (req, res) => {
             company_header,
             adminKontak,
             settings,
+            page: 'hotspot',
             versionInfo: getVersionInfo(),
             versionBadge: getVersionBadge()
         });
     } catch (error) {
-        res.render('adminHotspot', { users: [], profiles: [], allUsers: [], success: null, error: 'Gagal mengambil data user hotspot: ' + error.message });
+        res.render('adminHotspot', {
+            users: [],
+            profiles: [],
+            allUsers: [],
+            success: null,
+            error: 'Gagal mengambil data user hotspot: ' + error.message,
+            page: 'hotspot'
+        });
     }
 });
 
@@ -470,6 +478,7 @@ router.get('/voucher', async (req, res) => {
             company_header,
             adminKontak,
             settings,
+            page: 'voucher',
             versionInfo: getVersionInfo(),
             versionBadge: getVersionBadge()
         });
@@ -482,6 +491,7 @@ router.get('/voucher', async (req, res) => {
             voucherOnlineSettings: {},
             success: null,
             error: 'Gagal memuat halaman voucher: ' + error.message,
+            page: 'voucher',
             versionInfo: getVersionInfo(),
             versionBadge: getVersionBadge()
         });

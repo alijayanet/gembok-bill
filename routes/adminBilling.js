@@ -2913,6 +2913,17 @@ router.post('/customers', async (req, res) => {
 
         const result = await billingManager.createCustomer(customerData);
 
+        // Send WhatsApp welcome message
+        try {
+            const whatsappNotifications = require('../config/whatsapp-notifications');
+            const customerWithPackage = await billingManager.getCustomerById(result.id);
+            await whatsappNotifications.sendWelcomeMessage(customerWithPackage);
+            logger.info(`Welcome message sent to ${customerWithPackage.name} (${customerWithPackage.phone})`);
+        } catch (notificationError) {
+            logger.error('Error sending welcome message:', notificationError);
+            // Don't fail customer creation if notification fails
+        }
+
         // Optional: create PPPoE user in Mikrotik
         let pppoeCreate = { attempted: false, created: false, message: '' };
         try {

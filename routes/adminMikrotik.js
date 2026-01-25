@@ -28,18 +28,20 @@ router.get('/mikrotik', adminAuth, async (req, res) => {
   try {
     const users = await getPPPoEUsers();
     const settings = getSettingsWithCache();
-    res.render('adminMikrotik', { 
-      users, 
+    res.render('adminMikrotik', {
+      users,
       settings,
+      page: 'mikrotik',
       versionInfo: getVersionInfo(),
       versionBadge: getVersionBadge()
     });
   } catch (err) {
     const settings = getSettingsWithCache();
-    res.render('adminMikrotik', { 
-      users: [], 
-      error: 'Gagal mengambil data user PPPoE.', 
+    res.render('adminMikrotik', {
+      users: [],
+      error: 'Gagal mengambil data user PPPoE.',
       settings,
+      page: 'mikrotik',
       versionInfo: getVersionInfo(),
       versionBadge: getVersionBadge()
     });
@@ -85,27 +87,30 @@ router.get('/mikrotik/profiles', adminAuth, async (req, res) => {
     const result = await getPPPoEProfiles();
     const settings = getSettingsWithCache();
     if (result.success) {
-      res.render('adminMikrotikProfiles', { 
-        profiles: result.data, 
+      res.render('adminMikrotikProfiles', {
+        profiles: result.data,
         settings,
+        page: 'mikrotik-profiles',
         versionInfo: getVersionInfo(),
         versionBadge: getVersionBadge()
       });
     } else {
-      res.render('adminMikrotikProfiles', { 
-        profiles: [], 
-        error: result.message, 
+      res.render('adminMikrotikProfiles', {
+        profiles: [],
+        error: result.message,
         settings,
+        page: 'mikrotik-profiles',
         versionInfo: getVersionInfo(),
         versionBadge: getVersionBadge()
       });
     }
   } catch (err) {
     const settings = getSettingsWithCache();
-    res.render('adminMikrotikProfiles', { 
-      profiles: [], 
-      error: 'Gagal mengambil data profile PPPoE.', 
+    res.render('adminMikrotikProfiles', {
+      profiles: [],
+      error: 'Gagal mengambil data profile PPPoE.',
       settings,
+      page: 'mikrotik-profiles',
       versionInfo: getVersionInfo(),
       versionBadge: getVersionBadge()
     });
@@ -190,27 +195,30 @@ router.get('/mikrotik/hotspot-profiles', adminAuth, async (req, res) => {
     const result = await getHotspotProfiles();
     const settings = getSettingsWithCache();
     if (result.success) {
-      res.render('adminMikrotikHotspotProfiles', { 
-        profiles: result.data, 
+      res.render('adminMikrotikHotspotProfiles', {
+        profiles: result.data,
         settings,
+        page: 'hotspot-profiles',
         versionInfo: getVersionInfo(),
         versionBadge: getVersionBadge()
       });
     } else {
-      res.render('adminMikrotikHotspotProfiles', { 
-        profiles: [], 
-        error: result.message, 
+      res.render('adminMikrotikHotspotProfiles', {
+        profiles: [],
+        error: result.message,
         settings,
+        page: 'hotspot-profiles',
         versionInfo: getVersionInfo(),
         versionBadge: getVersionBadge()
       });
     }
   } catch (err) {
     const settings = getSettingsWithCache();
-    res.render('adminMikrotikHotspotProfiles', { 
-      profiles: [], 
-      error: 'Gagal mengambil data profile Hotspot.', 
+    res.render('adminMikrotikHotspotProfiles', {
+      profiles: [],
+      error: 'Gagal mengambil data profile Hotspot.',
       settings,
+      page: 'hotspot-profiles',
       versionInfo: getVersionInfo(),
       versionBadge: getVersionBadge()
     });

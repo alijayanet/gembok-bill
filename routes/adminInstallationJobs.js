@@ -19,9 +19,9 @@ const billingManager = require('../config/billing');
  */
 router.get('/', adminAuth, async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
+        const currentPage = parseInt(req.query.page) || 1;
         const limit = 20;
-        const offset = (page - 1) * limit;
+        const offset = (currentPage - 1) * limit;
         const search = req.query.search || '';
         const status = req.query.status || '';
         const technician = req.query.technician || '';
@@ -118,12 +118,13 @@ router.get('/', adminAuth, async (req, res) => {
             installationJobs,
             technicians,
             stats,
+            page: 'installations',
             pagination: {
-                currentPage: page,
+                currentPage: currentPage,
                 totalPages,
                 totalJobs,
-                hasNext: page < totalPages,
-                hasPrev: page > 1
+                hasNext: currentPage < totalPages,
+                hasPrev: currentPage > 1
             },
             search,
             status,
