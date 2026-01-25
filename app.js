@@ -20,16 +20,16 @@ const technicianSync = {
         const fs = require('fs');
         const sqlite3 = require('sqlite3').verbose();
         const { getSettingsWithCache } = require('./config/settingsManager');
-        
+
         const db = new sqlite3.Database('./data/billing.db');
-        
+
         const sync = () => {
             try {
                 const settings = getSettingsWithCache();
                 Object.keys(settings).filter(k => k.startsWith('technician_numbers.')).forEach(k => {
                     const phone = settings[k];
                     if (phone) {
-                        db.run('INSERT OR IGNORE INTO technicians (phone, name, role, is_active, created_at) VALUES (?, ?, "technician", 1, datetime("now"))', 
+                        db.run('INSERT OR IGNORE INTO technicians (phone, name, role, is_active, created_at) VALUES (?, ?, "technician", 1, datetime("now"))',
                             [phone, `Teknisi ${phone.slice(-4)}`]);
                     }
                 });
@@ -38,7 +38,7 @@ const technicianSync = {
                 console.error('Sync error:', e.message);
             }
         };
-        
+
         fs.watchFile('settings.json', { interval: 1000 }, sync);
         sync(); // Initial sync
         console.log('🔄 Technician auto-sync enabled - settings.json changes will auto-update technicians');
@@ -63,19 +63,19 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static files dengan cache
 app.use('/public', express.static(path.join(__dirname, 'public'), {
-  maxAge: '1h', // Cache static files untuk 1 jam
-  etag: true
+    maxAge: '1h', // Cache static files untuk 1 jam
+    etag: true
 }));
 app.use(session({
-  secret: 'rahasia-portal-anda', // Ganti dengan string random yang aman
-  resave: false,
-  saveUninitialized: false, // Optimized: tidak save session kosong
-  cookie: { 
-    secure: false,
-    maxAge: 24 * 60 * 60 * 1000, // 24 jam
-    httpOnly: true
-  },
-  name: 'admin_session' // Custom session name
+    secret: 'rahasia-portal-anda', // Ganti dengan string random yang aman
+    resave: false,
+    saveUninitialized: false, // Optimized: tidak save session kosong
+    cookie: {
+        secure: false,
+        maxAge: 24 * 60 * 60 * 1000, // 24 jam
+        httpOnly: true
+    },
+    name: 'admin_session' // Custom session name
 }));
 
 // Route khusus untuk login mobile (harus sebelum semua route admin)
@@ -83,9 +83,9 @@ app.get('/admin/login/mobile', (req, res) => {
     try {
         const { getSettingsWithCache } = require('./config/settingsManager');
         const appSettings = getSettingsWithCache();
-        
+
         console.log('🔍 Rendering mobile login page...');
-        res.render('admin/mobile-login', { 
+        res.render('admin/mobile-login', {
             error: null,
             success: null,
             appSettings: appSettings
@@ -106,14 +106,14 @@ app.post('/admin/login/mobile', async (req, res) => {
     try {
         const { username, password, remember } = req.body;
         const { getSetting } = require('./config/settingsManager');
-        
+
         const credentials = {
             username: getSetting('admin_username', 'admin'),
             password: getSetting('admin_password', 'admin')
         };
 
         if (!username || !password) {
-            return res.render('admin/mobile-login', { 
+            return res.render('admin/mobile-login', {
                 error: 'Username dan password harus diisi!',
                 success: null,
                 appSettings: { companyHeader: 'ISP Monitor' }
@@ -131,7 +131,7 @@ app.post('/admin/login/mobile', async (req, res) => {
             // Redirect to mobile dashboard
             res.redirect('/admin/billing/mobile');
         } else {
-            res.render('admin/mobile-login', { 
+            res.render('admin/mobile-login', {
                 error: 'Username atau password salah!',
                 success: null,
                 appSettings: { companyHeader: 'ISP Monitor' }
@@ -139,7 +139,7 @@ app.post('/admin/login/mobile', async (req, res) => {
         }
     } catch (error) {
         console.error('Login error:', error);
-        res.render('admin/mobile-login', { 
+        res.render('admin/mobile-login', {
             error: 'Terjadi kesalahan saat login!',
             success: null,
             appSettings: { companyHeader: 'ISP Monitor' }
@@ -178,6 +178,10 @@ app.use('/admin/hotspot', blockTechnicianAccess, adminHotspotRouter);
 // Import dan gunakan route adminSetting
 const { router: adminSettingRouter } = require('./routes/adminSetting');
 app.use('/admin/settings', blockTechnicianAccess, adminAuth, adminSettingRouter);
+
+// Import dan gunakan route adminUpdate
+const adminUpdateRouter = require('./routes/adminUpdate');
+app.use('/admin/update', blockTechnicianAccess, adminAuth, adminUpdateRouter);
 
 // Import dan gunakan route configValidation
 const configValidationRouter = require('./routes/configValidation');
@@ -296,7 +300,7 @@ app.get('/whatsapp/status', (req, res) => {
 
 // Redirect root ke portal pelanggan
 app.get('/', (req, res) => {
-  res.redirect('/customer/login');
+    res.redirect('/customer/login');
 });
 
 // Import PPPoE monitoring modules
@@ -318,10 +322,10 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 // Placeholder icons to avoid 404 before real assets are uploaded
 try {
-  const staticIcons = require('./routes/staticIcons');
-  app.use('/', staticIcons);
+    const staticIcons = require('./routes/staticIcons');
+    app.use('/', staticIcons);
 } catch (e) {
-  logger.warn('staticIcons route not loaded:', e.message);
+    logger.warn('staticIcons route not loaded:', e.message);
 }
 // Mount customer portal
 const customerPortal = require('./routes/customerPortal');
@@ -369,7 +373,7 @@ app.get('/isolir', async (req, res) => {
                 try {
                     const c = await billingManager.getCustomerByUsername(sessionUsername);
                     if (c && c.name) customerName = c.name;
-                } catch {}
+                } catch { }
             }
         }
         if (!customerName) {
@@ -379,7 +383,7 @@ app.get('/isolir', async (req, res) => {
                 try {
                     const c = await billingManager.getCustomerByPPPoE(qUser);
                     if (c && c.name) customerName = c.name;
-                } catch {}
+                } catch { }
             }
         }
         if (!customerName) {
@@ -389,7 +393,7 @@ app.get('/isolir', async (req, res) => {
                 try {
                     const c = await billingManager.getCustomerByPhone(qPhone);
                     if (c && c.name) customerName = c.name;
-                } catch {}
+                } catch { }
             }
         }
         if (!customerName) customerName = 'Pelanggan';
@@ -424,13 +428,20 @@ app.use('/collector', collectorAuthRouter);
 const collectorDashboardRouter = require('./routes/collectorDashboard');
 app.use('/collector', collectorDashboardRouter);
 
+// Import dan gunakan route cek update
+const versionCheckRouter = require('./routes/versionCheck');
+app.use('/api/version', versionCheckRouter);
+
+// Inisialisasi scheduled tasks
+const scheduledTasks = require('./config/scheduledTasks');
+
 // Inisialisasi WhatsApp dan PPPoE monitoring
 try {
     whatsapp.connectToWhatsApp().then(sock => {
         if (sock) {
             // Set sock instance untuk whatsapp
             whatsapp.setSock(sock);
-            
+
             // Make WhatsApp socket globally available
             global.whatsappSocket = sock;
             global.getWhatsAppSocket = () => sock;
@@ -442,7 +453,7 @@ try {
             const AgentWhatsAppIntegration = require('./config/agentWhatsAppIntegration');
             const agentWhatsApp = new AgentWhatsAppIntegration(whatsapp);
             agentWhatsApp.initialize();
-            
+
             console.log('🤖 Agent WhatsApp Commands initialized');
             pppoeCommands.setSock(sock);
 
@@ -457,6 +468,9 @@ try {
             // Set sock instance untuk trouble report
             const troubleReport = require('./config/troubleReport');
             troubleReport.setSockInstance(sock);
+
+            // Initialize scheduled tasks
+            scheduledTasks.initialize();
 
             // Initialize database tables for legacy databases without agent feature
             const initAgentTables = () => {
@@ -524,10 +538,10 @@ function startServer(portToUse) {
         logger.error(`Port tidak valid: ${portToUse}`);
         process.exit(1);
     }
-    
+
     logger.info(`Memulai server pada port yang dikonfigurasi: ${port}`);
     logger.info(`Port diambil dari settings.json - tidak ada fallback ke port alternatif`);
-    
+
     // Hanya gunakan port dari settings.json, tidak ada fallback
     try {
         const server = app.listen(port, () => {
