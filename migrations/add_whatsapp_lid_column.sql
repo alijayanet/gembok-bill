@@ -3,10 +3,10 @@
 -- Description: Add whatsapp_lid column to support WhatsApp Lidded ID authentication
 
 -- Add whatsapp_lid column (nullable for backward compatibility)
-ALTER TABLE customers ADD COLUMN whatsapp_lid TEXT UNIQUE;
+ALTER TABLE customers ADD COLUMN whatsapp_lid TEXT;
 
--- Create index for faster lookups
-CREATE INDEX IF NOT EXISTS idx_customers_whatsapp_lid ON customers(whatsapp_lid);
+-- Create unique index for faster lookups and enforcement
+CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_whatsapp_lid ON customers(whatsapp_lid);
 
 -- Add comment for documentation
 -- whatsapp_lid format: e.g., "85280887435270@lid"
