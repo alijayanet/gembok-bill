@@ -97,7 +97,18 @@ npm install
 npm run setup
 ```
 
-### 3. Access the Application
+### 4. Run Database Migration (Important for New Servers)
+To ensure all required tables and columns exist in the database, run migration commands:
+
+```bash
+# Run all database migrations
+node scripts/run-all-migrations.js
+
+# Verify database structure
+node scripts/verify-production-database.js
+```
+
+### 5. Access the Application
 
 After starting the application, you can access different portals through these URLs:
 
@@ -206,7 +217,6 @@ This project is licensed under the ISC license - see the [LICENSE](LICENSE) file
   
   [Report Bug](https://github.com/alijayanet/gembok-bill/issues) · [Request Feature](https://github.com/alijayanet/gembok-bill/issues) · [Documentation](DEPLOYMENT_GUIDE.md)
   
-
 
 
 
