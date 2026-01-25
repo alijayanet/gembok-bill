@@ -212,6 +212,108 @@
             color: white;
             border: 2px solid #667eea;
         }
+
+        /* Layer Control Styling */
+        .leaflet-control-layers {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            max-height: calc(30vh - 20px);
+            overflow-y: auto !important;
+        }
+
+        .leaflet-control-layers-toggle {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        /* Layer Control Position */
+        .leaflet-control-layers {
+            position: absolute !important;
+            top: calc(60vh + 20px) !important;
+            right: 20px !important;
+            left: auto !important;
+            bottom: auto !important;
+            transform: none !important;
+        }
+
+        /* Mobile toggle buttons */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+
+        .mobile-toggle.layer-toggle {
+            bottom: 80px;
+            right: 20px;
+        }
+
+        /* Responsive design for mobile/portrait */
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+            }
+
+            /* Hide layer control by default on mobile */
+            .leaflet-control-layers {
+                display: none;
+                position: fixed !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                z-index: 2000 !important;
+                max-height: 50vh !important;
+                width: 90% !important;
+            }
+
+            .leaflet-control-layers.show {
+                display: block !important;
+            }
+
+            /* Add overlay when layer control is shown */
+            .leaflet-control-layers.show::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: -1;
+            }
+        }
+
+        /* Hide mobile toggle on desktop */
+        @media (min-width: 769px) {
+            .mobile-toggle {
+                display: none;
+            }
+
+            .leaflet-control-layers {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -371,6 +473,11 @@
         <div class="row" id="odpList">
             <!-- ODP cards will be loaded here -->
         </div>
+
+        <!-- Mobile Toggle Buttons -->
+        <button class="mobile-toggle layer-toggle" id="layerToggle" title="Show Base Maps & Layers">
+            <i class="fas fa-layer-group"></i>
+        </button>
     </main>
 </div>
 </div>
@@ -555,22 +662,29 @@
         // Load ODP data from API
         async function loadOdpData() {
             try {
+                console.log('Loading ODP data...');
                 const response = await fetch('/technician/api/cable-network-data');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const result = await response.json();
+                console.log('ODP data loaded:', result);
                 
                 if (result.success) {
-                    allOdpData = result.data.odps;
+                    allOdpData = result.data.odps || [];
                     updateStatistics();
                     renderOdpList();
                     initMainMap();
                     hideLoading();
                 } else {
-                    showError('Gagal memuat data ODP');
+                    showError(result.message || 'Gagal memuat data ODP');
                     hideLoading();
                 }
             } catch (error) {
                 console.error('Error loading ODP data:', error);
-                showError('Terjadi kesalahan saat memuat data');
+                showError('Terjadi kesalahan saat memuat data: ' + error.message);
                 hideLoading();
             }
         }
@@ -581,30 +695,57 @@
             if (mainMap) {
                 mainMap.remove();
             }
-            
+
             // Initialize map centered on Indonesia
-            mainMap = L.map('odpMap').setView([-6.2088, 106.8456], 10);
-            
-            // Add tile layer (OpenStreetMap)
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            mainMap = L.map('odpMap').setView([-6.2088, 106.8456], 13);
+
+            // Create base layers with different themes
+            const satelliteTheme = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '© Esri © DigitalGlobe © GeoEye © i-cubed © USDA FSA © USGS © AeroGRID © IGN © IGP'
+            });
+
+            const lightTheme = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
+            });
+
+            const darkTheme = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors © CARTO'
+            });
+
+            // Add default satellite theme
+            satelliteTheme.addTo(mainMap);
+
+            // Create base layers object (Satellite is default)
+            const baseLayers = {
+                "Satellite": satelliteTheme,
+                "Light Theme": lightTheme,
+                "Dark Theme": darkTheme
+            };
+
+            // Add layer control (collapsed by default)
+            const layerControl = L.control.layers(baseLayers, null, {
+                position: 'topright',
+                collapsed: true
             }).addTo(mainMap);
-            
+
             // Add ODP markers
-            addOdpMarkers();
+            addOdpMarkers(layerControl);
         }
         
         // Add ODP markers to main map
-        function addOdpMarkers() {
+        function addOdpMarkers(layerControl) {
             // Clear existing markers
             odpMarkers.forEach(marker => mainMap.removeLayer(marker));
             odpMarkers = [];
-            
+
+            // Create ODP layer group
+            const odpLayer = L.layerGroup();
+
             // Add markers for each ODP
             allOdpData.forEach(odp => {
                 if (odp.latitude && odp.longitude) {
                     const markerColor = odp.status === 'active' ? '#28a745' : '#dc3545';
-                    
+
                     const marker = L.marker([odp.latitude, odp.longitude], {
                         icon: L.divIcon({
                             className: 'odp-marker',
@@ -612,8 +753,8 @@
                             iconSize: [30, 30],
                             iconAnchor: [15, 15]
                         })
-                    }).addTo(mainMap);
-                    
+                    });
+
                     // Add popup with ODP info
                     const popupContent = `
                         <div style="min-width: 200px;">
@@ -627,11 +768,20 @@
                         </div>
                     `;
                     marker.bindPopup(popupContent);
-                    
+
+                    odpLayer.addLayer(marker);
                     odpMarkers.push(marker);
                 }
             });
-            
+
+            // Add ODP layer to map
+            odpLayer.addTo(mainMap);
+
+            // Update layer control with ODP layer
+            if (layerControl) {
+                layerControl.addOverlay(odpLayer, "ODP Markers");
+            }
+
             // Fit map to show all markers
             if (odpMarkers.length > 0) {
                 const group = new L.featureGroup(odpMarkers);
@@ -646,14 +796,14 @@
                 addOdpMap.remove();
                 addOdpMap = null;
             }
-            
+
             // Check if container exists
             const container = document.getElementById('addOdpMap');
             if (!container) {
                 console.error('Add ODP map container not found');
                 return;
             }
-            
+
             // Initialize map
             try {
                 addOdpMap = L.map('addOdpMap', {
@@ -661,21 +811,21 @@
                     zoom: 12,
                     zoomControl: true
                 });
-                
-                // Add tile layer
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
+
+                // Add satellite tile layer (default)
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '© Esri © DigitalGlobe © GeoEye © i-cubed © USDA FSA © USGS © AeroGRID © IGN © IGP'
                 }).addTo(addOdpMap);
-                
+
                 // Add click event
                 addOdpMap.on('click', function(e) {
                     const { lat, lng } = e.latlng;
-                    
+
                     // Remove previous marker
                     if (selectedMarker) {
                         addOdpMap.removeLayer(selectedMarker);
                     }
-                    
+
                     // Add new marker
                     selectedMarker = L.marker([lat, lng], {
                         icon: L.divIcon({
@@ -685,12 +835,12 @@
                             iconAnchor: [15, 15]
                         })
                     }).addTo(addOdpMap);
-                    
+
                     // Update form fields
                     document.getElementById('addLatitude').value = lat.toFixed(6);
                     document.getElementById('addLongitude').value = lng.toFixed(6);
                 });
-                
+
                 console.log('Add ODP map initialized successfully');
             } catch (error) {
                 console.error('Error initializing add ODP map:', error);
@@ -704,24 +854,24 @@
                 editOdpMap.remove();
                 editOdpMap = null;
             }
-            
+
             // Check if container exists
             const container = document.getElementById('editOdpMap');
             if (!container) {
                 console.error('Edit ODP map container not found');
                 return;
             }
-            
+
             // Check if container has proper dimensions
             const rect = container.getBoundingClientRect();
             console.log('Edit ODP map container dimensions:', rect.width, 'x', rect.height);
-            
+
             if (rect.width === 0 || rect.height === 0) {
                 console.warn('Edit ODP map container has zero dimensions, retrying...');
                 setTimeout(() => initEditOdpMap(latitude, longitude), 100);
                 return;
             }
-            
+
             // Initialize map centered on ODP location
             try {
                 editOdpMap = L.map('editOdpMap', {
@@ -729,12 +879,12 @@
                     zoom: 15,
                     zoomControl: true
                 });
-                
-                // Add tile layer
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
+
+                // Add satellite tile layer (default)
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '© Esri © DigitalGlobe © GeoEye © i-cubed © USDA FSA © USGS © AeroGRID © IGN © IGP'
                 }).addTo(editOdpMap);
-                
+
                 // Add marker for current location
                 selectedMarker = L.marker([latitude, longitude], {
                     icon: L.divIcon({
@@ -744,16 +894,16 @@
                         iconAnchor: [15, 15]
                     })
                 }).addTo(editOdpMap);
-                
+
                 // Add click event to update location
                 editOdpMap.on('click', function(e) {
                     const { lat, lng } = e.latlng;
-                    
+
                     // Remove previous marker
                     if (selectedMarker) {
                         editOdpMap.removeLayer(selectedMarker);
                     }
-                    
+
                     // Add new marker
                     selectedMarker = L.marker([lat, lng], {
                         icon: L.divIcon({
@@ -763,12 +913,12 @@
                             iconAnchor: [15, 15]
                         })
                     }).addTo(editOdpMap);
-                    
+
                     // Update form fields
                     document.getElementById('editOdpLatitude').value = lat.toFixed(6);
                     document.getElementById('editOdpLongitude').value = lng.toFixed(6);
                 });
-                
+
                 console.log('Edit ODP map initialized successfully');
             } catch (error) {
                 console.error('Error initializing edit ODP map:', error);
@@ -1233,10 +1383,31 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
             document.body.appendChild(alert);
-            
+
             setTimeout(() => {
                 alert.remove();
             }, 5000);
+        }
+
+        // Layer toggle button functionality
+        const layerToggle = document.getElementById('layerToggle');
+        if (layerToggle) {
+            layerToggle.addEventListener('click', function() {
+                const layerControl = document.querySelector('.leaflet-control-layers');
+                if (layerControl) {
+                    layerControl.classList.toggle('show');
+                }
+            });
+
+            // Close layer control when clicking outside
+            document.addEventListener('click', function(e) {
+                const layerControl = document.querySelector('.leaflet-control-layers');
+                if (layerControl && layerControl.classList.contains('show')) {
+                    if (!layerControl.contains(e.target) && e.target !== layerToggle) {
+                        layerControl.classList.remove('show');
+                    }
+                }
+            });
         }
     </script>
             </main>
