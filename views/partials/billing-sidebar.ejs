@@ -29,522 +29,84 @@
             <img src="/img/GEMBOK-Bill.png?ts=<%= Date.now() %>" alt="GEMBOK Bill Logo" style="max-width:120px;max-height:60px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         </div>
         
+        <div class="sidebar-links">
+            <a href="/admin" class="<%= typeof page !== 'undefined' && page === 'dashboard' ? 'active' : '' %>"><i
+                class="bi bi-house"></i> Dashboard Utama</a>
+            <a href="/admin/billing/dashboard"
+                class="<%= typeof page !== 'undefined' && page === 'billing' ? 'active' : '' %>"><i class="bi bi-bar-chart-alt-2"></i>
+                Dashboard Billing</a>
+            <a href="/admin/billing/customers"
+                class="<%= typeof page !== 'undefined' && page === 'customers' ? 'active' : '' %>"><i class="bi bi-users"></i>
+                Pelanggan & Paket</a>
+            <a href="/admin/billing/invoices"
+                class="<%= typeof page !== 'undefined' && page === 'invoices' ? 'active' : '' %>"><i class="bi bi-receipt"></i>
+                Invoice</a>
+            <a href="/admin/billing/payments"
+                class="<%= typeof page !== 'undefined' && page === 'payments' ? 'active' : '' %>"><i class="bi bi-credit-card"></i>
+                Pembayaran & Keuangan</a>
+            <a href="/admin/collectors"
+                class="<%= typeof page !== 'undefined' && page === 'collectors' ? 'active' : '' %>"><i class="bi bi-group"></i>
+                Kolektor</a>
+            <a href="/admin/billing/payment-settings"
+                class="<%= typeof page !== 'undefined' && page === 'payment-settings' ? 'active' : '' %>"><i class="bi bi-cog"></i>
+                Pengaturan</a>
+        </div>
+
         <!-- Version Info -->
-        <div class="version-info text-center mb-3 px-3">
-            <small class="text-white-50">
-                <span id="versionDisplay"><%= typeof versionInfo !== 'undefined' ? 'v' + versionInfo.version : 'v1.0.0' %></span> | Build: <span id="buildDisplay"><%= typeof versionInfo !== 'undefined' ? versionInfo.buildNumber : '001' %></span>
+        <div class="version-info text-center mb-3">
+            <small class="text-muted">
+                <div class="version-details">
+                    <strong>Version Info</strong><br>
+                    <span id="versionDisplay"><%= typeof versionInfo !== 'undefined' ? 'v' + versionInfo.version : 'v1.0.0' %></span><br>
+                    Build: <span id="buildDisplay"><%= typeof versionInfo !== 'undefined' ? versionInfo.buildNumber : '001' %></span><br>
+                    Released: <span id="releaseDate"><%= typeof versionInfo !== 'undefined' ? versionInfo.versionDate : 'N/A' %></span>
+                </div>
             </small>
         </div>
-        
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin">
-                    <i class="bx bx-home"></i> Dashboard Utama
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/dashboard">
-                    <i class="bx bx-bar-chart-alt-2"></i> Dashboard Billing
-                </a>
-            </li>
-            
-            <!-- Customer Management Section -->
-            <li class="nav-item">
-                <div class="sidebar-section-header">
-                    <i class="bx bx-users"></i> Manajemen Pelanggan
-                </div>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/customers">
-                    <i class="bx bx-user"></i> Pelanggan
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/packages">
-                    <i class="bx bx-package"></i> Paket
-                </a>
-            </li>
-            
-            <!-- Invoice Management Section -->
-            <li class="nav-item">
-                <div class="sidebar-section-header">
-                    <i class="bx bx-receipt"></i> Manajemen Invoice
-                </div>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/invoices">
-                    <i class="bx bx-file-plus"></i> Buat Invoice
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/auto-invoice">
-                    <i class="bx bx-calendar-check"></i> Auto Invoice
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/invoices-by-type">
-                    <i class="bx bx-list-ul"></i> Invoice per Tipe
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/invoice-list">
-                    <i class="bx bx-receipt"></i> Semua Invoice
-                </a>
-            </li>
-            
-            <!-- Payment & Financial Section -->
-            <li class="nav-item">
-                <div class="sidebar-section-header">
-                    <i class="bx bx-credit-card"></i> Pembayaran & Keuangan
-                </div>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/payments">
-                    <i class="bx bx-user-check"></i> Transaksi Kolektor
-                    <small class="d-block text-muted" style="font-size: 0.7rem; margin-left: 1.5rem;">Hanya transaksi tukang tagih</small>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/all-payments">
-                    <i class="bx bx-credit-card"></i> Riwayat Pembayaran
-                    <small class="d-block text-muted" style="font-size: 0.7rem; margin-left: 1.5rem;">Semua pembayaran (admin + kolektor)</small>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/collectors">
-                    <i class="bx bx-group"></i> Tukang Tagih
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/collector-reports">
-                    <i class="bx bx-bar-chart"></i> Laporan Kolektor
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/collector-remittance">
-                    <i class="bx bx-money"></i> Terima Setoran
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/financial-report">
-                    <i class="bx bx-line-chart"></i> Laporan Keuangan
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/reports">
-                    <i class="bx bx-analytics"></i> Laporan Analisis
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/expenses">
-                    <i class="bx bx-money-withdraw"></i> Manajemen Pengeluaran
-                </a>
-            </li>
-            
-            <!-- System & Settings Section -->
-            <li class="nav-item">
-                <div class="sidebar-section-header">
-                    <i class="bx bx-cog"></i> Sistem & Pengaturan
-                </div>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/payment-settings">
-                    <i class="bx bx-cog"></i> Pengaturan Pembayaran
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/whatsapp-settings">
-                    <i class="bx bx-message-dots"></i> Pengaturan WhatsApp
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/service-suspension">
-                    <i class="bx bx-pause-circle"></i> Penangguhan Layanan
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/billing/mapping-new">
-                    <i class="bx bx-map"></i> Network Mapping
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white" href="/admin/genieacs">
-                    <i class="bx bx-wifi"></i> GenieACS
-                </a>
-            </li>
-        </ul>
+
+        <!-- Update Menu -->
+        <div class="update-menu mb-3">
+            <button class="btn btn-sm btn-outline-light w-100" id="checkUpdateBtn">
+                <i class="bi bi-arrow-repeat"></i> Cek Update
+            </button>
+            <div id="updateStatus" class="text-center mt-2" style="font-size: 0.75rem;"></div>
+        </div>
     </div>
 </nav>
 
 <style>
-/* Billing Sidebar Specific Styles - Override any conflicting styles */
+/* Billing Sidebar Styling */
 #sidebar {
-    min-height: 100vh !important;
     background: #111827 !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-
-#sidebar .position-sticky {
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-}
-
-/* Mobile Top Navbar */
-.mobile-navbar {
-    background: #111827;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1001;
-    padding: 0.5rem 1rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-
-.mobile-navbar .navbar-brand {
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-/* Sidebar Overlay */
-.sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
-
-.sidebar-overlay.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* Sidebar */
-.sidebar {
     min-height: 100vh;
-    background: #111827;
     display: flex;
     flex-direction: column;
 }
 
-.sidebar .position-sticky {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
+#sidebar .sidebar-header,
+#sidebar .version-info {
+    text-align: center;
 }
 
-.sidebar .nav {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-/* Section Headers */
-.sidebar-section-header {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 1rem 1rem 0.5rem 1rem;
-    margin: 0.5rem 0.5rem 0 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.sidebar-section-header i {
-    font-size: 0.9rem;
-    opacity: 0.8;
-}
-
-.sidebar .nav-link {
-    color: rgba(255, 255, 255, 0.8) !important;
+#sidebar .sidebar-links a {
+    color: rgba(255, 255, 255, 0.8);
+    display: block;
     padding: 0.75rem 1rem;
-    border-radius: 0.375rem;
     margin: 0.125rem 0.5rem;
+    border-radius: 0.375rem;
     transition: all 0.3s ease;
-    white-space: nowrap;
+    text-decoration: none;
 }
 
-.sidebar .nav-link:hover,
-.sidebar .nav-link.active {
+#sidebar .sidebar-links a:hover,
+#sidebar .sidebar-links a.active {
     color: white !important;
     background-color: rgba(255, 255, 255, 0.1);
-    transform: translateX(5px);
 }
 
-.sidebar .nav-link i {
+#sidebar .sidebar-links a i {
     margin-right: 0.5rem;
     font-size: 1.1rem;
-}
-
-/* Logo styling */
-.sidebar-header {
-    padding: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 1rem;
-    flex-shrink: 0;
-}
-
-.sidebar-header img {
-    transition: transform 0.3s ease;
-}
-
-.sidebar-header img:hover {
-    transform: scale(1.05);
-}
-
-/* Main content styling */
-.main-content {
-    margin-left: 250px;
-    padding: 20px;
-    background-color: #f8f9fa;
-    min-height: 100vh;
-}
-
-/* Card styling */
-.card {
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-    margin-bottom: 1.5rem;
-}
-
-.card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 15px 15px 0 0 !important;
-    padding: 1rem 1.5rem;
-    font-weight: 600;
-}
-
-.card-body {
-    padding: 1.5rem;
-}
-
-/* Button styling */
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 8px;
-    padding: 0.5rem 1.5rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.btn-outline-primary {
-    border-color: #667eea;
-    color: #667eea;
-    border-radius: 8px;
-}
-
-.btn-outline-primary:hover {
-    background: #667eea;
-    border-color: #667eea;
-}
-
-/* Form styling */
-.form-control {
-    border-radius: 8px;
-    border: 1px solid #e1e5e9;
-    padding: 0.75rem 1rem;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-
-.form-label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 0.5rem;
-}
-
-/* Table styling */
-.table {
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-.table thead th {
-    background: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
-    font-weight: 600;
-    color: #495057;
-    padding: 1rem;
-}
-
-.table tbody td {
-    padding: 0.75rem 1rem;
-    vertical-align: middle;
-    border-bottom: 1px solid #f1f3f4;
-}
-
-/* Badge styling */
-.badge {
-    font-size: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    font-weight: 500;
-}
-
-/* Alert styling */
-.alert {
-    border: none;
-    border-radius: 10px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.alert-success {
-    background: #d4edda;
-    color: #155724;
-}
-
-.alert-warning {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.alert-danger {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.alert-info {
-    background: #d1ecf1;
-    color: #0c5460;
-}
-
-/* Mobile responsive */
-@media (max-width: 767.98px) {
-    .main-content {
-        margin-left: 0;
-        margin-top: 60px; /* Space for mobile navbar */
-        padding: 15px;
-    }
-    
-    #sidebar {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        z-index: 1000 !important;
-        width: 280px !important;
-        height: 100vh !important;
-        transform: translateX(-100%) !important;
-        transition: transform 0.3s ease !important;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
-        overflow: hidden !important;
-    }
-    
-    #sidebar.show {
-        transform: translateX(0) !important;
-    }
-    
-    #sidebar .position-sticky {
-        height: 100% !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        -webkit-overflow-scrolling: touch !important;
-        padding-bottom: 20px !important;
-        max-height: 100vh !important;
-    }
-    
-    #sidebar .nav {
-        padding-bottom: 20px !important;
-        min-height: auto !important;
-        flex-wrap: nowrap !important;
-    }
-    
-    #sidebar .sidebar-header {
-        margin-top: 20px !important;
-        flex-shrink: 0 !important;
-        position: sticky !important;
-        top: 0 !important;
-        background: #111827 !important;
-        z-index: 10 !important;
-        padding: 15px 0 !important;
-    }
-    
-    /* Ensure navigation items are properly spaced */
-    #sidebar .nav-item {
-        margin-bottom: 5px !important;
-    }
-    
-    #sidebar .nav-link {
-        padding: 12px 20px !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-    }
-    
-    /* Adjust content for better mobile view */
-    .card {
-        margin-bottom: 1rem;
-    }
-    
-    .table-responsive {
-        border-radius: 10px;
-    }
-}
-
-/* Extra small devices */
-@media (max-width: 575.98px) {
-    .main-content {
-        padding: 10px;
-    }
-    
-    #sidebar {
-        width: 260px !important;
-    }
-    
-    .mobile-navbar .navbar-brand {
-        font-size: 1rem;
-    }
-    
-    #sidebar .nav-link {
-        padding: 10px 15px !important;
-        font-size: 0.9rem !important;
-    }
-}
-
-/* Desktop specific */
-@media (min-width: 768px) {
-    .main-content {
-        margin-left: 25%; /* col-md-3 width */
-    }
-    
-    #sidebar {
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
-    
-    #sidebar .position-sticky {
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
 }
 </style>
 
@@ -554,7 +116,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidebarClose = document.getElementById('sidebarClose');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
-    
+    const checkUpdateBtn = document.getElementById('checkUpdateBtn');
+    const updateStatus = document.getElementById('updateStatus');
+
     // Toggle sidebar on hamburger click
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
@@ -563,26 +127,26 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.style.overflow = 'hidden'; // Prevent background scrolling
         });
     }
-    
+
     // Close sidebar functions
     function closeSidebar() {
         sidebar.classList.remove('show');
         overlay.classList.remove('show');
         document.body.style.overflow = ''; // Restore scrolling
     }
-    
+
     // Close sidebar on close button click
     if (sidebarClose) {
         sidebarClose.addEventListener('click', closeSidebar);
     }
-    
+
     // Close sidebar on overlay click
     if (overlay) {
         overlay.addEventListener('click', closeSidebar);
     }
-    
+
     // Close sidebar when clicking on nav links (mobile)
-    const navLinks = sidebar.querySelectorAll('.nav-link');
+    const navLinks = sidebar.querySelectorAll('.sidebar-links a');
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
             if (window.innerWidth < 768) {
@@ -590,26 +154,74 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // Handle window resize
     window.addEventListener('resize', function() {
         if (window.innerWidth >= 768) {
             closeSidebar();
         }
     });
-    
+
     // Prevent body scroll when sidebar is open on mobile
     sidebar.addEventListener('touchmove', function(e) {
         if (sidebar.classList.contains('show')) {
             e.stopPropagation();
         }
     });
-    
+
     // Enable smooth scrolling for sidebar content on mobile
     const sidebarContent = sidebar.querySelector('.position-sticky');
     if (sidebarContent) {
         sidebarContent.style.webkitOverflowScrolling = 'touch';
         sidebarContent.style.overflowScrolling = 'touch';
     }
+
+    // Check update functionality
+    if (checkUpdateBtn) {
+        checkUpdateBtn.addEventListener('click', async function() {
+            checkUpdateBtn.disabled = true;
+            checkUpdateBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Mengecek...';
+            updateStatus.innerHTML = '<span class="text-info">Sedang mengecek update...</span>';
+
+            try {
+                const response = await fetch('/api/version/check-update');
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.hasUpdate) {
+                        updateStatus.innerHTML = `<span class="text-success">✓ Update tersedia: v${data.latestVersion}</span>`;
+                        checkUpdateBtn.innerHTML = '<i class="bi bi-download"></i> Update';
+                        checkUpdateBtn.onclick = function() {
+                            window.open(data.latestRelease.htmlUrl, '_blank');
+                        };
+                    } else {
+                        updateStatus.innerHTML = '<span class="text-success">✓ Sudah versi terbaru</span>';
+                        checkUpdateBtn.disabled = false;
+                        checkUpdateBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Cek Update';
+                    }
+                } else {
+                    updateStatus.innerHTML = `<span class="text-danger">✗ Gagal mengecek update</span>`;
+                    checkUpdateBtn.disabled = false;
+                    checkUpdateBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Cek Update';
+                }
+            } catch (error) {
+                console.error('Error checking update:', error);
+                updateStatus.innerHTML = '<span class="text-danger">✗ Error: ' + error.message + '</span>';
+                checkUpdateBtn.disabled = false;
+                checkUpdateBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Cek Update';
+            }
+        });
+    }
 });
-</script> 
+</script>
+
+<style>
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+</style>
