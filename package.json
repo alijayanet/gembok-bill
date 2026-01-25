@@ -1,15 +1,16 @@
 {
   "name": "gembok-bill",
   "version": "2.1.1",
-  "description": "Sistem Manajemen ISP Terintegrasi dengan WhatsApp Gateway untuk GenieACS, Mikrotik PPPoE, dan Hotspot Management",
+  "description": "Sistem Manajemen ISP Terintegrasi dengan WhatsApp Gateway dan Telegram Bot untuk GenieACS, Mikrotik PPPoE, dan Hotspot Management",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "echo \"No build process required\"",
-    "setup": "npm install && node scripts/setup-database.js",
+    "setup": "npm install && node scripts/setup-database.js && npm run migrate",
     "migrate": "node scripts/run-all-migrations.js",
+    "clean": "node scripts/clean-install.js",
     "check-whatsapp-version": "node scripts/check-whatsapp-version.js",
     "test-whatsapp-connection": "node scripts/test-whatsapp-connection.js",
     "prepare-for-github": "node scripts/prepare-for-github.js",
@@ -23,6 +24,7 @@
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
+    "cron": "^4.4.0",
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "exceljs": "^4.4.0",
@@ -42,6 +44,8 @@
     "qrcode-terminal": "^0.12.0",
     "sqlite3": "^5.1.7",
     "supertest": "^7.1.4",
+    "telegraf": "^4.16.3",
+    "telegraf-inline-menu": "^6.3.0",
     "turf": "^3.0.14",
     "winston": "^3.8.2",
     "xendit-node": "^7.0.0"
@@ -52,6 +56,9 @@
     "eslint": "^9.38.0",
     "nodemon": "^3.1.10"
   },
+  "overrides": {
+    "tar": "^7.5.4"
+  },
   "engines": {
     "node": ">=14.0.0",
     "npm": ">=6.0.0"
@@ -60,6 +67,7 @@
     "isp",
     "billing",
     "whatsapp",
+    "telegram",
     "genieacs",
     "mikrotik",
     "pppoe",

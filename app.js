@@ -527,6 +527,20 @@ try {
     logger.error('Error initializing services:', error);
 }
 
+// Initialize Telegram Bot
+try {
+    const telegramBot = require('./config/telegramBot');
+
+    // Start bot if enabled
+    telegramBot.start().then(() => {
+        logger.info('Telegram bot initialization completed');
+    }).catch(err => {
+        logger.error('Error starting Telegram bot:', err);
+    });
+} catch (error) {
+    logger.error('Error initializing Telegram bot:', error);
+}
+
 // Tambahkan delay yang lebih lama untuk reconnect WhatsApp
 const RECONNECT_DELAY = 30000; // 30 detik
 

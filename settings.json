@@ -6,9 +6,9 @@
   "genieacs_username": "admin",
   "genieacs_password": "admin",
   "mikrotik_host": "192.168.8.1",
-  "mikrotik_port": "8728",
-  "mikrotik_user": "admin",
-  "mikrotik_password": "admin",
+  "mikrotik_port": "8700",
+  "mikrotik_user": "alijaya",
+  "mikrotik_password": "060111",
   "main_interface": "ether1-ISP",
   "pppoe_monitor_enable": true,
   "technician_numbers.0": "",
@@ -92,11 +92,11 @@
     "dailyMessageLimit": 0,
     "enabled": true
   },
-  "app_version": "2.1.3",
+  "app_version": "2.1.2",
   "version_name": "WhatsApp AGent + Mapping",
-  "version_date": "2026-01-24",
+  "version_date": "2025-10-13",
   "version_notes": "Added technician role, trouble report, PPPoE WhatsApp commands, PPN feature, and Network Mapping",
-  "build_number": "20260124",
+  "build_number": "20251013",
   "rx_power_warning_interval_hours": "10",
   "rxpower_recap_interval_hours": "6",
   "offline_notification_interval_hours": "12",
@@ -107,5 +107,53 @@
     "delete_expired_invoices": true,
     "log_cleanup_actions": true
   },
-  "whatsapp_daily_count.2025-10-05": 7
+  "whatsapp_daily_count.2025-10-05": "7",
+  "payment_gateway.active": "midtrans",
+  "payment_gateway.midtrans.enabled": true,
+  "payment_gateway.midtrans.production": false,
+  "payment_gateway.midtrans.server_key": "SB-Mid-server-XXXXXXXXXXXXXXXXXXXXXXXX",
+  "payment_gateway.midtrans.client_key": "SB-Mid-client-XXXXXXXXXXXXXXXXXXXXXXXX",
+  "payment_gateway.midtrans.merchant_id": "G123456789",
+  "payment_gateway.xendit.enabled": false,
+  "payment_gateway.xendit.production": false,
+  "payment_gateway.xendit.api_key": "xnd_public_development_XXXXXXXXXXXXXXXXXXXXXXXX",
+  "payment_gateway.xendit.callback_token": "your_callback_token_here",
+  "payment_gateway.tripay.enabled": true,
+  "payment_gateway.tripay.production": false,
+  "payment_gateway.tripay.api_key": "your_tripay_api_key_here",
+  "payment_gateway.tripay.private_key": "your_tripay_private_key_here",
+  "payment_gateway.tripay.merchant_code": "your_merchant_code_here",
+  "payment_gateway.tripay.base_url": "",
+  "whatsapp_rate_limit.maxMessagesPerBatch": "10",
+  "whatsapp_rate_limit.delayBetweenBatches": "30",
+  "whatsapp_rate_limit.delayBetweenMessages": "2",
+  "whatsapp_rate_limit.maxRetries": "2",
+  "whatsapp_rate_limit.dailyMessageLimit": "0",
+  "whatsapp_rate_limit.enabled": true,
+  "voucher_cleanup.enabled": true,
+  "voucher_cleanup.expiry_hours": "24",
+  "voucher_cleanup.cleanup_interval_hours": "6",
+  "voucher_cleanup.delete_expired_invoices": true,
+  "voucher_cleanup.log_cleanup_actions": true,
+  "telegram_bot": {
+    "enabled": true,
+    "bot_token": "883632178:AAHEM6H2lYhOXHZhlRLAugt0LbqsMNB8VxY",
+    "session_timeout_hours": 24,
+    "auto_session_cleanup": true,
+    "allowed_users": [
+      "admin",
+      "technician",
+      "collector"
+    ],
+    "notification_settings": {
+      "enable_notifications": true,
+      "error_notifications": true,
+      "command_logging": true
+    },
+    "mikrotik_settings": {
+      "auto_comment_enabled": true,
+      "comment_format": "tele-{username}-{date}-{time}-{creator}",
+      "session_management_enabled": true
+    }
+  }
 }
