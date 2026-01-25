@@ -124,17 +124,38 @@
         <!-- Include Responsive Admin Sidebar -->
         <%- include('partials/admin-responsive-sidebar', { page: 'voucher', settings: settings }) %>
         <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4 main-content">
-        <nav class="navbar navbar-expand-lg mb-4">
-            <div class="container-fluid">
-                <button class="hamburger" id="hamburgerBtn">
-                    <i class="bi bi-list"></i>
-                </button>
-                <h4 class="mb-0">Manajemen Voucher Hotspot</h4>
-                <div class="ms-auto">
-                    <span class="badge bg-primary">Admin</span>
-                </div>
-            </div>
-        </nav>
+        <h3 class="mb-4">Mikrotik Management</h3>
+
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link <%= page === 'mikrotik' ? 'active' : '' %>" href="/admin/mikrotik">
+                    <i class="bi bi-router"></i> User PPPoE
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= page === 'mikrotik-profiles' ? 'active' : '' %>" href="/admin/mikrotik/profiles">
+                    <i class="bi bi-person-badge"></i> Profile PPPoE
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= page === 'hotspot-profiles' ? 'active' : '' %>" href="/admin/mikrotik/hotspot-profiles">
+                    <i class="bi bi-wifi"></i> Profile Hotspot
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= page === 'hotspot' ? 'active' : '' %>" href="/admin/hotspot">
+                    <i class="bi bi-people"></i> User Hotspot
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= page === 'voucher' ? 'active' : '' %>" href="/admin/hotspot/voucher">
+                    <i class="bi bi-ticket-perforated"></i> Voucher Hotspot
+                </a>
+            </li>
+        </ul>
+
+        <h4 class="mb-3">Manajemen Voucher Hotspot</h4>
 
         <!-- Notifikasi -->
         <% if (locals.success) { %>

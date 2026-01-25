@@ -99,7 +99,38 @@
         
         <main class="col-md-10 main-content ms-sm-auto">
 
-            <h3 class="mb-4">Daftar User PPPoE Mikrotik</h3>
+            <h3 class="mb-4">Mikrotik Management</h3>
+
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs mb-4">
+                <li class="nav-item">
+                    <a class="nav-link <%= page === 'mikrotik' ? 'active' : '' %>" href="/admin/mikrotik">
+                        <i class="bi bi-router"></i> User PPPoE
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <%= page === 'mikrotik-profiles' ? 'active' : '' %>" href="/admin/mikrotik/profiles">
+                        <i class="bi bi-person-badge"></i> Profile PPPoE
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <%= page === 'hotspot-profiles' ? 'active' : '' %>" href="/admin/mikrotik/hotspot-profiles">
+                        <i class="bi bi-wifi"></i> Profile Hotspot
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <%= page === 'hotspot' ? 'active' : '' %>" href="/admin/hotspot">
+                        <i class="bi bi-people"></i> User Hotspot
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <%= page === 'voucher' ? 'active' : '' %>" href="/admin/hotspot/voucher">
+                        <i class="bi bi-ticket-perforated"></i> Voucher Hotspot
+                    </a>
+                </li>
+            </ul>
+
+            <h4 class="mb-3">Daftar User PPPoE</h4>
             
             <!-- Statistik User PPPoE -->
             <div class="row mb-4">
