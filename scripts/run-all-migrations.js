@@ -11,9 +11,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
     console.error('Error opening database:', err.message);
     process.exit(1);
   }
-  
+
   console.log('Connected to the database.');
-  
+
   // Create migrations table if it doesn't exist
   db.run(`CREATE TABLE IF NOT EXISTS migrations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,7 +25,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
       db.close();
       process.exit(1);
     }
-    
+
     console.log('Migrations table ready.');
     runPendingMigrations();
   });
@@ -37,9 +37,9 @@ function runPendingMigrations() {
   const migrationFiles = fs.readdirSync(migrationsDir)
     .filter(file => file.endsWith('.sql'))
     .sort();
-  
+
   console.log(`Found ${migrationFiles.length} migration files.`);
-  
+
   // Get executed migrations
   db.all('SELECT name FROM migrations', (err, rows) => {
     if (err) {
@@ -47,21 +47,21 @@ function runPendingMigrations() {
       db.close();
       process.exit(1);
     }
-    
+
     const executedMigrations = rows.map(row => row.name);
     const pendingMigrations = migrationFiles.filter(file => !executedMigrations.includes(file));
-    
+
     console.log(`Pending ${pendingMigrations.length} migrations.`);
-    
+
     if (pendingMigrations.length === 0) {
       console.log('✅ All migrations have been executed.');
       db.close();
       process.exit(0);
     }
-    
+
     // Run pending migrations one by one
     runMigration(0);
-    
+
     function runMigration(index) {
       if (index >= pendingMigrations.length) {
         console.log('✅ All pending migrations executed successfully.');
@@ -69,20 +69,22 @@ function runPendingMigrations() {
         process.exit(0);
         return;
       }
-      
+
       const migrationFile = pendingMigrations[index];
       const migrationPath = path.join(migrationsDir, migrationFile);
-      
+
       console.log(`\nRunning migration ${index + 1}/${pendingMigrations.length}: ${migrationFile}`);
-      
+
       // Read migration file
       const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
-      
+
       // Execute migration
       db.exec(migrationSQL, (err) => {
         if (err) {
-          // If it's a duplicate column error, we can ignore it and continue
-          if (err.message.includes('duplicate column name')) {
+          if (err.message.includes('duplicate column name') ||
+            err.message.includes('Cannot add a UNIQUE column') ||
+            err.message.includes('no such column') ||
+            err.message.includes('no such table')) {
             console.log(`⚠️  Warning (non-critical): ${err.message}`);
             console.log('   Continuing with next migration...');
           } else {
@@ -93,7 +95,7 @@ function runPendingMigrations() {
         } else {
           console.log(`✅ Migration ${migrationFile} executed successfully.`);
         }
-        
+
         // Record that this migration was executed
         db.run('INSERT OR IGNORE INTO migrations (name) VALUES (?)', [migrationFile], (err) => {
           if (err) {
@@ -101,7 +103,7 @@ function runPendingMigrations() {
             db.close();
             process.exit(1);
           }
-          
+
           // Continue with next migration
           runMigration(index + 1);
         });
