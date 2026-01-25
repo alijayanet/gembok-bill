@@ -2319,6 +2319,106 @@ class BillingManager {
         });
     }
 
+    // Aliases and helpers for Telegram bot integration
+    async getAllCustomers() {
+        return await this.getCustomers();
+    }
+
+    async getAllPackages() {
+        return await this.getPackages();
+    }
+
+    async getAllInvoices() {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT i.*, c.name as customer_name, c.phone as customer_phone
+                FROM invoices i
+                JOIN customers c ON i.customer_id = c.id
+                ORDER BY i.created_at DESC
+            `;
+            this.db.all(sql, [], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+    }
+
+    async getAllPayments() {
+        return await this.getPayments();
+    }
+
+    async getInvoicesByCustomerId(customerId) {
+        return await this.getInvoicesByCustomer(customerId);
+    }
+
+    /**
+     * Process a manual/cash payment for an invoice
+     * @param {number} invoiceId - ID of the invoice
+     * @param {number} amount - Amount paid
+     * @param {string} method - Payment method (cash, bank_transfer, etc.)
+     * @param {string} ref - Reference number (optional)
+     * @param {string} notes - Additional notes (optional)
+     * @returns {Promise<Object>} Result of the operation
+     */
+    async processManualPayment(invoiceId, amount, method = 'cash', ref = '', notes = 'Payment via Telegram Bot') {
+        try {
+            logger.info(`Processing manual payment for invoice ${invoiceId}: Rp ${amount}`);
+
+            // 1. Record the payment transaction
+            const paymentData = {
+                invoice_id: parseInt(invoiceId),
+                amount: parseFloat(amount),
+                payment_method: method,
+                reference_number: ref || '',
+                notes: notes
+            };
+            const paymentResult = await this.recordPayment(paymentData);
+
+            // 2. Update invoice status to 'paid'
+            await this.updateInvoiceStatus(invoiceId, 'paid', method);
+
+            // 3. Send WhatsApp notification (optional/background)
+            try {
+                const whatsappNotifications = require('./whatsapp-notifications');
+                await whatsappNotifications.sendPaymentReceivedNotification(paymentResult.id);
+            } catch (notifyErr) {
+                logger.error(`Failed to send payment notification: ${notifyErr.message}`);
+            }
+
+            // 4. Check if customer should be restored
+            let restoreResult = { restored: false };
+            try {
+                const invoice = await this.getInvoiceById(invoiceId);
+                if (invoice && invoice.customer_id) {
+                    const customer = await this.getCustomerById(invoice.customer_id);
+                    if (customer && customer.status === 'suspended') {
+                        // Check for other unpaid invoices
+                        const invoices = await this.getInvoicesByCustomer(customer.id);
+                        const hasUnpaid = invoices.some(i => i.id !== parseInt(invoiceId) && i.status === 'unpaid');
+
+                        if (!hasUnpaid) {
+                            const serviceSuspension = require('./serviceSuspension');
+                            const result = await serviceSuspension.restoreCustomerService(customer, 'Payment completed (Auto-restore)');
+                            restoreResult = { restored: true, message: result.message };
+                        }
+                    }
+                }
+            } catch (restoreErr) {
+                logger.error(`Error during auto-restore check: ${restoreErr.message}`);
+            }
+
+            return {
+                success: true,
+                paymentId: paymentResult.id,
+                restored: restoreResult.restored,
+                restoreMessage: restoreResult.message
+            };
+        } catch (error) {
+            logger.error(`Error processing manual payment: ${error.message}`);
+            throw error;
+        }
+    }
+
     async getPaymentById(id) {
         return new Promise((resolve, reject) => {
             const sql = `
