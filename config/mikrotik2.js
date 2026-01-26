@@ -405,7 +405,11 @@ let lastActivePPPoE = [];
 async function monitorPPPoEConnections() {
     try {
         // Cek ENV untuk enable/disable monitoring
-        const monitorEnable = (getSetting('pppoe_monitor_enable', 'true')).toLowerCase() === 'true';
+        const monitorSetting = getSetting('pppoe_monitor_enable', 'true');
+        // Handle both boolean and string values
+        const monitorEnable = typeof monitorSetting === 'boolean' 
+            ? monitorSetting 
+            : String(monitorSetting).toLowerCase() === 'true';
         if (!monitorEnable) {
             logger.info('PPPoE monitoring is DISABLED by ENV');
             return;
