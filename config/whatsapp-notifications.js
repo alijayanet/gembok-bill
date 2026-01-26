@@ -309,15 +309,25 @@ Balas dengan: *BANTU* atau *HELP*
     }
 
     // Helper method to get invoice image path with fallback handling
-    getInvoiceImagePath() {
+    getInvoiceImagePath(packageData = null) {
+        // First check if package has custom image
+        if (packageData && packageData.image_filename) {
+            const packageImagePath = path.resolve(__dirname, `../public/img/packages/${packageData.image_filename}`);
+            if (fs.existsSync(packageImagePath)) {
+                logger.info(`📸 Using package image: ${packageImagePath}`);
+                return packageImagePath;
+            }
+        }
+
+        // Fallback to default invoice images
         const imagePaths = [
             path.resolve(__dirname, '../public/img/tagihan.jpg'),
-            path.resolve(__dirname, '../public/img/tagihan.png'), 
+            path.resolve(__dirname, '../public/img/tagihan.png'),
             path.resolve(__dirname, '../public/img/invoice.jpg'),
             path.resolve(__dirname, '../public/img/invoice.png'),
             path.resolve(__dirname, '../public/img/logo.png')
         ];
-        
+
         // Check each path and return the first one that exists
         for (const imagePath of imagePaths) {
             if (fs.existsSync(imagePath)) {
@@ -325,7 +335,7 @@ Balas dengan: *BANTU* atau *HELP*
                 return imagePath;
             }
         }
-        
+
         // Log if no image found (will send text-only)
         logger.warn(`⚠️ No invoice image found, will send text-only notification`);
         return null;
@@ -681,7 +691,7 @@ Balas dengan: *BANTU* atau *HELP*
             );
 
             // Attach invoice banner image if available
-            const imagePath = this.getInvoiceImagePath();
+            const imagePath = this.getInvoiceImagePath(packageData);
             return await this.sendNotification(customer.phone, message, { imagePath });
         } catch (error) {
             logger.error('Error sending invoice created notification:', error);
@@ -727,7 +737,7 @@ Balas dengan: *BANTU* atau *HELP*
             );
 
             // Attach same invoice banner image
-            const imagePath = this.getInvoiceImagePath();
+            const imagePath = this.getInvoiceImagePath(packageData);
             return await this.sendNotification(customer.phone, message, { imagePath });
         } catch (error) {
             logger.error('Error sending due date reminder:', error);
@@ -747,6 +757,7 @@ Balas dengan: *BANTU* atau *HELP*
             const payment = await billingManager.getPaymentById(paymentId);
             const invoice = await billingManager.getInvoiceById(payment.invoice_id);
             const customer = await billingManager.getCustomerById(invoice.customer_id);
+            const packageData = await billingManager.getPackageById(invoice.package_id);
 
             if (!payment || !invoice || !customer) {
                 logger.error('Missing data for payment notification');
@@ -768,7 +779,7 @@ Balas dengan: *BANTU* atau *HELP*
             );
 
             // Attach same invoice banner image
-            const imagePath = this.getInvoiceImagePath();
+            const imagePath = this.getInvoiceImagePath(packageData);
             return await this.sendNotification(customer.phone, message, { imagePath });
         } catch (error) {
             logger.error('Error sending payment received notification:', error);
