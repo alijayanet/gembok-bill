@@ -40,8 +40,14 @@ const settingsPath = path.join(__dirname, '../settings.json');
 // GET: Render halaman Setting
 router.get('/', (req, res) => {
     const settings = getSettingsWithCache();
+    let activeSection = req.query.section || 'umum';
+    // Validate section name to match tab IDs (simplified)
+    const validSections = ['umum', 'mikrotik', 'genieacs', 'whatsapp', 'notifikasi', 'otomasi', 'trouble', 'telegram', 'pembayaran', 'database'];
+    if (!validSections.includes(activeSection)) activeSection = 'umum';
+
     res.render('adminSetting', {
         settings,
+        activeSection,
         versionInfo: getVersionInfo(),
         versionBadge: getVersionBadge()
     });
@@ -211,6 +217,69 @@ router.post('/save', (req, res) => {
             success: false,
             error: 'Terjadi kesalahan saat menyimpan pengaturan: ' + error.message
         });
+    }
+});
+
+// GET: Download Database Backup
+router.get('/database/backup', async (req, res) => {
+    try {
+        const backupManager = require('../config/backupManager');
+        const result = await backupManager.generateBackup();
+
+        res.download(result.path, result.filename, (err) => {
+            if (err) {
+                logger.error('Error sending backup file:', err);
+                if (!res.headersSent) res.status(500).send('Gagal download file');
+            }
+        });
+    } catch (error) {
+        logger.error('Database backup error:', error);
+        res.status(500).send('Gagal membuat backup: ' + error.message);
+    }
+});
+
+// POST: Restore Database
+// upload middleware is already defined at line 23
+router.post('/database/restore', upload.single('backup'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Tidak ada file yang diunggah' });
+        }
+
+        const backupManager = require('../config/backupManager');
+        await backupManager.restoreBackup(req.file.path);
+
+        // Clean up temp file
+        try {
+            const fs = require('fs');
+            fs.unlinkSync(req.file.path);
+        } catch (e) { }
+
+        res.json({ success: true, message: 'Database restored successfully' });
+    } catch (error) {
+        logger.error('Database restore error:', error);
+        res.status(500).json({ error: 'Gagal restore database: ' + error.message });
+    }
+});
+
+// POST: Test Telegram Message
+router.post('/telegram/test', async (req, res) => {
+    try {
+        const { chatId } = req.body;
+        if (!chatId) return res.status(400).json({ error: 'Chat ID diperlukan' });
+
+        const telegramBot = require('../config/telegramBot');
+        if (!telegramBot.bot) {
+            // Coba inisialisasi jika belum
+            await telegramBot.start();
+            if (!telegramBot.bot) return res.status(500).json({ error: 'Bot belum aktif. Pastikan token benar dan bot diaktifkan.' });
+        }
+
+        await telegramBot.bot.sendMessage(chatId, '✅ Ini adalah pesan test dari sistem GEMBOK-BILLING.');
+        res.json({ success: true });
+    } catch (error) {
+        logger.error('Error sending test telegram message:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
