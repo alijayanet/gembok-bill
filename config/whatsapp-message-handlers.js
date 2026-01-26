@@ -1988,18 +1988,20 @@ class WhatsAppMessageHandlers {
 
     // Handle welcome message for super admin
     async handleSuperAdminWelcome(sock) {
-        if (!global.superAdminWelcomeSent && this.core.getSuperAdmin()) {
+        if (!global.superAdminWelcomeSent && this.core.getSuperAdmin() && this.core.getSetting('superadmin_welcome_enabled', true)) {
             try {
                 const superAdminJid = this.core.createJID(this.core.getSuperAdmin());
                 if (superAdminJid) {
                     await sock.sendMessage(superAdminJid, {
                         text: `${this.core.getSetting('company_header', 'ALIJAYA BOT MANAGEMENT ISP')}
-👋 *Selamat datang, Super Admin!*
+👋 *Selamat datang*
 
 Aplikasi WhatsApp Bot berhasil dijalankan.
 
-Rekening Donasi Untuk Pembangunan Masjid
-# 4206 0101 2214 534 BRI an DKM BAITUR ROHMAN
+Rekening Donasi Untuk Pengembangan aplikasi
+# 4206 01 003953 53 1 BRI an WARJAYA
+
+E-Wallet : 081947215703
 
 ${this.core.getSetting('footer_info', 'Internet Tanpa Batas')}`
                     });

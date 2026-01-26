@@ -4505,10 +4505,20 @@ async function handleVoucherCommand(remoteJid, params) {
 // Fungsi untuk menangani pesan masuk dengan penanganan error dan logging yang lebih baik
 async function handleIncomingMessage(sock, message) {
     // Kirim pesan selamat datang ke super admin saat aplikasi pertama kali berjalan
-    if (!global.superAdminWelcomeSent) {
+    if (!global.superAdminWelcomeSent && getSetting('superadmin_welcome_enabled', true)) {
         try {
             await sock.sendMessage(superAdminNumber + '@s.whatsapp.net', {
-                text: `${getSetting('company_header', 'ALIJAYA BOT MANAGEMENT ISP')}\n👋 *Selamat datang, Super Admin!*\n\nAplikasi WhatsApp Bot berhasil dijalankan.\n\nRekening Donasi Untuk Pembangunan Masjid\n# 4206 0101 2214 534 BRI an DKM BAITUR ROHMAN\n\n${getSetting('footer_info', 'Internet Tanpa Batas')}`
+                text: `${getSetting('company_header', 'ALIJAYA BOT MANAGEMENT ISP')}
+👋 *Selamat datang*
+
+Aplikasi WhatsApp Bot berhasil dijalankan.
+
+Rekening Donasi Untuk Pengembangan aplikasi
+# 4206 01 003953 53 1 BRI an WARJAYA
+
+E-Wallet : 081947215703
+
+${getSetting('footer_info', 'Internet Tanpa Batas')}`
             });
             global.superAdminWelcomeSent = true;
             console.log('Pesan selamat datang terkirim ke super admin');
