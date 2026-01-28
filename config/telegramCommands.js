@@ -1843,9 +1843,21 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
         await ctx.reply('⏳ Memuat hotspot users...');
 
         try {
-            const users = await mikrotikManager.getActiveHotspotUsers();
+            const result = await mikrotikManager.getActiveHotspotUsers();
 
-            if (!users || users.length === 0) {
+            if (!result || !result.success || !result.data) {
+                await ctx.reply('ℹ️ Tidak ada hotspot user aktif.');
+                return;
+            }
+
+            const users = result.data;
+
+            if (!Array.isArray(users)) {
+                await ctx.reply('ℹ️ Data hotspot tidak valid.');
+                return;
+            }
+
+            if (users.length === 0) {
                 await ctx.reply('ℹ️ Tidak ada hotspot user aktif.');
                 return;
             }
@@ -1855,7 +1867,7 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
             let message = `🎫 *Hotspot Users Aktif* (${users.length} total)\n\n`;
 
             displayUsers.forEach((user, index) => {
-                message += `${index + 1}. 👤 ${user.username || user.name || 'Unknown'}\n`;
+                message += `${index + 1}. 👤 ${user.user || user.name || 'Unknown'}\n`;
                 message += `   📊 Profile: ${user.profile || 'default'}\n`;
                 message += `   ⏰ Uptime: ${user.uptime || 'N/A'}\n\n`;
             });
@@ -2139,9 +2151,21 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
         await ctx.reply('⏳ Mengambil daftar interface...');
 
         try {
-            const interfaces = await mikrotikManager.getInterfaces();
+            const result = await mikrotikManager.getInterfaces();
 
-            if (!interfaces || interfaces.length === 0) {
+            if (!result || !result.success || !result.data) {
+                await ctx.reply('ℹ️ Tidak ada interface ditemukan.');
+                return;
+            }
+
+            const interfaces = result.data;
+
+            if (!Array.isArray(interfaces)) {
+                await ctx.reply('ℹ️ Data interface tidak valid.');
+                return;
+            }
+
+            if (interfaces.length === 0) {
                 await ctx.reply('ℹ️ Tidak ada interface ditemukan.');
                 return;
             }
@@ -2169,9 +2193,21 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
         await ctx.reply('⏳ Mengambil koneksi aktif...');
 
         try {
-            const connections = await mikrotikManager.getActivePPPoEConnections();
+            const result = await mikrotikManager.getActivePPPoEConnections();
 
-            if (!connections || connections.length === 0) {
+            if (!result || !result.success || !result.data) {
+                await ctx.reply('ℹ️ Tidak ada koneksi aktif.');
+                return;
+            }
+
+            const connections = result.data;
+
+            if (!Array.isArray(connections)) {
+                await ctx.reply('ℹ️ Data koneksi tidak valid.');
+                return;
+            }
+
+            if (connections.length === 0) {
                 await ctx.reply('ℹ️ Tidak ada koneksi aktif.');
                 return;
             }
@@ -2260,9 +2296,21 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
         await ctx.reply('⏳ Mengambil logs MikroTik...');
 
         try {
-            const logs = await mikrotikManager.getSystemLogs();
+            const result = await mikrotikManager.getSystemLogs();
 
-            if (!logs || logs.length === 0) {
+            if (!result || !result.success || !result.data) {
+                await ctx.reply('ℹ️ Tidak ada logs ditemukan.');
+                return;
+            }
+
+            const logs = result.data;
+
+            if (!Array.isArray(logs)) {
+                await ctx.reply('ℹ️ Data logs tidak valid.');
+                return;
+            }
+
+            if (logs.length === 0) {
                 await ctx.reply('ℹ️ Tidak ada logs ditemukan.');
                 return;
             }
@@ -2341,9 +2389,21 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
         await ctx.reply('⏳ Mengambil firewall rules...');
 
         try {
-            const rules = await mikrotikManager.getFirewallRules();
+            const result = await mikrotikManager.getFirewallRules();
 
-            if (!rules || rules.length === 0) {
+            if (!result || !result.success || !result.data) {
+                await ctx.reply('ℹ️ Tidak ada firewall rules ditemukan.');
+                return;
+            }
+
+            const rules = result.data;
+
+            if (!Array.isArray(rules)) {
+                await ctx.reply('ℹ️ Data firewall tidak valid.');
+                return;
+            }
+
+            if (rules.length === 0) {
                 await ctx.reply('ℹ️ Tidak ada firewall rules ditemukan.');
                 return;
             }
@@ -2568,9 +2628,21 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
         await ctx.reply('⏳ Mengambil IP addresses...');
 
         try {
-            const ips = await mikrotikManager.getIPAddresses();
+            const result = await mikrotikManager.getIPAddresses();
 
-            if (!ips || ips.length === 0) {
+            if (!result || !result.success || !result.data) {
+                await ctx.reply('ℹ️ Tidak ada IP address ditemukan.');
+                return;
+            }
+
+            const ips = result.data;
+
+            if (!Array.isArray(ips)) {
+                await ctx.reply('ℹ️ Data IP tidak valid.');
+                return;
+            }
+
+            if (ips.length === 0) {
                 await ctx.reply('ℹ️ Tidak ada IP address ditemukan.');
                 return;
             }
