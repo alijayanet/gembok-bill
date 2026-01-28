@@ -7,6 +7,7 @@ const fs = require('fs');
 const pino = require('pino');
 const logger = require('./logger');
 const genieacsCommands = require('./genieacs-commands');
+const metaAPI = require('./whatsapp-meta-api');
 
 const {
     addHotspotUser,
@@ -111,6 +112,88 @@ function getSuperAdminNumber() {
 
 const superAdminNumber = getSuperAdminNumber();
 let genieacsCommandsEnabled = true;
+
+// Fungsi untuk mendapatkan provider WhatsApp yang dipilih
+function getWhatsAppProvider() {
+    try {
+        const provider = getSetting('whatsapp_provider', 'baileys');
+        return provider.toLowerCase();
+    } catch (error) {
+        console.error('Error getting WhatsApp provider:', error);
+        return 'baileys'; // Default ke Baileys
+    }
+}
+
+// Fungsi untuk mengecek apakah dual mode aktif
+function isDualModeEnabled() {
+    try {
+        return getSetting('whatsapp_dual_mode', false) === true;
+    } catch (error) {
+        console.error('Error checking dual mode:', error);
+        return false;
+    }
+}
+
+// Fungsi untuk mengirim pesan dengan provider yang dipilih
+async function sendWhatsAppMessage(phoneNumber, message, options = {}) {
+    const provider = getWhatsAppProvider();
+    const dualMode = isDualModeEnabled();
+
+    // Jika dual mode aktif, gunakan Meta API untuk broadcast, Baileys untuk command
+    if (dualMode) {
+        const baileysConnected = sock && sock.user;
+        const metaApiConnected = metaAPI.isConnected;
+
+        // Prioritaskan Meta API jika tersedia (untuk broadcast)
+        if (metaApiConnected) {
+            try {
+                return await metaAPI.sendMessage(phoneNumber, message);
+            } catch (error) {
+                console.warn('Meta API failed, falling back to Baileys:', error.message);
+                if (baileysConnected) {
+                    return await sendBaileysMessage(phoneNumber, message, options);
+                }
+            }
+        } else if (baileysConnected) {
+            return await sendBaileysMessage(phoneNumber, message, options);
+        } else {
+            throw new Error('No WhatsApp provider connected');
+        }
+    } else {
+        // Single provider mode
+        if (provider === 'meta_api') {
+            // Gunakan Meta API
+            const config = {
+                apiKey: getSetting('whatsapp_meta_api_key', ''),
+                phoneNumberId: getSetting('whatsapp_phone_number_id', ''),
+                webhookUrl: getSetting('whatsapp_webhook_url', ''),
+                verifyToken: getSetting('whatsapp_verify_token', '')
+            };
+
+            if (!config.apiKey || !config.phoneNumberId) {
+                logger.error('WhatsApp Meta API: Missing credentials, falling back to Baileys');
+                return sendBaileysMessage(phoneNumber, message, options);
+            }
+
+            metaAPI.initialize(config);
+            return await metaAPI.sendMessage(phoneNumber, message);
+        } else {
+            // Gunakan Baileys (default)
+            return sendBaileysMessage(phoneNumber, message, options);
+        }
+    }
+}
+
+// Fungsi helper untuk mengirim pesan via Baileys
+async function sendBaileysMessage(phoneNumber, message, options = {}) {
+    if (!sock || !sock.user) {
+        throw new Error('WhatsApp Baileys: Not connected');
+    }
+
+    const remoteJid = `${phoneNumber}@s.whatsapp.net`;
+    await sock.sendMessage(remoteJid, { text: message }, options);
+    return { success: true };
+}
 
 // Fungsi untuk mengecek apakah nomor adalah admin atau super admin
 // Fungsi untuk mengecek apakah LID adalah admin
@@ -411,7 +494,120 @@ function addWatermarkToMessage(message) {
 // Update fungsi koneksi WhatsApp dengan penanganan error yang lebih baik
 async function connectToWhatsApp() {
     try {
-        console.log('Memulai koneksi WhatsApp...');
+        const provider = getWhatsAppProvider();
+        const dualMode = isDualModeEnabled();
+
+        console.log(`📱 WhatsApp Configuration:`);
+        console.log(`   - Provider: ${provider.toUpperCase()}`);
+        console.log(`   - Dual Mode: ${dualMode ? 'ENABLED' : 'DISABLED'}`);
+
+        if (dualMode) {
+            // Dual Mode: Initialize both Baileys and Meta API
+            console.log(`🔄 Initializing Dual Mode (Baileys + Meta API)...`);
+
+            // Initialize Baileys for command handling
+            const baileysSock = await connectBaileysWhatsApp();
+            if (baileysSock) {
+                console.log(`✅ Baileys connected successfully`);
+            }
+
+            // Initialize Meta API for broadcast
+            const metaApiConfig = {
+                apiKey: getSetting('whatsapp_meta_api_key', ''),
+                phoneNumberId: getSetting('whatsapp_phone_number_id', ''),
+                webhookUrl: getSetting('whatsapp_webhook_url', ''),
+                verifyToken: getSetting('whatsapp_verify_token', '')
+            };
+
+            if (metaApiConfig.apiKey && metaApiConfig.phoneNumberId) {
+                const metaConnected = await metaAPI.connect();
+                if (metaConnected) {
+                    console.log(`✅ Meta API connected successfully`);
+                    global.whatsappStatus = {
+                        connected: true,
+                        qrCode: null,
+                        phoneNumber: metaAPI.phoneNumber,
+                        connectedSince: new Date().toISOString(),
+                        status: 'connected',
+                        provider: 'dual_mode',
+                        baileysConnected: !!baileysSock,
+                        metaApiConnected: true
+                    };
+                } else {
+                    console.warn(`⚠️ Meta API connection failed, using Baileys only`);
+                    global.whatsappStatus = {
+                        connected: true,
+                        qrCode: null,
+                        phoneNumber: baileysSock?.user?.id,
+                        connectedSince: new Date().toISOString(),
+                        status: 'connected',
+                        provider: 'baileys',
+                        baileysConnected: true,
+                        metaApiConnected: false
+                    };
+                }
+            } else {
+                console.warn(`⚠️ Meta API credentials missing, using Baileys only`);
+                global.whatsappStatus = {
+                    connected: true,
+                    qrCode: null,
+                    phoneNumber: baileysSock?.user?.id,
+                    connectedSince: new Date().toISOString(),
+                    status: 'connected',
+                    provider: 'baileys',
+                    baileysConnected: true,
+                    metaApiConnected: false
+                };
+            }
+
+            return baileysSock;
+        } else {
+            // Single Provider Mode
+            if (provider === 'meta_api') {
+                // Koneksi menggunakan Meta API
+                const config = {
+                    apiKey: getSetting('whatsapp_meta_api_key', ''),
+                    phoneNumberId: getSetting('whatsapp_phone_number_id', ''),
+                    webhookUrl: getSetting('whatsapp_webhook_url', ''),
+                    verifyToken: getSetting('whatsapp_verify_token', '')
+                };
+
+                if (!config.apiKey || !config.phoneNumberId) {
+                    console.error('❌ WhatsApp Meta API: Missing credentials (whatsapp_meta_api_key or whatsapp_phone_number_id)');
+                    console.log('⚠️ Falling back to Baileys...');
+                    return connectBaileysWhatsApp();
+                }
+
+                const connected = await metaAPI.connect();
+                if (connected) {
+                    global.whatsappStatus = {
+                        connected: true,
+                        qrCode: null,
+                        phoneNumber: metaAPI.phoneNumber,
+                        connectedSince: new Date().toISOString(),
+                        status: 'connected',
+                        provider: 'meta_api'
+                    };
+                    return metaAPI;
+                } else {
+                    console.error('❌ WhatsApp Meta API connection failed, falling back to Baileys...');
+                    return connectBaileysWhatsApp();
+                }
+            } else {
+                // Koneksi menggunakan Baileys (default)
+                return connectBaileysWhatsApp();
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error in connectToWhatsApp:', error);
+        return null;
+    }
+}
+
+// Fungsi koneksi Baileys (dipisah untuk reusability)
+async function connectBaileysWhatsApp() {
+    try {
+        console.log('Memulai koneksi WhatsApp Baileys...');
 
         // Pastikan direktori sesi ada
         const sessionDir = getSetting('whatsapp_session_path', './whatsapp-session');
