@@ -4,8 +4,7 @@
  */
 
 const { Markup } = require('telegraf');
-const TelegramAuth = require('./telegramAuth');
-const telegramAuth = new TelegramAuth();
+const telegramAuth = require('./telegramAuth');
 const mikrotikManager = require('./mikrotik');
 const billingManager = require('./billing');
 const { getSetting } = require('./settingsManager');
