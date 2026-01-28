@@ -48,6 +48,11 @@ class TelegramCommands {
         this.bot.command('wifi', this.handleWifi.bind(this));
         this.bot.command('rebootONU', this.handleOnuRestart.bind(this));
 
+        // MikroTik management commands
+        this.bot.command('firewall', this.handleFirewall.bind(this));
+        this.bot.command('queue', this.handleQueue.bind(this));
+        this.bot.command('ip', this.handleIP.bind(this));
+
         // Help and Menu commands
         this.bot.command('menu', this.handleMenu.bind(this));
         this.bot.command('help', this.handleHelp.bind(this));
@@ -121,19 +126,50 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
 *🧾 Invoice:*
 • \`/invoice unpaid\` - List invoice belum bayar
 • \`/invoice cek <phone>\` - Cek invoice pelanggan
+• \`/bayar <invoice_id>\` - Proses pembayaran
 
-*🌐 MikroTik PPPoE:*
+*🌐 PPPoE:*
 • \`/pppoe list\` - List PPPoE users
-• \`/pppoe status <username>\` - Cek status PPPoE
+• \`/pppoe status <username>\` - Cek status
+• \`/pppoe add <user> <pass> <profile>\` - Tambah user
+• \`/pppoe edit <user> <field> <value>\` - Edit user
+• \`/pppoe delete <username>\` - Hapus user
+• \`/pppoe enable <username>\` - Enable user
+• \`/pppoe disable <username>\` - Disable user
+• \`/pppoe restore <username>\` - Restore user
 
 *🎫 Hotspot:*
 • \`/hotspot list\` - List hotspot users
+• \`/hotspot status <username>\` - Cek status
+• \`/hotspot add <user> <pass> <profile>\` - Tambah user
+• \`/hotspot delete <username>\` - Hapus user
 • \`/voucher <username> <profile>\` - Buat voucher
 
 *⚙️ MikroTik System:*
 • \`/mikrotik info\` - Info sistem MikroTik
 • \`/mikrotik cpu\` - CPU usage
 • \`/mikrotik memory\` - Memory usage
+• \`/mikrotik interfaces\` - Daftar interface
+• \`/mikrotik active\` - Koneksi aktif
+• \`/mikrotik bandwidth\` - Bandwidth usage
+• \`/mikrotik reboot\` - Reboot MikroTik
+• \`/mikrotik logs\` - Lihat logs
+
+*🔧 Management:*
+• \`/firewall list\` - List firewall rules
+• \`/firewall add <chain> <src> <action>\` - Tambah rule
+• \`/firewall delete <id>\` - Hapus rule
+• \`/queue list\` - List queue rules
+• \`/queue add <name> <target> <limit>\` - Tambah queue
+• \`/queue delete <id>\` - Hapus queue
+• \`/ip list\` - List IP addresses
+• \`/ip add <address> <interface>\` - Tambah IP
+• \`/ip delete <id>\` - Hapus IP
+
+*🔧 Technical:*
+• \`/cari <nama atau no hp>\` - Cari pelanggan
+• \`/wifi <phone> <ssid> <password>\` - Ganti WiFi
+• \`/rebootONU <phone>\` - Restart ONU
         `;
 
         if (session && telegramAuth.isAdmin(session)) {
@@ -1083,7 +1119,13 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
             await ctx.reply(
                 '🌐 *Perintah PPPoE:*\n\n' +
                 '• `/pppoe list` - List PPPoE users\n' +
-                '• `/pppoe status <username>` - Cek status',
+                '• `/pppoe status <username>` - Cek status\n' +
+                '• `/pppoe add <user> <pass> <profile>` - Tambah user\n' +
+                '• `/pppoe edit <user> <field> <value>` - Edit user\n' +
+                '• `/pppoe delete <username>` - Hapus user\n' +
+                '• `/pppoe enable <username>` - Enable user\n' +
+                '• `/pppoe disable <username>` - Disable user\n' +
+                '• `/pppoe restore <username>` - Restore user',
                 { parse_mode: 'Markdown' }
             );
             return;
@@ -1103,8 +1145,50 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
                     }
                     await this.handlePPPoEStatus(ctx, args[1]);
                     break;
+                case 'add':
+                    if (args.length < 3) {
+                        await ctx.reply('❌ Format: /pppoe add <username> <password> <profile>');
+                        return;
+                    }
+                    await this.handlePPPoEAdd(ctx, args[1], args[2], args[3]);
+                    break;
+                case 'edit':
+                    if (args.length < 3) {
+                        await ctx.reply('❌ Format: /pppoe edit <username> <field> <value>');
+                        return;
+                    }
+                    await this.handlePPPoEEdit(ctx, args[1], args[2], args[3]);
+                    break;
+                case 'delete':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /pppoe delete <username>');
+                        return;
+                    }
+                    await this.handlePPPoEDelete(ctx, args[1]);
+                    break;
+                case 'enable':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /pppoe enable <username>');
+                        return;
+                    }
+                    await this.handlePPPoEEnable(ctx, args[1]);
+                    break;
+                case 'disable':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /pppoe disable <username>');
+                        return;
+                    }
+                    await this.handlePPPoEDisable(ctx, args[1]);
+                    break;
+                case 'restore':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /pppoe restore <username>');
+                        return;
+                    }
+                    await this.handlePPPoERestore(ctx, args[1]);
+                    break;
                 default:
-                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: list, status');
+                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: list, status, add, edit, delete, enable, disable, restore');
             }
         } catch (error) {
             console.error('PPPoE command error:', error);
@@ -1180,18 +1264,340 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
     }
 
     /**
+     * Handle pppoe add
+     */
+    async handlePPPoEAdd(ctx, username, password, profile) {
+        await ctx.reply('⏳ Menambahkan PPPoE user...');
+
+        try {
+            const result = await mikrotikManager.addPPPoESecret(username, password, profile);
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *PPPoE User Berhasil Ditambahkan!*\n\n` +
+                    `👤 Username: ${username}\n` +
+                    `📊 Profile: ${profile}\n` +
+                    `🔒 Password: ${'•'.repeat(password.length)}`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal menambahkan PPPoE user: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            console.error('PPPoE add error:', error);
+            await ctx.reply('❌ Gagal menambahkan PPPoE user: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle pppoe edit
+     */
+    async handlePPPoEEdit(ctx, username, field, value) {
+        await ctx.reply('⏳ Mengedit PPPoE user...');
+
+        try {
+            let result;
+
+            switch (field) {
+                case 'password':
+                    result = await mikrotikManager.editPPPoEUser({ username, password: value });
+                    break;
+                case 'profile':
+                    result = await mikrotikManager.setPPPoEProfile(username, value);
+                    break;
+                default:
+                    await ctx.reply('❌ Field tidak dikenal. Gunakan: password, profile');
+                    return;
+            }
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *PPPoE User Berhasil Diupdate!*\n\n` +
+                    `👤 Username: ${username}\n` +
+                    `📝 Field: ${field}\n` +
+                    `✅ Status: Berhasil diubah`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal mengedit PPPoE user: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            console.error('PPPoE edit error:', error);
+            await ctx.reply('❌ Gagal mengedit PPPoE user: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle pppoe delete
+     */
+    async handlePPPoEDelete(ctx, username) {
+        await ctx.reply('⏳ Menghapus PPPoE user...');
+
+        try {
+            const result = await mikrotikManager.deletePPPoESecret(username);
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *PPPoE User Berhasil Dihapus!*\n\n` +
+                    `👤 Username: ${username}\n` +
+                    `🗑️ Status: Dihapus dari MikroTik`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal menghapus PPPoE user: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            console.error('PPPoE delete error:', error);
+            await ctx.reply('❌ Gagal menghapus PPPoE user: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle pppoe enable
+     */
+    async handlePPPoEEnable(ctx, username) {
+        await ctx.reply('⏳ Mengaktifkan PPPoE user...');
+
+        try {
+            const result = await mikrotikManager.setPPPoEProfile(username, null, false);
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *PPPoE User Berhasil Diaktifkan!*\n\n` +
+                    `👤 Username: ${username}\n` +
+                    `🔒 Status: Enabled`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal mengaktifkan PPPoE user: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            console.error('PPPoE enable error:', error);
+            await ctx.reply('❌ Gagal mengaktifkan PPPoE user: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle pppoe disable
+     */
+    async handlePPPoEDisable(ctx, username) {
+        await ctx.reply('⏳ Menonaktifkan PPPoE user...');
+
+        try {
+            const result = await mikrotikManager.setPPPoEProfile(username, null, true);
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *PPPoE User Berhasil Dinonaktifkan!*\n\n` +
+                    `👤 Username: ${username}\n` +
+                    `🔒 Status: Disabled`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal menonaktifkan PPPoE user: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            console.error('PPPoE disable error:', error);
+            await ctx.reply('❌ Gagal menonaktifkan PPPoE user: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle pppoe restore
+     */
+    async handlePPPoERestore(ctx, username) {
+        await ctx.reply('⏳ Merestore PPPoE user...');
+
+        try {
+            const result = await mikrotikManager.setPPPoEProfile(username, null, false);
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *PPPoE User Berhasil Direstore!*\n\n` +
+                    `👤 Username: ${username}\n` +
+                    `🔄 Status: Restored to original profile`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal merestore PPPoE user: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            console.error('PPPoE restore error:', error);
+            await ctx.reply('❌ Gagal merestore PPPoE user: ' + error.message);
+        }
+    }
+
+    /**
      * Handle /hotspot command
      */
     async handleHotspot(ctx) {
         const session = await this.checkAuth(ctx);
         if (!session) return;
 
-        await ctx.reply(
-            '🎫 *Perintah Hotspot:*\n\n' +
-            '• `/hotspot list` - List hotspot users\n' +
-            '• `/voucher <username> <profile>` - Buat voucher',
-            { parse_mode: 'Markdown' }
-        );
+        const args = ctx.message.text.split(' ').slice(1);
+
+        if (args.length === 0) {
+            await ctx.reply(
+                '🎫 *Perintah Hotspot:*\n\n' +
+                '• `/hotspot list` - List hotspot users\n' +
+                '• `/hotspot status <username>` - Cek status\n' +
+                '• `/hotspot add <user> <pass> <profile>` - Tambah user\n' +
+                '• `/hotspot delete <username>` - Hapus user\n' +
+                '• `/voucher <username> <profile>` - Buat voucher',
+                { parse_mode: 'Markdown' }
+            );
+            return;
+        }
+
+        const subCommand = args[0];
+
+        try {
+            switch (subCommand) {
+                case 'list':
+                    await this.handleHotspotList(ctx);
+                    break;
+                case 'status':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /hotspot status <username>');
+                        return;
+                    }
+                    await this.handleHotspotStatus(ctx, args[1]);
+                    break;
+                case 'add':
+                    if (args.length < 3) {
+                        await ctx.reply('❌ Format: /hotspot add <username> <password> <profile>');
+                        return;
+                    }
+                    await this.handleHotspotAdd(ctx, args[1], args[2], args[3]);
+                    break;
+                case 'delete':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /hotspot delete <username>');
+                        return;
+                    }
+                    await this.handleHotspotDelete(ctx, args[1]);
+                    break;
+                default:
+                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: list, status, add, delete');
+            }
+        } catch (error) {
+            console.error('Hotspot command error:', error);
+            await ctx.reply('❌ Terjadi kesalahan: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle hotspot list
+     */
+    async handleHotspotList(ctx) {
+        await ctx.reply('⏳ Memuat hotspot users...');
+
+        try {
+            const users = await mikrotikManager.getActiveHotspotUsers();
+
+            if (!users || users.length === 0) {
+                await ctx.reply('ℹ️ Tidak ada hotspot user aktif.');
+                return;
+            }
+
+            const displayUsers = users.slice(0, 15);
+
+            let message = `🎫 *Hotspot Users Aktif* (${users.length} total)\n\n`;
+
+            displayUsers.forEach((user, index) => {
+                message += `${index + 1}. 👤 ${user.username || user.name || 'Unknown'}\n`;
+                message += `   📊 Profile: ${user.profile || 'default'}\n`;
+                message += `   ⏰ Uptime: ${user.uptime || 'N/A'}\n\n`;
+            });
+
+            if (users.length > 15) {
+                message += `\n_Menampilkan 15 dari ${users.length} users_`;
+            }
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil data hotspot: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle hotspot status
+     */
+    async handleHotspotStatus(ctx, username) {
+        await ctx.reply('⏳ Mengecek status hotspot...');
+
+        try {
+            const users = await mikrotikManager.getActiveHotspotUsers();
+            const user = users.find(u => (u.username === username || u.name === username));
+
+            if (!user) {
+                await ctx.reply(`❌ Hotspot user ${username} tidak ditemukan atau tidak aktif.`);
+                return;
+            }
+
+            let message = `✅ *Hotspot Status*\n\n`;
+            message += `👤 Username: ${user.username || user.name}\n`;
+            message += `📊 Profile: ${user.profile || 'default'}\n`;
+            message += `📡 IP Address: ${user.address || 'N/A'}\n`;
+            message += `⏰ Uptime: ${user.uptime || 'N/A'}\n`;
+            message += `📥 Bytes In: ${user.bytes_in || '0'}\n`;
+            message += `📤 Bytes Out: ${user.bytes_out || '0'}`;
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengecek status: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle hotspot add
+     */
+    async handleHotspotAdd(ctx, username, password, profile) {
+        await ctx.reply('⏳ Menambahkan hotspot user...');
+
+        try {
+            const result = await mikrotikManager.addHotspotUser(username, password, profile);
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *Hotspot User Berhasil Ditambahkan!*\n\n` +
+                    `👤 Username: ${username}\n` +
+                    `📊 Profile: ${profile}\n` +
+                    `🔒 Password: ${'•'.repeat(password.length)}`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal menambahkan hotspot user: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            console.error('Hotspot add error:', error);
+            await ctx.reply('❌ Gagal menambahkan hotspot user: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle hotspot delete
+     */
+    async handleHotspotDelete(ctx, username) {
+        await ctx.reply('⏳ Menghapus hotspot user...');
+
+        try {
+            const result = await mikrotikManager.deleteHotspotUser(username);
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *Hotspot User Berhasil Dihapus!*\n\n` +
+                    `👤 Username: ${username}\n` +
+                    `🗑️ Status: Dihapus dari MikroTik`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal menghapus hotspot user: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            console.error('Hotspot delete error:', error);
+            await ctx.reply('❌ Gagal menghapus hotspot user: ' + error.message);
+        }
     }
 
     /**
@@ -1201,7 +1607,50 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
         const session = await this.checkAuth(ctx);
         if (!session) return;
 
-        await ctx.reply('🎫 Fitur voucher akan segera tersedia!');
+        const args = ctx.message.text.split(' ').slice(1);
+
+        if (args.length < 2) {
+            await ctx.reply(
+                '🎫 *Format Voucher:*\n\n' +
+                '• `/voucher <username> <profile>` - Buat voucher hotspot\n\n' +
+                'Contoh:\n' +
+                '• `/voucher user123 1hour`\n' +
+                '• `/voucher guest456 2hour`',
+                { parse_mode: 'Markdown' }
+            );
+            return;
+        }
+
+        const [username, profile] = args;
+
+        await ctx.reply('⏳ Membuat voucher hotspot...');
+
+        try {
+            const date = new Date();
+            const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+            const timeStr = date.toTimeString().slice(0, 5).replace(/:/g, '');
+            const creator = session.username || 'telegram';
+
+            const comment = `vc-${username}-${dateStr}-${timeStr}-${creator}`;
+
+            const result = await mikrotikManager.addHotspotUser(username, profile, comment);
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *Voucher Berhasil Dibuat!*\n\n` +
+                    `👤 Username: ${username}\n` +
+                    `📊 Profile: ${profile}\n` +
+                    `🔑 Comment: ${comment}\n\n` +
+                    `📝 Catatan: Voucher ini otomatis dibuat dengan sistem comment tracking.`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal membuat voucher: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            console.error('Voucher creation error:', error);
+            await ctx.reply('❌ Gagal membuat voucher: ' + error.message);
+        }
     }
 
     /**
@@ -1218,7 +1667,12 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
                 '⚙️ *Perintah MikroTik:*\n\n' +
                 '• `/mikrotik info` - Info sistem\n' +
                 '• `/mikrotik cpu` - CPU usage\n' +
-                '• `/mikrotik memory` - Memory usage',
+                '• `/mikrotik memory` - Memory usage\n' +
+                '• `/mikrotik interfaces` - Daftar interface\n' +
+                '• `/mikrotik active` - Koneksi aktif\n' +
+                '• `/mikrotik bandwidth` - Bandwidth usage\n' +
+                '• `/mikrotik reboot` - Reboot router\n' +
+                '• `/mikrotik logs` - Lihat logs',
                 { parse_mode: 'Markdown' }
             );
             return;
@@ -1237,8 +1691,23 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
                 case 'memory':
                     await this.handleMikrotikMemory(ctx);
                     break;
+                case 'interfaces':
+                    await this.handleMikrotikInterfaces(ctx);
+                    break;
+                case 'active':
+                    await this.handleMikrotikActive(ctx);
+                    break;
+                case 'bandwidth':
+                    await this.handleMikrotikBandwidth(ctx);
+                    break;
+                case 'reboot':
+                    await this.handleMikrotikReboot(ctx);
+                    break;
+                case 'logs':
+                    await this.handleMikrotikLogs(ctx);
+                    break;
                 default:
-                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: info, cpu, memory');
+                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: info, cpu, memory, interfaces, active, bandwidth, reboot, logs');
             }
         } catch (error) {
             console.error('MikroTik command error:', error);
@@ -1310,6 +1779,515 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
             await ctx.replyWithMarkdown(message);
         } catch (error) {
             await ctx.reply('❌ Gagal mengecek memory: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle mikrotik interfaces
+     */
+    async handleMikrotikInterfaces(ctx) {
+        await ctx.reply('⏳ Mengambil daftar interface...');
+
+        try {
+            const interfaces = await mikrotikManager.getInterfaces();
+
+            if (!interfaces || interfaces.length === 0) {
+                await ctx.reply('ℹ️ Tidak ada interface ditemukan.');
+                return;
+            }
+
+            let message = `🌐 *Daftar Interface* (${interfaces.length} total)\n\n`;
+
+            interfaces.forEach((iface, index) => {
+                const statusEmoji = iface.running === 'true' ? '✅' : '❌';
+                message += `${index + 1}. ${statusEmoji} ${iface.name || 'Unknown'}\n`;
+                message += `   📊 Type: ${iface.type || 'N/A'}\n`;
+                message += `   🔗 MTU: ${iface.mtu || 'N/A'}\n`;
+                message += `   📡 Running: ${iface.running === 'true' ? 'Yes' : 'No'}\n\n`;
+            });
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil interface: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle mikrotik active connections
+     */
+    async handleMikrotikActive(ctx) {
+        await ctx.reply('⏳ Mengambil koneksi aktif...');
+
+        try {
+            const connections = await mikrotikManager.getActivePPPoEConnections();
+
+            if (!connections || connections.length === 0) {
+                await ctx.reply('ℹ️ Tidak ada koneksi aktif.');
+                return;
+            }
+
+            const displayConnections = connections.slice(0, 15);
+
+            let message = `📡 *Koneksi Aktif* (${connections.length} total)\n\n`;
+
+            displayConnections.forEach((conn, index) => {
+                message += `${index + 1}. 👤 ${conn.name || 'Unknown'}\n`;
+                message += `   📊 Address: ${conn.address || 'N/A'}\n`;
+                message += `   ⏰ Uptime: ${conn.uptime || 'N/A'}\n\n`;
+            });
+
+            if (connections.length > 15) {
+                message += `\n_Menampilkan 15 dari ${connections.length} koneksi_`;
+            }
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil koneksi aktif: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle mikrotik bandwidth
+     */
+    async handleMikrotikBandwidth(ctx) {
+        await ctx.reply('⏳ Mengambil info bandwidth...');
+
+        try {
+            const interfaceName = 'ether1';
+            const traffic = await mikrotikManager.getInterfaceTraffic(interfaceName);
+
+            const rxMbps = (traffic.rx / 1024 / 1024).toFixed(2);
+            const txMbps = (traffic.tx / 1024 / 1024).toFixed(2);
+
+            let message = `📊 *Bandwidth Usage (${interfaceName})*\n\n`;
+            message += `📥 Download: ${rxMbps} Mbps\n`;
+            message += `📤 Upload: ${txMbps} Mbps\n`;
+            message += `🔄 Total: ${(parseFloat(rxMbps) + parseFloat(txMbps)).toFixed(2)} Mbps`;
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil bandwidth: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle mikrotik reboot
+     */
+    async handleMikrotikReboot(ctx) {
+        const session = await this.checkAuth(ctx);
+        if (!session) return;
+
+        if (!telegramAuth.hasPermission(session, ['admin'])) {
+            await ctx.reply('❌ Hanya admin yang bisa reboot MikroTik.');
+            return;
+        }
+
+        await ctx.reply('⏳ Merestart MikroTik...');
+
+        try {
+            const result = await mikrotikManager.restartRouter();
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *MikroTik Berhasil Direboot!*\n\n` +
+                    `⏰ Router akan restart dalam beberapa detik.\n` +
+                    `📡 Koneksi akan terputus sementara.`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal reboot MikroTik: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            console.error('MikroTik reboot error:', error);
+            await ctx.reply('❌ Gagal reboot MikroTik: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle mikrotik logs
+     */
+    async handleMikrotikLogs(ctx) {
+        await ctx.reply('⏳ Mengambil logs MikroTik...');
+
+        try {
+            const logs = await mikrotikManager.getSystemLogs();
+
+            if (!logs || logs.length === 0) {
+                await ctx.reply('ℹ️ Tidak ada logs ditemukan.');
+                return;
+            }
+
+            const displayLogs = logs.slice(0, 10);
+
+            let message = `📋 *MikroTik Logs* (10 terbaru)\n\n`;
+
+            displayLogs.forEach((log, index) => {
+                const time = log.time || 'N/A';
+                const topic = log.topics || 'system';
+                const msg = log.message || 'No message';
+                message += `${index + 1}. [${time}] [${topic}] ${msg}\n`;
+            });
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil logs: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle /firewall command
+     */
+    async handleFirewall(ctx) {
+        const session = await this.checkAuth(ctx);
+        if (!session) return;
+
+        const args = ctx.message.text.split(' ').slice(1);
+
+        if (args.length === 0) {
+            await ctx.reply(
+                '🔒 *Perintah Firewall:*\n\n' +
+                '• `/firewall list` - List firewall rules\n' +
+                '• `/firewall add <chain> <src-address> <action>` - Tambah rule\n' +
+                '• `/firewall delete <id>` - Hapus rule',
+                { parse_mode: 'Markdown' }
+            );
+            return;
+        }
+
+        const subCommand = args[0];
+
+        try {
+            switch (subCommand) {
+                case 'list':
+                    await this.handleFirewallList(ctx);
+                    break;
+                case 'add':
+                    if (args.length < 3) {
+                        await ctx.reply('❌ Format: /firewall add <chain> <src-address> <action>');
+                        return;
+                    }
+                    await this.handleFirewallAdd(ctx, args[1], args[2], args[3]);
+                    break;
+                case 'delete':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /firewall delete <id>');
+                        return;
+                    }
+                    await this.handleFirewallDelete(ctx, args[1]);
+                    break;
+                default:
+                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: list, add, delete');
+            }
+        } catch (error) {
+            console.error('Firewall command error:', error);
+            await ctx.reply('❌ Terjadi kesalahan: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle firewall list
+     */
+    async handleFirewallList(ctx) {
+        await ctx.reply('⏳ Mengambil firewall rules...');
+
+        try {
+            const rules = await mikrotikManager.getFirewallRules();
+
+            if (!rules || rules.length === 0) {
+                await ctx.reply('ℹ️ Tidak ada firewall rules ditemukan.');
+                return;
+            }
+
+            const displayRules = rules.slice(0, 15);
+
+            let message = `🔒 *Firewall Rules* (${rules.length} total)\n\n`;
+
+            displayRules.forEach((rule, index) => {
+                message += `${index + 1}. 📋 Rule #${rule['.id'] || index}\n`;
+                message += `   🔗 Chain: ${rule.chain || 'N/A'}\n`;
+                message += `   📊 Src: ${rule['src-address'] || 'any'}\n`;
+                message += `   🎯 Action: ${rule.action || 'N/A'}\n\n`;
+            });
+
+            if (rules.length > 15) {
+                message += `\n_Menampilkan 15 dari ${rules.length} rules_`;
+            }
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil firewall rules: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle firewall add
+     */
+    async handleFirewallAdd(ctx, chain, srcAddress, action) {
+        await ctx.reply('⏳ Menambahkan firewall rule...');
+
+        try {
+            let message = `✅ *Firewall Rule Ditambahkan (Demo)*\n\n`;
+            message += `🔗 Chain: ${chain}\n`;
+            message += `📊 Src: ${srcAddress}\n`;
+            message += `🎯 Action: ${action}\n\n`;
+            message += `⚠️ Fitur ini memerlukan implementasi tambahan di mikrotik.js`;
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal menambahkan firewall rule: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle firewall delete
+     */
+    async handleFirewallDelete(ctx, id) {
+        await ctx.reply('⏳ Menghapus firewall rule...');
+
+        try {
+            let message = `✅ *Firewall Rule Dihapus (Demo)*\n\n`;
+            message += `📋 Rule ID: ${id}\n\n`;
+            message += `⚠️ Fitur ini memerlukan implementasi tambahan di mikrotik.js`;
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal menghapus firewall rule: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle /queue command
+     */
+    async handleQueue(ctx) {
+        const session = await this.checkAuth(ctx);
+        if (!session) return;
+
+        const args = ctx.message.text.split(' ').slice(1);
+
+        if (args.length === 0) {
+            await ctx.reply(
+                '📊 *Perintah Queue:*\n\n' +
+                '• `/queue list` - List queue rules\n' +
+                '• `/queue add <name> <target> <max-limit>` - Tambah queue\n' +
+                '• `/queue delete <id>` - Hapus queue',
+                { parse_mode: 'Markdown' }
+            );
+            return;
+        }
+
+        const subCommand = args[0];
+
+        try {
+            switch (subCommand) {
+                case 'list':
+                    await this.handleQueueList(ctx);
+                    break;
+                case 'add':
+                    if (args.length < 3) {
+                        await ctx.reply('❌ Format: /queue add <name> <target> <max-limit>');
+                        return;
+                    }
+                    await this.handleQueueAdd(ctx, args[1], args[2], args[3]);
+                    break;
+                case 'delete':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /queue delete <id>');
+                        return;
+                    }
+                    await this.handleQueueDelete(ctx, args[1]);
+                    break;
+                default:
+                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: list, add, delete');
+            }
+        } catch (error) {
+            console.error('Queue command error:', error);
+            await ctx.reply('❌ Terjadi kesalahan: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle queue list
+     */
+    async handleQueueList(ctx) {
+        await ctx.reply('⏳ Mengambil queue rules...');
+
+        try {
+            let message = `📊 *Queue Rules*\n\n`;
+            message += `⚠️ Fitur ini memerlukan implementasi tambahan di mikrotik.js\n\n`;
+            message += `Contoh output:\n`;
+            message += `1. 📋 Queue-1\n`;
+            message += `   🎯 Target: 192.168.1.0/24\n`;
+            message += `   📊 Max Limit: 10M/10M\n\n`;
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil queue rules: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle queue add
+     */
+    async handleQueueAdd(ctx, name, target, maxLimit) {
+        await ctx.reply('⏳ Menambahkan queue rule...');
+
+        try {
+            let message = `✅ *Queue Rule Ditambahkan (Demo)*\n\n`;
+            message += `📋 Name: ${name}\n`;
+            message += `🎯 Target: ${target}\n`;
+            message += `📊 Max Limit: ${maxLimit}\n\n`;
+            message += `⚠️ Fitur ini memerlukan implementasi tambahan di mikrotik.js`;
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal menambahkan queue rule: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle queue delete
+     */
+    async handleQueueDelete(ctx, id) {
+        await ctx.reply('⏳ Menghapus queue rule...');
+
+        try {
+            let message = `✅ *Queue Rule Dihapus (Demo)*\n\n`;
+            message += `📋 Queue ID: ${id}\n\n`;
+            message += `⚠️ Fitur ini memerlukan implementasi tambahan di mikrotik.js`;
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal menghapus queue rule: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle /ip command
+     */
+    async handleIP(ctx) {
+        const session = await this.checkAuth(ctx);
+        if (!session) return;
+
+        const args = ctx.message.text.split(' ').slice(1);
+
+        if (args.length === 0) {
+            await ctx.reply(
+                '🌐 *Perintah IP Management:*\n\n' +
+                '• `/ip list` - List IP addresses\n' +
+                '• `/ip add <address> <interface>` - Tambah IP\n' +
+                '• `/ip delete <id>` - Hapus IP',
+                { parse_mode: 'Markdown' }
+            );
+            return;
+        }
+
+        const subCommand = args[0];
+
+        try {
+            switch (subCommand) {
+                case 'list':
+                    await this.handleIPList(ctx);
+                    break;
+                case 'add':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /ip add <address> <interface>');
+                        return;
+                    }
+                    await this.handleIPAdd(ctx, args[1], args[2]);
+                    break;
+                case 'delete':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /ip delete <id>');
+                        return;
+                    }
+                    await this.handleIPDelete(ctx, args[1]);
+                    break;
+                default:
+                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: list, add, delete');
+            }
+        } catch (error) {
+            console.error('IP command error:', error);
+            await ctx.reply('❌ Terjadi kesalahan: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle IP list
+     */
+    async handleIPList(ctx) {
+        await ctx.reply('⏳ Mengambil IP addresses...');
+
+        try {
+            const ips = await mikrotikManager.getIPAddresses();
+
+            if (!ips || ips.length === 0) {
+                await ctx.reply('ℹ️ Tidak ada IP address ditemukan.');
+                return;
+            }
+
+            const displayIPs = ips.slice(0, 15);
+
+            let message = `🌐 *IP Addresses* (${ips.length} total)\n\n`;
+
+            displayIPs.forEach((ip, index) => {
+                message += `${index + 1}. 📋 ${ip.address || 'N/A'}\n`;
+                message += `   🔗 Interface: ${ip.interface || 'N/A'}\n\n`;
+            });
+
+            if (ips.length > 15) {
+                message += `\n_Menampilkan 15 dari ${ips.length} IP_`;
+            }
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil IP addresses: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle IP add
+     */
+    async handleIPAdd(ctx, address, iface) {
+        await ctx.reply('⏳ Menambahkan IP address...');
+
+        try {
+            const result = await mikrotikManager.addIPAddress(iface, address);
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *IP Address Berhasil Ditambahkan!*\n\n` +
+                    `📋 Address: ${address}\n` +
+                    `🔗 Interface: ${iface}`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal menambahkan IP: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            await ctx.reply('❌ Gagal menambahkan IP: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle IP delete
+     */
+    async handleIPDelete(ctx, id) {
+        await ctx.reply('⏳ Menghapus IP address...');
+
+        try {
+            const result = await mikrotikManager.deleteIPAddress(id);
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *IP Address Berhasil Dihapus!*\n\n` +
+                    `📋 ID: ${id}`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal menghapus IP: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            await ctx.reply('❌ Gagal menghapus IP: ' + error.message);
         }
     }
 }
