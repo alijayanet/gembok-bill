@@ -206,6 +206,136 @@
                     </div>
                 </div>
                 
+                <!-- WhatsApp Provider Selection Section -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="template-card">
+                            <div class="template-header">
+                                <h4 class="template-title">
+                                    <i class="bi bi-toggle-on"></i> WhatsApp Provider
+                                </h4>
+                            </div>
+
+                            <div class="template-description">
+                                Pilih provider WhatsApp yang akan digunakan untuk mengirim pesan. Baileys menggunakan WhatsApp Web (gratis), Meta API menggunakan API resmi Facebook (berbayar).
+                                <br><br>
+                                <strong class="text-danger">⚠️ Meta API Khusus Broadcast:</strong>
+                                <ul class="mb-0">
+                                    <li>Meta API hanya untuk <strong>broadcast tagihan & info</strong> (outbound)</li>
+                                    <li>Tidak support command handling (REG, STATUS, MENU, dll)</li>
+                                    <li>Gunakan Baileys atau Dual Mode untuk fitur lengkap</li>
+                                </ul>
+                            </div>
+
+                            <form id="providerForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="whatsappProvider" class="form-label">
+                                                <i class="bi bi-whatsapp"></i> Pilih Provider
+                                            </label>
+                                            <select class="form-select" id="whatsappProvider" name="whatsapp_provider">
+                                                <option value="baileys" selected>Baileys (WhatsApp Web - Gratis)</option>
+                                                <option value="meta_api">Meta API (Official - Berbayar)</option>
+                                            </select>
+                                            <div class="form-text mt-2">
+                                                <small>
+                                                    <strong>Baileys:</strong> Gratis, menggunakan WhatsApp Web, mudah diblokir<br>
+                                                    <strong>Meta API:</strong> Berbayar, stabil, membutuhkan API Key dari Meta
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">
+                                                <i class="bi bi-info-circle"></i> Status Provider
+                                            </label>
+                                            <div class="alert alert-info" id="providerStatus">
+                                                <i class="bi bi-check-circle"></i> Provider Aktif: Baileys
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dual Mode Option -->
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="dualModeEnabled" name="whatsapp_dual_mode">
+                                            <label class="form-check-label" for="dualModeEnabled">
+                                                <strong>Aktifkan Dual Mode (Baileys + Meta API)</strong>
+                                            </label>
+                                        </div>
+                                        <div class="alert alert-warning" id="dualModeInfo" style="display: none;">
+                                            <i class="bi bi-info-circle"></i>
+                                            <strong>Dual Mode Aktif:</strong><br>
+                                            <small>
+                                                • Baileys: Command handling (REG, STATUS, MENU)<br>
+                                                • Meta API: Broadcast massal yang stabil<br>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Meta API Configuration (Hidden by default) -->
+                                <div id="metaApiConfig" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="metaApiKey" class="form-label">
+                                                    <i class="bi bi-key"></i> Meta API Key
+                                                </label>
+                                                <input type="password" class="form-control" id="metaApiKey" name="whatsapp_meta_api_key"
+                                                       placeholder="Masukkan API Key dari Meta">
+                                                <div class="form-text">Dapatkan dari Meta for Developers</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="phoneNumberId" class="form-label">
+                                                    <i class="bi bi-phone"></i> Phone Number ID
+                                                </label>
+                                                <input type="text" class="form-control" id="phoneNumberId" name="whatsapp_phone_number_id"
+                                                       placeholder="Masukkan Phone Number ID">
+                                                <div class="form-text">ID dari WhatsApp Business Account</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="webhookUrl" class="form-label">
+                                                    <i class="bi bi-link"></i> Webhook URL
+                                                </label>
+                                                <input type="url" class="form-control" id="webhookUrl" name="whatsapp_webhook_url"
+                                                       placeholder="https://yourdomain.com/webhook/whatsapp">
+                                                <div class="form-text">URL untuk menerima pesan masuk</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="verifyToken" class="form-label">
+                                                    <i class="bi bi-shield-lock"></i> Verify Token
+                                                </label>
+                                                <input type="text" class="form-control" id="verifyToken" name="whatsapp_verify_token"
+                                                       placeholder="Token verifikasi webhook">
+                                                <div class="form-text">Token untuk verifikasi webhook</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save"></i> Simpan Pengaturan Provider
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Rate Limiting Settings Section -->
                 <div class="row">
                     <div class="col-12">
@@ -702,6 +832,24 @@
         loadStatus();
         loadRateLimitSettings();
         loadWAGroups();
+        loadProviderSettings();
+
+        // Handle provider selection change
+        const providerSelect = document.getElementById('whatsappProvider');
+        if (providerSelect) {
+            providerSelect.addEventListener('change', function() {
+                handleProviderChange(this.value);
+            });
+        }
+
+        // Handle provider form submission
+        const providerForm = document.getElementById('providerForm');
+        if (providerForm) {
+            providerForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await saveProviderSettings();
+            });
+        }
 
         // Auto-save on toggle change: Rate Limit enabled
         const rateToggle = document.getElementById('enableRateLimit');
@@ -724,7 +872,126 @@
                 } catch (e) {}
             });
         }
+
+        // Auto-save on toggle change: Dual Mode enabled
+        const dualModeToggle = document.getElementById('dualModeEnabled');
+        if (dualModeToggle) {
+            dualModeToggle.addEventListener('change', async function() {
+                try {
+                    await saveProviderSettings();
+                    // success handled inside saveProviderSettings via showAlert
+                } catch (e) {}
+            });
+        }
     });
+
+    // Load provider settings
+    async function loadProviderSettings() {
+        try {
+            const response = await fetch('/admin/settings/data');
+            const data = await response.json();
+
+            if (data) {
+                const provider = data.whatsapp_provider || 'baileys';
+                const dualMode = data.whatsapp_dual_mode === true;
+
+                const providerSelect = document.getElementById('whatsappProvider');
+                if (providerSelect) {
+                    providerSelect.value = provider;
+                    handleProviderChange(provider);
+                }
+
+                // Load dual mode setting
+                const dualModeToggle = document.getElementById('dualModeEnabled');
+                if (dualModeToggle) {
+                    dualModeToggle.checked = dualMode;
+                    handleDualModeChange(dualMode);
+                }
+
+                // Load Meta API settings if available
+                if (data.whatsapp_meta_api_key) {
+                    document.getElementById('metaApiKey').value = data.whatsapp_meta_api_key;
+                }
+                if (data.whatsapp_phone_number_id) {
+                    document.getElementById('phoneNumberId').value = data.whatsapp_phone_number_id;
+                }
+                if (data.whatsapp_webhook_url) {
+                    document.getElementById('webhookUrl').value = data.whatsapp_webhook_url;
+                }
+                if (data.whatsapp_verify_token) {
+                    document.getElementById('verifyToken').value = data.whatsapp_verify_token;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading provider settings:', error);
+        }
+    }
+
+    // Handle provider selection change
+    function handleProviderChange(provider) {
+        const metaApiConfig = document.getElementById('metaApiConfig');
+        const providerStatus = document.getElementById('providerStatus');
+
+        if (provider === 'meta_api') {
+            metaApiConfig.style.display = 'block';
+            providerStatus.innerHTML = '<i class="bi bi-check-circle"></i> Provider Aktif: Meta API';
+            providerStatus.className = 'alert alert-success';
+        } else {
+            metaApiConfig.style.display = 'none';
+            providerStatus.innerHTML = '<i class="bi bi-check-circle"></i> Provider Aktif: Baileys';
+            providerStatus.className = 'alert alert-info';
+        }
+    }
+
+    // Handle dual mode toggle
+    function handleDualModeChange(enabled) {
+        const dualModeInfo = document.getElementById('dualModeInfo');
+        const metaApiConfig = document.getElementById('metaApiConfig');
+
+        if (enabled) {
+            dualModeInfo.style.display = 'block';
+            // Show Meta API config when dual mode is enabled
+            metaApiConfig.style.display = 'block';
+        } else {
+            dualModeInfo.style.display = 'none';
+            // Hide Meta API config if provider is not meta_api
+            const provider = document.getElementById('whatsappProvider').value;
+            if (provider !== 'meta_api') {
+                metaApiConfig.style.display = 'none';
+            }
+        }
+    }
+
+    // Save provider settings
+    async function saveProviderSettings() {
+        try {
+            const formData = new FormData(document.getElementById('providerForm'));
+            const settings = {};
+            
+            formData.forEach((value, key) => {
+                settings[key] = value;
+            });
+
+            const response = await fetch('/admin/settings/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(settings)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert('Pengaturan provider berhasil disimpan! Restart aplikasi untuk menerapkan perubahan.', 'success');
+            } else {
+                showAlert('Error: ' + (data.message || 'Gagal menyimpan pengaturan'), 'danger');
+            }
+        } catch (error) {
+            console.error('Error saving provider settings:', error);
+            showAlert('Error: Gagal menyimpan pengaturan provider', 'danger');
+        }
+    }
 
     // Load templates from server
     async function loadTemplates() {
