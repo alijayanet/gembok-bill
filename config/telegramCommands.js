@@ -4,11 +4,14 @@
  */
 
 const { Markup } = require('telegraf');
-const telegramAuth = require('./telegramAuth');
-const billingManager = require('./billing');
+const TelegramAuth = require('./telegramAuth');
+const telegramAuth = new TelegramAuth();
 const mikrotikManager = require('./mikrotik');
-const genieacs = require('./genieacs');
-const { getSetting, getSettingsWithCache } = require('./settingsManager');
+const billingManager = require('./billing');
+const { getSetting } = require('./settingsManager');
+
+// Customer OTP cache (in production, use Redis or database with expiry)
+const customerOtpCache = {};
 
 class TelegramCommands {
     constructor(bot) {
@@ -35,6 +38,7 @@ class TelegramCommands {
         // Invoice commands
         this.bot.command('invoice', this.handleInvoice.bind(this));
         this.bot.command('bayar', this.handleBayar.bind(this));
+        this.bot.command('billing', this.handleBilling.bind(this));
 
         // MikroTik PPPoE commands
         this.bot.command('pppoe', this.handlePPPoE.bind(this));
@@ -52,6 +56,18 @@ class TelegramCommands {
         this.bot.command('firewall', this.handleFirewall.bind(this));
         this.bot.command('queue', this.handleQueue.bind(this));
         this.bot.command('ip', this.handleIP.bind(this));
+
+        // GenieACS ONU commands
+        this.bot.command('onu', this.handleONU.bind(this));
+
+        // Customer commands
+        this.bot.command('loginpelanggan', this.handleCustomerLogin.bind(this));
+        this.bot.command('verifyotp', this.handleCustomerVerifyOTP.bind(this));
+        this.bot.command('cektagihan', this.handleCustomerCheckBilling.bind(this));
+        this.bot.command('gantissid', this.handleCustomerChangeSSID.bind(this));
+        this.bot.command('gantipassword', this.handleCustomerChangePassword.bind(this));
+        this.bot.command('statuspelanggan', this.handleCustomerStatus.bind(this));
+        this.bot.command('logoutpelanggan', this.handleCustomerLogout.bind(this));
 
         // Help and Menu commands
         this.bot.command('menu', this.handleMenu.bind(this));
@@ -125,8 +141,16 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
 
 *🧾 Invoice:*
 • \`/invoice unpaid\` - List invoice belum bayar
+• \`/invoice paid <phone>\` - List invoice sudah bayar
+• \`/invoice overdue\` - List invoice overdue
 • \`/invoice cek <phone>\` - Cek invoice pelanggan
+• \`/invoice detail <invoice_id>\` - Detail invoice
+• \`/invoice create <phone> <amount> <notes>\` - Buat invoice manual
 • \`/bayar <invoice_id>\` - Proses pembayaran
+
+*📊 Billing:*
+• \`/billing stats\` - Statistik billing
+• \`/billing report <bulan>\` - Laporan bulanan
 
 *🌐 PPPoE:*
 • \`/pppoe list\` - List PPPoE users
@@ -170,6 +194,22 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
 • \`/cari <nama atau no hp>\` - Cari pelanggan
 • \`/wifi <phone> <ssid> <password>\` - Ganti WiFi
 • \`/rebootONU <phone>\` - Restart ONU
+
+*📡 GenieACS ONU:*
+• \`/onu list\` - List semua ONU devices
+• \`/onu status <phone>\` - Cek status ONU
+• \`/onu info <phone>\` - Info detail ONU
+• \`/onu tag <phone> <tag>\` - Tambah tag
+• \`/onu untag <phone> <tag>\` - Hapus tag
+• \`/onu factoryreset <phone>\` - Factory reset (admin only)
+
+*👨‍👩‍👧 Customer Portal:*
+• \`/loginpelanggan <phone> <password>\` - Login sebagai pelanggan
+• \`/cektagihan\` - Cek tagihan Anda
+• \`/statuspelanggan\` - Cek status layanan
+• \`/gantissid <ssid>\` - Ganti WiFi SSID
+• \`/gantipassword <password>\` - Ganti WiFi password
+• \`/logoutpelanggan\` - Logout
         `;
 
         if (session && telegramAuth.isAdmin(session)) {
@@ -717,7 +757,11 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
             await ctx.reply(
                 '🧾 *Perintah Invoice:*\n\n' +
                 '• `/invoice unpaid` - List invoice belum bayar\n' +
-                '• `/invoice cek <phone>` - Cek invoice pelanggan',
+                '• `/invoice paid <phone>` - List invoice sudah bayar\n' +
+                '• `/invoice overdue` - List invoice overdue\n' +
+                '• `/invoice cek <phone>` - Cek invoice pelanggan\n' +
+                '• `/invoice detail <invoice_id>` - Detail invoice\n' +
+                '• `/invoice create <phone> <amount> <notes>` - Buat invoice manual',
                 { parse_mode: 'Markdown' }
             );
             return;
@@ -730,6 +774,16 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
                 case 'unpaid':
                     await this.handleInvoiceUnpaid(ctx);
                     break;
+                case 'paid':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /invoice paid <phone>');
+                        return;
+                    }
+                    await this.handleInvoicePaid(ctx, args[1]);
+                    break;
+                case 'overdue':
+                    await this.handleInvoiceOverdue(ctx);
+                    break;
                 case 'cek':
                     if (args.length < 2) {
                         await ctx.reply('❌ Format: /invoice cek <phone>');
@@ -737,8 +791,23 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
                     }
                     await this.handleInvoiceCek(ctx, args[1]);
                     break;
+                case 'detail':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /invoice detail <invoice_id>');
+                        return;
+                    }
+                    await this.handleInvoiceDetail(ctx, args[1]);
+                    break;
+                case 'create':
+                    if (args.length < 3) {
+                        await ctx.reply('❌ Format: /invoice create <phone> <amount> <notes>');
+                        return;
+                    }
+                    const notes = args.slice(3).join(' ') || 'Manual invoice';
+                    await this.handleInvoiceCreate(ctx, args[1], args[2], notes);
+                    break;
                 default:
-                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: unpaid, cek');
+                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: unpaid, paid, overdue, cek, detail, create');
             }
         } catch (error) {
             console.error('Invoice command error:', error);
@@ -1104,6 +1173,287 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
         });
 
         await ctx.replyWithMarkdown(message);
+    }
+
+    /**
+     * Handle invoice paid
+     */
+    async handleInvoicePaid(ctx, phone) {
+        await ctx.reply('⏳ Mencari invoice yang sudah dibayar...');
+
+        const customer = await billingManager.getCustomerByPhone(phone);
+
+        if (!customer) {
+            await ctx.reply(`❌ Pelanggan dengan nomor ${phone} tidak ditemukan.`);
+            return;
+        }
+
+        const invoices = await billingManager.getInvoicesByCustomerId(customer.id);
+        const paidInvoices = invoices.filter(i => i.status === 'paid');
+
+        if (paidInvoices.length === 0) {
+            await ctx.reply(`ℹ️ Tidak ada invoice yang sudah dibayar untuk ${customer.name}.`);
+            return;
+        }
+
+        let message = `✅ *Invoice Sudah Dibayar (${paidInvoices.length})*\n\n`;
+
+        paidInvoices.forEach(invoice => {
+            message += `📄 ${invoice.invoice_number || `INV-${invoice.id}`}\n`;
+            message += `   💰 Rp ${(invoice.amount || 0).toLocaleString('id-ID')}\n`;
+            message += `   📅 ${invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('id-ID') : 'N/A'}\n\n`;
+        });
+
+        await ctx.replyWithMarkdown(message);
+    }
+
+    /**
+     * Handle invoice overdue
+     */
+    async handleInvoiceOverdue(ctx) {
+        await ctx.reply('⏳ Mencari invoice overdue...');
+
+        const invoices = await billingManager.getAllInvoices();
+        const today = new Date();
+        const overdueInvoices = invoices.filter(i => {
+            if (i.status !== 'unpaid') return false;
+            if (!i.due_date) return false;
+            const dueDate = new Date(i.due_date);
+            return dueDate < today;
+        });
+
+        if (overdueInvoices.length === 0) {
+            await ctx.reply('✅ Tidak ada invoice overdue.');
+            return;
+        }
+
+        const displayInvoices = overdueInvoices.slice(0, 15);
+
+        let message = `⚠️ *Invoice Overdue* (${overdueInvoices.length} total)\n\n`;
+
+        for (const invoice of displayInvoices) {
+            const customer = await billingManager.getCustomerById(invoice.customer_id);
+            const amount = parseFloat(invoice.amount || 0).toLocaleString('id-ID');
+            const dueDate = invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('id-ID') : 'N/A';
+            const daysOverdue = invoice.due_date ? Math.floor((today - new Date(invoice.due_date)) / (1000 * 60 * 60 * 24)) : 0;
+
+            message += `📄 *Invoice #${invoice.id}*\n`;
+            message += `👤 Pelanggan: ${customer ? customer.name : 'Unknown'}\n`;
+            message += `💰 Tagihan: Rp ${amount}\n`;
+            message += `📅 Jatuh Tempo: ${dueDate}\n`;
+            message += `⏰ Overdue: ${daysOverdue} hari\n\n`;
+        }
+
+        if (overdueInvoices.length > 15) {
+            message += `_Menampilkan 15 dari ${overdueInvoices.length} invoice overdue._`;
+        }
+
+        await ctx.replyWithMarkdown(message);
+    }
+
+    /**
+     * Handle invoice detail
+     */
+    async handleInvoiceDetail(ctx, invoiceId) {
+        await ctx.reply('⏳ Mengambil detail invoice...');
+
+        const invoice = await billingManager.getInvoiceById(invoiceId);
+
+        if (!invoice) {
+            await ctx.reply(`❌ Invoice #${invoiceId} tidak ditemukan.`);
+            return;
+        }
+
+        const customer = await billingManager.getCustomerById(invoice.customer_id);
+        const statusEmoji = invoice.status === 'paid' ? '✅' : '⏳';
+        const amount = parseFloat(invoice.amount || 0).toLocaleString('id-ID');
+        const createdDate = invoice.created_at ? new Date(invoice.created_at).toLocaleString('id-ID') : 'N/A';
+        const dueDate = invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('id-ID') : 'N/A';
+
+        let message = `📋 *Detail Invoice #${invoiceId}*\n\n`;
+        message += `${statusEmoji} Status: ${invoice.status}\n\n`;
+        message += `👤 Pelanggan: ${customer ? customer.name : 'Unknown'}\n`;
+        message += `📱 Telepon: ${customer ? customer.phone : 'N/A'}\n`;
+        message += `📄 Invoice: ${invoice.invoice_number || `INV-${invoiceId}`}\n`;
+        message += `💰 Tagihan: Rp ${amount}\n`;
+        message += `📦 Paket: ${invoice.package_name || 'N/A'}\n`;
+        message += `📅 Dibuat: ${createdDate}\n`;
+        message += `📆 Jatuh Tempo: ${dueDate}\n`;
+        message += `📝 Catatan: ${invoice.notes || 'N/A'}`;
+
+        await ctx.replyWithMarkdown(message);
+    }
+
+    /**
+     * Handle invoice create
+     */
+    async handleInvoiceCreate(ctx, phone, amount, notes) {
+        await ctx.reply('⏳ Membuat invoice manual...');
+
+        try {
+            const customer = await billingManager.getCustomerByPhone(phone);
+
+            if (!customer) {
+                await ctx.reply(`❌ Pelanggan dengan nomor ${phone} tidak ditemukan.`);
+                return;
+            }
+
+            const invoiceAmount = parseFloat(amount);
+            if (isNaN(invoiceAmount) || invoiceAmount <= 0) {
+                await ctx.reply('❌ Jumlah tidak valid.');
+                return;
+            }
+
+            const result = await billingManager.createManualInvoice(
+                customer.id,
+                invoiceAmount,
+                notes
+            );
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *Invoice Manual Berhasil Dibuat!*\n\n` +
+                    `📄 Invoice: #${result.invoice_id}\n` +
+                    `👤 Pelanggan: ${customer.name}\n` +
+                    `💰 Tagihan: Rp ${invoiceAmount.toLocaleString('id-ID')}\n` +
+                    `📝 Catatan: ${notes}`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal membuat invoice: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            console.error('Invoice create error:', error);
+            await ctx.reply('❌ Gagal membuat invoice: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle /billing command
+     */
+    async handleBilling(ctx) {
+        const session = await this.checkAuth(ctx);
+        if (!session) return;
+
+        const args = ctx.message.text.split(' ').slice(1);
+
+        if (args.length === 0) {
+            await ctx.reply(
+                '📊 *Perintah Billing:*\n\n' +
+                '• `/billing stats` - Statistik billing\n' +
+                '• `/billing report <bulan>` - Laporan bulanan\n\n' +
+                'Contoh:\n' +
+                '• `/billing report 2025-01` - Laporan Januari 2025',
+                { parse_mode: 'Markdown' }
+            );
+            return;
+        }
+
+        const subCommand = args[0];
+
+        try {
+            switch (subCommand) {
+                case 'stats':
+                    await this.handleBillingStats(ctx);
+                    break;
+                case 'report':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /billing report <bulan>\nContoh: /billing report 2025-01');
+                        return;
+                    }
+                    await this.handleBillingReport(ctx, args[1]);
+                    break;
+                default:
+                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: stats, report');
+            }
+        } catch (error) {
+            console.error('Billing command error:', error);
+            await ctx.reply('❌ Terjadi kesalahan: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle billing stats
+     */
+    async handleBillingStats(ctx) {
+        await ctx.reply('⏳ Mengambil statistik billing...');
+
+        try {
+            const invoices = await billingManager.getAllInvoices();
+            const customers = await billingManager.getAllCustomers();
+
+            const totalInvoices = invoices.length;
+            const paidInvoices = invoices.filter(i => i.status === 'paid');
+            const unpaidInvoices = invoices.filter(i => i.status === 'unpaid');
+            const totalRevenue = paidInvoices.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
+            const unpaidAmount = unpaidInvoices.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
+
+            const today = new Date();
+            const thisMonth = today.getMonth();
+            const thisYear = today.getFullYear();
+
+            const thisMonthPaid = paidInvoices.filter(i => {
+                const created = new Date(i.created_at);
+                return created.getMonth() === thisMonth && created.getFullYear() === thisYear;
+            });
+            const thisMonthRevenue = thisMonthPaid.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
+
+            let message = `📊 *Statistik Billing*\n\n`;
+            message += `👥 Total Pelanggan: ${customers.length}\n\n`;
+            message += `📄 Total Invoice: ${totalInvoices}\n`;
+            message += `✅ Sudah Dibayar: ${paidInvoices.length}\n`;
+            message += `⏳ Belum Dibayar: ${unpaidInvoices.length}\n\n`;
+            message += `💰 Total Pendapatan: Rp ${totalRevenue.toLocaleString('id-ID')}\n`;
+            message += `⏳ Tertunggak: Rp ${unpaidAmount.toLocaleString('id-ID')}\n\n`;
+            message += `📅 Pendapatan Bulan Ini: Rp ${thisMonthRevenue.toLocaleString('id-ID')}\n`;
+            message += `📊 Invoice Bulan Ini: ${thisMonthPaid.length}`;
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil statistik: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle billing report
+     */
+    async handleBillingReport(ctx, monthStr) {
+        await ctx.reply(`⏳ Mengambil laporan ${monthStr}...`);
+
+        try {
+            const invoices = await billingManager.getAllInvoices();
+            const [year, month] = monthStr.split('-').map(Number);
+
+            if (!year || !month || month < 1 || month > 12) {
+                await ctx.reply('❌ Format bulan tidak valid. Gunakan format: YYYY-MM (contoh: 2025-01)');
+                return;
+            }
+
+            const monthInvoices = invoices.filter(i => {
+                const created = new Date(i.created_at);
+                return created.getMonth() === month - 1 && created.getFullYear() === year;
+            });
+
+            const paidInvoices = monthInvoices.filter(i => i.status === 'paid');
+            const unpaidInvoices = monthInvoices.filter(i => i.status === 'unpaid');
+            const totalRevenue = paidInvoices.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
+            const unpaidAmount = unpaidInvoices.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
+
+            const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                               'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            const monthName = monthNames[month - 1];
+
+            let message = `📊 *Laporan ${monthName} ${year}*\n\n`;
+            message += `📄 Total Invoice: ${monthInvoices.length}\n`;
+            message += `✅ Sudah Dibayar: ${paidInvoices.length}\n`;
+            message += `⏳ Belum Dibayar: ${unpaidInvoices.length}\n\n`;
+            message += `💰 Pendapatan: Rp ${totalRevenue.toLocaleString('id-ID')}\n`;
+            message += `⏳ Tertunggak: Rp ${unpaidAmount.toLocaleString('id-ID')}`;
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil laporan: ' + error.message);
+        }
     }
 
     /**
@@ -2269,26 +2619,611 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
     }
 
     /**
-     * Handle IP delete
+     * Handle /onu command
      */
-    async handleIPDelete(ctx, id) {
-        await ctx.reply('⏳ Menghapus IP address...');
+    async handleONU(ctx) {
+        const session = await this.checkAuth(ctx);
+        if (!session) return;
+
+        const args = ctx.message.text.split(' ').slice(1);
+
+        if (args.length === 0) {
+            await ctx.reply(
+                '📡 *Perintah ONU (GenieACS):*\n\n' +
+                '• `/onu list` - List semua ONU devices\n' +
+                '• `/onu status <phone>` - Cek status ONU\n' +
+                '• `/onu info <phone>` - Info detail ONU\n' +
+                '• `/onu tag <phone> <tag>` - Tambah tag\n' +
+                '• `/onu untag <phone> <tag>` - Hapus tag\n' +
+                '• `/onu factoryreset <phone>` - Factory reset',
+                { parse_mode: 'Markdown' }
+            );
+            return;
+        }
+
+        const subCommand = args[0];
 
         try {
-            const result = await mikrotikManager.deleteIPAddress(id);
+            switch (subCommand) {
+                case 'list':
+                    await this.handleONUList(ctx);
+                    break;
+                case 'status':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /onu status <phone>');
+                        return;
+                    }
+                    await this.handleONUStatus(ctx, args[1]);
+                    break;
+                case 'info':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /onu info <phone>');
+                        return;
+                    }
+                    await this.handleONUInfo(ctx, args[1]);
+                    break;
+                case 'tag':
+                    if (args.length < 3) {
+                        await ctx.reply('❌ Format: /onu tag <phone> <tag>');
+                        return;
+                    }
+                    await this.handleONUTag(ctx, args[1], args[2]);
+                    break;
+                case 'untag':
+                    if (args.length < 3) {
+                        await ctx.reply('❌ Format: /onu untag <phone> <tag>');
+                        return;
+                    }
+                    await this.handleONUUntag(ctx, args[1], args[2]);
+                    break;
+                case 'factoryreset':
+                    if (args.length < 2) {
+                        await ctx.reply('❌ Format: /onu factoryreset <phone>');
+                        return;
+                    }
+                    await this.handleONUFactoryReset(ctx, args[1]);
+                    break;
+                default:
+                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: list, status, info, tag, untag, factoryreset');
+            }
+        } catch (error) {
+            console.error('ONU command error:', error);
+            await ctx.reply('❌ Terjadi kesalahan: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle ONU list
+     */
+    async handleONUList(ctx) {
+        await ctx.reply('⏳ Mengambil daftar ONU devices...');
+
+        try {
+            const genieacs = require('./genieacs');
+            const devices = await genieacs.getDevices();
+
+            if (!devices || devices.length === 0) {
+                await ctx.reply('ℹ️ Tidak ada ONU device ditemukan.');
+                return;
+            }
+
+            const displayDevices = devices.slice(0, 15);
+
+            let message = `📡 *ONU Devices* (${devices.length} total)\n\n`;
+
+            displayDevices.forEach((device, index) => {
+                const serial = device.serialNumber || 'N/A';
+                const lastInform = device.lastInform ? new Date(device.lastInform).toLocaleString() : 'N/A';
+                const tags = device._tags || [];
+
+                message += `${index + 1}. 🔧 ${serial}\n`;
+                message += `   📊 Last Inform: ${lastInform}\n`;
+                message += `   🏷️ Tags: ${tags.length > 0 ? tags.join(', ') : 'No tags'}\n\n`;
+            });
+
+            if (devices.length > 15) {
+                message += `\n_Menampilkan 15 dari ${devices.length} devices_`;
+            }
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil ONU devices: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle ONU status
+     */
+    async handleONUStatus(ctx, phoneNumber) {
+        await ctx.reply('⏳ Mengecek status ONU...');
+
+        try {
+            const genieacs = require('./genieacs');
+            const device = await genieacs.getDeviceByPhoneNumber(phoneNumber);
+
+            if (!device) {
+                await ctx.reply(`❌ ONU device dengan nomor ${phoneNumber} tidak ditemukan.`);
+                return;
+            }
+
+            const lastInform = device.lastInform ? new Date(device.lastInform).toLocaleString() : 'N/A';
+            const serial = device.serialNumber || 'N/A';
+            const model = device._deviceId?.['InternetGatewayDevice.DeviceInfo.Model'] || 'N/A';
+            const tags = device._tags || [];
+            const uptime = device._uptime || 'N/A';
+
+            let message = `✅ *ONU Status*\n\n`;
+            message += `🔧 Serial: ${serial}\n`;
+            message += `📱 Phone: ${phoneNumber}\n`;
+            message += `📊 Model: ${model}\n`;
+            message += `⏰ Last Inform: ${lastInform}\n`;
+            message += `⏱️ Uptime: ${uptime}\n`;
+            message += `🏷️ Tags: ${tags.length > 0 ? tags.join(', ') : 'No tags'}`;
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengecek status: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle ONU info
+     */
+    async handleONUInfo(ctx, phoneNumber) {
+        await ctx.reply('⏳ Mengambil info detail ONU...');
+
+        try {
+            const genieacs = require('./genieacs');
+            const device = await genieacs.getDeviceByPhoneNumber(phoneNumber);
+
+            if (!device) {
+                await ctx.reply(`❌ ONU device dengan nomor ${phoneNumber} tidak ditemukan.`);
+                return;
+            }
+
+            const serial = device.serialNumber || 'N/A';
+            const model = device._deviceId?.['InternetGatewayDevice.DeviceInfo.Model'] || 'N/A';
+            const manufacturer = device._deviceId?.['InternetGatewayDevice.DeviceInfo.Manufacturer'] || 'N/A';
+            const softwareVersion = device._deviceId?.['InternetGatewayDevice.DeviceInfo.SoftwareVersion'] || 'N/A';
+            const hardwareVersion = device._deviceId?.['InternetGatewayDevice.DeviceInfo.HardwareVersion'] || 'N/A';
+            const lastInform = device.lastInform ? new Date(device.lastInform).toLocaleString() : 'N/A';
+            const tags = device._tags || [];
+            const ip = device._deviceId?.['InternetGatewayDevice.DeviceInfo.IPAddress'] || 'N/A';
+
+            let message = `📋 *ONU Detail Info*\n\n`;
+            message += `🔧 Serial: ${serial}\n`;
+            message += `📱 Phone: ${phoneNumber}\n`;
+            message += `📊 Model: ${model}\n`;
+            message += `🏭 Manufacturer: ${manufacturer}\n`;
+            message += `💻 Software: ${softwareVersion}\n`;
+            message += `⚙️ Hardware: ${hardwareVersion}\n`;
+            message += `📡 IP Address: ${ip}\n`;
+            message += `⏰ Last Inform: ${lastInform}\n`;
+            message += `🏷️ Tags: ${tags.length > 0 ? tags.join(', ') : 'No tags'}`;
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil info: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle ONU tag
+     */
+    async handleONUTag(ctx, phoneNumber, tag) {
+        await ctx.reply('⏳ Menambahkan tag ke ONU...');
+
+        try {
+            const genieacs = require('./genieacs');
+            const device = await genieacs.getDeviceByPhoneNumber(phoneNumber);
+
+            if (!device) {
+                await ctx.reply(`❌ ONU device dengan nomor ${phoneNumber} tidak ditemukan.`);
+                return;
+            }
+
+            const result = await genieacs.addTagToDevice(device._id, tag);
 
             if (result && result.success) {
                 await ctx.reply(
-                    `✅ *IP Address Berhasil Dihapus!*\n\n` +
-                    `📋 ID: ${id}`,
+                    `✅ *Tag Berhasil Ditambahkan!*\n\n` +
+                    `📱 Phone: ${phoneNumber}\n` +
+                    `🏷️ Tag: ${tag}`,
                     { parse_mode: 'Markdown' }
                 );
             } else {
-                await ctx.reply(`❌ Gagal menghapus IP: ${result ? result.message : 'Terjadi kesalahan'}`);
+                await ctx.reply(`❌ Gagal menambahkan tag: ${result ? result.message : 'Terjadi kesalahan'}`);
             }
         } catch (error) {
-            await ctx.reply('❌ Gagal menghapus IP: ' + error.message);
+            await ctx.reply('❌ Gagal menambahkan tag: ' + error.message);
         }
+    }
+
+    /**
+     * Handle ONU untag
+     */
+    async handleONUUntag(ctx, phoneNumber, tag) {
+        await ctx.reply('⏳ Menghapus tag dari ONU...');
+
+        try {
+            const genieacs = require('./genieacs');
+            const device = await genieacs.getDeviceByPhoneNumber(phoneNumber);
+
+            if (!device) {
+                await ctx.reply(`❌ ONU device dengan nomor ${phoneNumber} tidak ditemukan.`);
+                return;
+            }
+
+            const result = await genieacs.removeTagFromDevice(device._id, tag);
+
+            if (result && result.success) {
+                await ctx.reply(
+                    `✅ *Tag Berhasil Dihapus!*\n\n` +
+                    `� Phone: ${phoneNumber}\n` +
+                    `🏷️ Tag: ${tag}`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply(`❌ Gagal menghapus tag: ${result ? result.message : 'Terjadi kesalahan'}`);
+            }
+        } catch (error) {
+            await ctx.reply('❌ Gagal menghapus tag: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle customer login
+     */
+    async handleCustomerLogin(ctx) {
+        const args = ctx.message.text.split(' ').slice(1);
+
+        if (args.length === 0) {
+            await ctx.reply(
+                '🔐 *Login Pelanggan*\n\n' +
+                'Format: `/loginpelanggan <no_hp> [password]`\n\n' +
+                'Contoh:\n' +
+                '• `/loginpelanggan 08123456789 password123`\n' +
+                '• `/loginpelanggan 08123456789` (jika OTP diaktifkan)',
+                { parse_mode: 'Markdown' }
+            );
+            return;
+        }
+
+        const phone = args[0];
+        const password = args[1];
+        const userId = ctx.from.id;
+
+        await ctx.reply('⏳ Memverifikasi login...');
+
+        try {
+            const customer = await billingManager.getCustomerByPhone(phone);
+
+            if (!customer) {
+                await ctx.reply('❌ Nomor telepon tidak terdaftar sebagai pelanggan.');
+                return;
+            }
+
+            // Check if OTP is enabled in settings
+            const otpEnabled = getSetting('customerPortalOtp', false);
+
+            if (otpEnabled) {
+                // OTP flow
+                const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+                customerOtpCache[userId] = {
+                    phone: phone,
+                    otp: otp,
+                    customerId: customer.id,
+                    timestamp: Date.now()
+                };
+
+                await ctx.reply(
+                    '✅ *Kode OTP Anda: ' + otp + '*\n\n' +
+                    'Kode ini berlaku selama 5 menit.\n' +
+                    'Gunakan kode ini untuk login: `/verifyotp ' + otp + '`',
+                    { parse_mode: 'Markdown' }
+                );
+
+                console.log('OTP for ' + phone + ': ' + otp);
+            } else {
+                // Direct login flow
+                if (!password) {
+                    await ctx.reply('❌ Password diperlukan. Format: `/loginpelanggan <phone> <password>`');
+                    return;
+                }
+
+                // Verify password
+                if (customer.password && customer.password !== password) {
+                    await ctx.reply('❌ Password salah.');
+                    return;
+                }
+
+                // Login successful
+                await telegramAuth.createCustomerSession(userId, customer);
+
+                await ctx.reply(
+                    '✅ *Login Berhasil!*\n\n' +
+                    '👤 Selamat datang, ' + customer.name + '\n' +
+                    '📱 ' + customer.phone + '\n\n' +
+                    'Gunakan perintah berikut:\n' +
+                    '• `/cektagihan` - Cek tagihan\n' +
+                    '• `/statuspelanggan` - Cek status layanan\n' +
+                    '• `/gantissid <ssid>` - Ganti WiFi SSID\n' +
+                    '• `/gantipassword <password>` - Ganti WiFi password\n' +
+                    '• `/logoutpelanggan` - Logout',
+                    { parse_mode: 'Markdown' }
+                );
+            }
+
+        } catch (error) {
+            console.error('Customer login error:', error);
+            await ctx.reply('❌ Gagal login: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle customer OTP verification
+     */
+    async handleCustomerVerifyOTP(ctx) {
+        const args = ctx.message.text.split(' ').slice(1);
+
+        if (args.length === 0) {
+            await ctx.reply('❌ Format: `/verifyotp <kode_otp>`');
+            return;
+        }
+
+        const otp = args[0];
+        const userId = ctx.from.id;
+
+        const cached = customerOtpCache[userId];
+
+        if (!cached) {
+            await ctx.reply('❌ Sesi login tidak ditemukan. Silakan login ulang: `/loginpelanggan <no_hp>`');
+            return;
+        }
+
+        // Check if OTP is expired (5 minutes)
+        if (Date.now() - cached.timestamp > 5 * 60 * 1000) {
+            delete customerOtpCache[userId];
+            await ctx.reply('❌ Kode OTP sudah kadaluarsa. Silakan login ulang.');
+            return;
+        }
+
+        if (cached.otp !== otp) {
+            await ctx.reply('❌ Kode OTP salah.');
+            return;
+        }
+
+        // Login successful
+        const customer = await billingManager.getCustomerById(cached.customerId);
+
+        if (!customer) {
+            await ctx.reply('❌ Data pelanggan tidak ditemukan.');
+            return;
+        }
+
+        // Create customer session
+        await telegramAuth.createCustomerSession(userId, customer);
+
+        // Clear OTP cache
+        delete customerOtpCache[userId];
+
+        await ctx.reply(
+            '✅ *Login Berhasil!*\n\n' +
+            '👤 Selamat datang, ' + customer.name + '\n' +
+            '📱 ' + customer.phone + '\n\n' +
+            'Gunakan perintah berikut:\n' +
+            '• `/cektagihan` - Cek tagihan\n' +
+            '• `/statuspelanggan` - Cek status layanan\n' +
+            '• `/gantissid <ssid>` - Ganti WiFi SSID\n' +
+            '• `/gantipassword <password>` - Ganti WiFi password\n' +
+            '• `/logoutpelanggan` - Logout',
+            { parse_mode: 'Markdown' }
+        );
+    }
+
+    /**
+     * Check if user is logged in as customer
+     */
+    async checkCustomerAuth(ctx) {
+        const session = await telegramAuth.getCustomerSession(ctx.from.id);
+        if (!session) {
+            await ctx.reply('❌ Anda belum login. Gunakan: `/loginpelanggan <no_hp>`');
+            return null;
+        }
+        return session;
+    }
+
+    /**
+     * Handle customer check billing
+     */
+    async handleCustomerCheckBilling(ctx) {
+        const session = await this.checkCustomerAuth(ctx);
+        if (!session) return;
+
+        await ctx.reply('⏳ Mengambil data tagihan...');
+
+        try {
+            const invoices = await billingManager.getInvoicesByCustomerId(session.customer.id);
+            const unpaidInvoices = invoices.filter(i => i.status === 'unpaid');
+
+            if (unpaidInvoices.length === 0) {
+                await ctx.reply('✅ Tidak ada tagihan yang belum dibayar.');
+                return;
+            }
+
+            let message = `🧾 *Tagihan Anda* (${unpaidInvoices.length})\n\n`;
+
+            unpaidInvoices.forEach(invoice => {
+                const amount = parseFloat(invoice.amount || 0).toLocaleString('id-ID');
+                const dueDate = invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('id-ID') : 'N/A';
+
+                message += `📄 ${invoice.invoice_number || `INV-${invoice.id}`}\n`;
+                message += `   💰 Rp ${amount}\n`;
+                message += `   📅 Jatuh Tempo: ${dueDate}\n\n`;
+            });
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            console.error('Customer check billing error:', error);
+            await ctx.reply('❌ Gagal mengambil tagihan: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle customer change SSID
+     */
+    async handleCustomerChangeSSID(ctx) {
+        const session = await this.checkCustomerAuth(ctx);
+        if (!session) return;
+
+        const args = ctx.message.text.split(' ').slice(1);
+
+        if (args.length === 0) {
+            await ctx.reply('❌ Format: `/gantissid <nama_ssid_baru>`');
+            return;
+        }
+
+        const newSSID = args.join(' ');
+
+        if (newSSID.length < 3 || newSSID.length > 32) {
+            await ctx.reply('❌ Nama SSID harus 3-32 karakter.');
+            return;
+        }
+
+        await ctx.reply('⏳ Mengganti WiFi SSID...');
+
+        try {
+            const genieacs = require('./genieacs');
+            const device = await genieacs.getDeviceByPhoneNumber(session.customer.phone);
+
+            if (!device) {
+                await ctx.reply('❌ ONU tidak ditemukan. Hubungi admin.');
+                return;
+            }
+
+            const result = await genieacs.setParameterValues(device._id, {
+                'SSID': newSSID
+            });
+
+            if (result) {
+                await ctx.reply(
+                    `✅ *SSID Berhasil Diganti!*\n\n` +
+                    `📡 SSID Baru: ${newSSID}\n` +
+                    `⏰ Perubahan akan aktif dalam beberapa detik.`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply('❌ Gagal mengganti SSID.');
+            }
+        } catch (error) {
+            console.error('Change SSID error:', error);
+            await ctx.reply('❌ Gagal mengganti SSID: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle customer change password
+     */
+    async handleCustomerChangePassword(ctx) {
+        const session = await this.checkCustomerAuth(ctx);
+        if (!session) return;
+
+        const args = ctx.message.text.split(' ').slice(1);
+
+        if (args.length === 0) {
+            await ctx.reply('❌ Format: `/gantipassword <password_baru>`');
+            return;
+        }
+
+        const newPassword = args[0];
+
+        if (newPassword.length < 8) {
+            await ctx.reply('❌ Password minimal 8 karakter.');
+            return;
+        }
+
+        await ctx.reply('⏳ Mengganti WiFi password...');
+
+        try {
+            const genieacs = require('./genieacs');
+            const device = await genieacs.getDeviceByPhoneNumber(session.customer.phone);
+
+            if (!device) {
+                await ctx.reply('❌ ONU tidak ditemukan. Hubungi admin.');
+                return;
+            }
+
+            const result = await genieacs.setParameterValues(device._id, {
+                'Password': newPassword
+            });
+
+            if (result) {
+                await ctx.reply(
+                    `✅ *Password Berhasil Diganti!*\n\n` +
+                    `🔒 Password Baru: ${'•'.repeat(newPassword.length)}\n` +
+                    `⏰ Perubahan akan aktif dalam beberapa detik.\n\n` +
+                    `⚠️ Jangan berikan password kepada orang lain.`,
+                    { parse_mode: 'Markdown' }
+                );
+            } else {
+                await ctx.reply('❌ Gagal mengganti password.');
+            }
+        } catch (error) {
+            console.error('Change password error:', error);
+            await ctx.reply('❌ Gagal mengganti password: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle customer status
+     */
+    async handleCustomerStatus(ctx) {
+        const session = await this.checkCustomerAuth(ctx);
+        if (!session) return;
+
+        await ctx.reply('⏳ Mengambil status layanan...');
+
+        try {
+            const customer = session.customer;
+            const genieacs = require('./genieacs');
+            const device = await genieacs.getDeviceByPhoneNumber(customer.phone);
+
+            let message = `📊 *Status Layanan Anda*\n\n`;
+            message += `👤 Nama: ${customer.name}\n`;
+            message += `📱 Telepon: ${customer.phone}\n`;
+            message += `📦 Paket: ${customer.package_name || 'N/A'}\n`;
+            message += `📊 Status: ${customer.status === 'active' ? '✅ Aktif' : '❌ Nonaktif'}\n`;
+
+            if (device) {
+                const lastInform = device.lastInform ? new Date(device.lastInform).toLocaleString('id-ID') : 'N/A';
+                message += `📡 ONU: Online\n`;
+                message += `⏰ Last Update: ${lastInform}\n`;
+            } else {
+                message += `📡 ONU: Offline\n`;
+            }
+
+            await ctx.replyWithMarkdown(message);
+        } catch (error) {
+            console.error('Customer status error:', error);
+            await ctx.reply('❌ Gagal mengambil status: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle customer logout
+     */
+    async handleCustomerLogout(ctx) {
+        const userId = ctx.from.id;
+
+        await telegramAuth.deleteCustomerSession(userId);
+
+        await ctx.reply(
+            '✅ *Logout Berhasil!*\n\n' +
+            'Terima kasih telah menggunakan layanan kami.\n\n' +
+            'Untuk login kembali, gunakan: `/loginpelanggan <no_hp>`',
+            { parse_mode: 'Markdown' }
+        );
     }
 }
 

@@ -253,6 +253,7 @@ class BillingManager {
                 username TEXT UNIQUE NOT NULL,
                 name TEXT NOT NULL,
                 phone TEXT UNIQUE NOT NULL,
+                password TEXT,
                 whatsapp_lid TEXT UNIQUE,
                 pppoe_username TEXT,
                 email TEXT,
@@ -573,6 +574,15 @@ class BillingManager {
         this.db.run("ALTER TABLE customers ADD COLUMN pppoe_username TEXT", (err) => {
             if (err && !err.message.includes('duplicate column name')) {
                 console.error('Error adding pppoe_username column:', err);
+            }
+        });
+
+        // Tambahkan kolom password jika belum ada
+        this.db.run("ALTER TABLE customers ADD COLUMN password TEXT", (err) => {
+            if (err && !err.message.includes('duplicate column name')) {
+                console.error('Error adding password column:', err);
+            } else if (!err) {
+                console.log('✅ Added password column to customers table');
             }
         });
 
