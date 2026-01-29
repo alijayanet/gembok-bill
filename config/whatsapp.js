@@ -7,7 +7,6 @@ const fs = require('fs');
 const pino = require('pino');
 const logger = require('./logger');
 const genieacsCommands = require('./genieacs-commands');
-const metaAPI = require('./whatsapp-meta-api');
 
 const {
     addHotspotUser,
@@ -113,195 +112,37 @@ function getSuperAdminNumber() {
 const superAdminNumber = getSuperAdminNumber();
 let genieacsCommandsEnabled = true;
 
-// Fungsi untuk mendapatkan provider WhatsApp yang dipilih
-function getWhatsAppProvider() {
-    try {
-        const provider = getSetting('whatsapp_provider', 'baileys');
-        return provider.toLowerCase();
-    } catch (error) {
-        console.error('Error getting WhatsApp provider:', error);
-        return 'baileys'; // Default ke Baileys
-    }
-}
-
-// Fungsi untuk mengecek apakah dual mode aktif
-function isDualModeEnabled() {
-    try {
-        return getSetting('whatsapp_dual_mode', false) === true;
-    } catch (error) {
-        console.error('Error checking dual mode:', error);
-        return false;
-    }
-}
-
-// Fungsi untuk mengirim pesan dengan provider yang dipilih
-async function sendWhatsAppMessage(phoneNumber, message, options = {}) {
-    const provider = getWhatsAppProvider();
-    const dualMode = isDualModeEnabled();
-
-    // Jika dual mode aktif, gunakan Meta API untuk broadcast, Baileys untuk command
-    if (dualMode) {
-        const baileysConnected = sock && sock.user;
-        const metaApiConnected = metaAPI.isConnected;
-
-        // Prioritaskan Meta API jika tersedia (untuk broadcast)
-        if (metaApiConnected) {
-            try {
-                return await metaAPI.sendMessage(phoneNumber, message);
-            } catch (error) {
-                console.warn('Meta API failed, falling back to Baileys:', error.message);
-                if (baileysConnected) {
-                    return await sendBaileysMessage(phoneNumber, message, options);
-                }
-            }
-        } else if (baileysConnected) {
-            return await sendBaileysMessage(phoneNumber, message, options);
-        } else {
-            throw new Error('No WhatsApp provider connected');
-        }
-    } else {
-        // Single provider mode
-        if (provider === 'meta_api') {
-            // Gunakan Meta API
-            const config = {
-                apiKey: getSetting('whatsapp_meta_api_key', ''),
-                phoneNumberId: getSetting('whatsapp_phone_number_id', ''),
-                webhookUrl: getSetting('whatsapp_webhook_url', ''),
-                verifyToken: getSetting('whatsapp_verify_token', '')
-            };
-
-            if (!config.apiKey || !config.phoneNumberId) {
-                logger.error('WhatsApp Meta API: Missing credentials, falling back to Baileys');
-                return sendBaileysMessage(phoneNumber, message, options);
-            }
-
-            metaAPI.initialize(config);
-            return await metaAPI.sendMessage(phoneNumber, message);
-        } else {
-            // Gunakan Baileys (default)
-            return sendBaileysMessage(phoneNumber, message, options);
-        }
-    }
-}
-
-// Fungsi helper untuk mengirim pesan via Baileys
-async function sendBaileysMessage(phoneNumber, message, options = {}) {
-    if (!sock || !sock.user) {
-        throw new Error('WhatsApp Baileys: Not connected');
-    }
-
-    const remoteJid = `${phoneNumber}@s.whatsapp.net`;
-    await sock.sendMessage(remoteJid, { text: message }, options);
-    return { success: true };
-}
-
 // Fungsi untuk mengecek apakah nomor adalah admin atau super admin
-// Fungsi untuk mengecek apakah LID adalah admin
-function isAdminLid(lid) {
-    try {
-        if (!lid || !lid.includes('@lid')) return false;
-        
-        const { getSetting } = require('./settingsManager');
-        
-        // Cek semua admin_lid.X di settings.json
-        for (let i = 0; i < 10; i++) {
-            const adminLid = getSetting(`admin_lid.${i}`, '');
-            if (adminLid && adminLid === lid) {
-                console.log(`✅ LID ${lid} is admin (slot ${i})`);
-                return true;
-            }
-        }
-        
-        return false;
-    } catch (error) {
-        console.error('Error in isAdminLid:', error);
-        return false;
-    }
-}
-
 function isAdminNumber(number) {
     try {
-        const { getSetting, getSettingsWithCache } = require('./settingsManager');
-        
-        // Normalisasi nomor input
-        let cleanNumber = (number || '').toString().replace(/\D/g, '');
-        if (!cleanNumber) {
-            console.log('⚠️ [isAdminNumber] Nomor kosong atau tidak valid:', number);
-            return false;
-        }
-        
-        // Normalisasi ke format internasional (62...)
-        if (cleanNumber.startsWith('0')) {
-            cleanNumber = '62' + cleanNumber.slice(1);
-        } else if (!cleanNumber.startsWith('62')) {
-            cleanNumber = '62' + cleanNumber;
-        }
-        
-        // Ambil semua admin dari settings.json
-        const allSettings = getSettingsWithCache();
-        const adminNumbers = [];
-        
-        // Cek key numerik admins.0, admins.1, dst (sampai 20 untuk fleksibilitas)
-        for (let i = 0; i < 20; i++) {
-            const adminKey = `admins.${i}`;
-            const adminValue = getSetting(adminKey, '');
-            if (adminValue && typeof adminValue === 'string') {
-                // Normalisasi nomor admin dari settings
-                let adminNum = adminValue.replace(/\D/g, '');
-                if (adminNum.startsWith('0')) {
-                    adminNum = '62' + adminNum.slice(1);
-                } else if (!adminNum.startsWith('62')) {
-                    adminNum = '62' + adminNum;
-                }
-                if (adminNum) {
-                    adminNumbers.push(adminNum);
-                }
+        const { getSetting } = require('./settingsManager');
+        // Normalisasi nomor
+        let cleanNumber = number.replace(/\D/g, '');
+        if (cleanNumber.startsWith('0')) cleanNumber = '62' + cleanNumber.slice(1);
+        if (!cleanNumber.startsWith('62')) cleanNumber = '62' + cleanNumber;
+        // Gabungkan semua admins dari settings.json (array dan key numerik)
+        let admins = getSetting('admins', []);
+        if (!Array.isArray(admins)) admins = [];
+        // Cek key numerik
+        const settingsRaw = require('./adminControl').getSettings();
+        Object.keys(settingsRaw).forEach(key => {
+            if (key.startsWith('admins.') && typeof settingsRaw[key] === 'string') {
+                let n = settingsRaw[key].replace(/\D/g, '');
+                if (n.startsWith('0')) n = '62' + n.slice(1);
+                if (!n.startsWith('62')) n = '62' + n;
+                admins.push(n);
             }
-        }
-        
-        // Cek juga array admins jika ada
-        const adminsArray = getSetting('admins', []);
-        if (Array.isArray(adminsArray)) {
-            adminsArray.forEach(adminValue => {
-                if (adminValue && typeof adminValue === 'string') {
-                    let adminNum = adminValue.replace(/\D/g, '');
-                    if (adminNum.startsWith('0')) {
-                        adminNum = '62' + adminNum.slice(1);
-                    } else if (!adminNum.startsWith('62')) {
-                        adminNum = '62' + adminNum;
-                    }
-                    if (adminNum && !adminNumbers.includes(adminNum)) {
-                        adminNumbers.push(adminNum);
-                    }
-                }
-            });
-        }
-        
-        // Log debug untuk troubleshooting
-        console.log('🔍 [isAdminNumber] DEBUG:');
-        console.log('  - Nomor Input:', number);
-        console.log('  - Nomor Normalized:', cleanNumber);
-        console.log('  - Admin Numbers Found:', adminNumbers);
-        console.log('  - Super Admin:', superAdminNumber);
-        
+        });
+        // Log debug
+        console.log('DEBUG Admins from settings.json:', admins);
+        console.log('DEBUG Nomor Masuk:', cleanNumber);
         // Cek super admin
-        if (superAdminNumber && cleanNumber === superAdminNumber) {
-            console.log('✅ [isAdminNumber] Super Admin detected');
-            return true;
-        }
-        
+        if (cleanNumber === superAdminNumber) return true;
         // Cek di daftar admin
-        const isAdmin = adminNumbers.includes(cleanNumber);
-        if (isAdmin) {
-            console.log('✅ [isAdminNumber] Admin detected:', cleanNumber);
-        } else {
-            console.log('❌ [isAdminNumber] Not an admin:', cleanNumber);
-        }
-        
-        return isAdmin;
+        if (admins.includes(cleanNumber)) return true;
+        return false;
     } catch (error) {
-        console.error('❌ [isAdminNumber] Error:', error);
-        console.error('  Stack:', error.stack);
+        console.error('Error in isAdminNumber:', error);
         return false;
     }
 }
@@ -494,120 +335,7 @@ function addWatermarkToMessage(message) {
 // Update fungsi koneksi WhatsApp dengan penanganan error yang lebih baik
 async function connectToWhatsApp() {
     try {
-        const provider = getWhatsAppProvider();
-        const dualMode = isDualModeEnabled();
-
-        console.log(`📱 WhatsApp Configuration:`);
-        console.log(`   - Provider: ${provider.toUpperCase()}`);
-        console.log(`   - Dual Mode: ${dualMode ? 'ENABLED' : 'DISABLED'}`);
-
-        if (dualMode) {
-            // Dual Mode: Initialize both Baileys and Meta API
-            console.log(`🔄 Initializing Dual Mode (Baileys + Meta API)...`);
-
-            // Initialize Baileys for command handling
-            const baileysSock = await connectBaileysWhatsApp();
-            if (baileysSock) {
-                console.log(`✅ Baileys connected successfully`);
-            }
-
-            // Initialize Meta API for broadcast
-            const metaApiConfig = {
-                apiKey: getSetting('whatsapp_meta_api_key', ''),
-                phoneNumberId: getSetting('whatsapp_phone_number_id', ''),
-                webhookUrl: getSetting('whatsapp_webhook_url', ''),
-                verifyToken: getSetting('whatsapp_verify_token', '')
-            };
-
-            if (metaApiConfig.apiKey && metaApiConfig.phoneNumberId) {
-                const metaConnected = await metaAPI.connect();
-                if (metaConnected) {
-                    console.log(`✅ Meta API connected successfully`);
-                    global.whatsappStatus = {
-                        connected: true,
-                        qrCode: null,
-                        phoneNumber: metaAPI.phoneNumber,
-                        connectedSince: new Date().toISOString(),
-                        status: 'connected',
-                        provider: 'dual_mode',
-                        baileysConnected: !!baileysSock,
-                        metaApiConnected: true
-                    };
-                } else {
-                    console.warn(`⚠️ Meta API connection failed, using Baileys only`);
-                    global.whatsappStatus = {
-                        connected: true,
-                        qrCode: null,
-                        phoneNumber: baileysSock?.user?.id,
-                        connectedSince: new Date().toISOString(),
-                        status: 'connected',
-                        provider: 'baileys',
-                        baileysConnected: true,
-                        metaApiConnected: false
-                    };
-                }
-            } else {
-                console.warn(`⚠️ Meta API credentials missing, using Baileys only`);
-                global.whatsappStatus = {
-                    connected: true,
-                    qrCode: null,
-                    phoneNumber: baileysSock?.user?.id,
-                    connectedSince: new Date().toISOString(),
-                    status: 'connected',
-                    provider: 'baileys',
-                    baileysConnected: true,
-                    metaApiConnected: false
-                };
-            }
-
-            return baileysSock;
-        } else {
-            // Single Provider Mode
-            if (provider === 'meta_api') {
-                // Koneksi menggunakan Meta API
-                const config = {
-                    apiKey: getSetting('whatsapp_meta_api_key', ''),
-                    phoneNumberId: getSetting('whatsapp_phone_number_id', ''),
-                    webhookUrl: getSetting('whatsapp_webhook_url', ''),
-                    verifyToken: getSetting('whatsapp_verify_token', '')
-                };
-
-                if (!config.apiKey || !config.phoneNumberId) {
-                    console.error('❌ WhatsApp Meta API: Missing credentials (whatsapp_meta_api_key or whatsapp_phone_number_id)');
-                    console.log('⚠️ Falling back to Baileys...');
-                    return connectBaileysWhatsApp();
-                }
-
-                const connected = await metaAPI.connect();
-                if (connected) {
-                    global.whatsappStatus = {
-                        connected: true,
-                        qrCode: null,
-                        phoneNumber: metaAPI.phoneNumber,
-                        connectedSince: new Date().toISOString(),
-                        status: 'connected',
-                        provider: 'meta_api'
-                    };
-                    return metaAPI;
-                } else {
-                    console.error('❌ WhatsApp Meta API connection failed, falling back to Baileys...');
-                    return connectBaileysWhatsApp();
-                }
-            } else {
-                // Koneksi menggunakan Baileys (default)
-                return connectBaileysWhatsApp();
-            }
-        }
-    } catch (error) {
-        console.error('❌ Error in connectToWhatsApp:', error);
-        return null;
-    }
-}
-
-// Fungsi koneksi Baileys (dipisah untuk reusability)
-async function connectBaileysWhatsApp() {
-    try {
-        console.log('Memulai koneksi WhatsApp Baileys...');
+        console.log('Memulai koneksi WhatsApp...');
 
         // Pastikan direktori sesi ada
         const sessionDir = getSetting('whatsapp_session_path', './whatsapp-session');
@@ -742,127 +470,9 @@ async function connectBaileysWhatsApp() {
                     const activePort = global.appSettings?.port || getSetting('server_port', '3001');
                     const serverHost = global.appSettings?.host || getSetting('server_host', 'localhost');
 
-                    // Ambil header pendek untuk template sambutan
-                    const companyHeaderShort = getSetting('company_header_short', 'ALIJAYA NETWORK');
-
-                    // Pesan notifikasi (sesuai template permintaan)
-                    const notificationMessage = `📋 *BOT WHATSAPP ${companyHeaderShort}*\n\n` +
-                        `✅ *Status:* Bot telah berhasil terhubung\n` +
-                        `⏰ *Waktu:* ${connectedSince.toLocaleString()}\n\n` +
-                        `📝 *Perintah Tersedia:*\n` +
-                        `• Ketik *menu* untuk melihat daftar perintah\n` +
-                        `• Ketik *admin* untuk menu khusus admin\n\n` +
-                        `📞 *Dukungan Pengembang:*\n` +
-                        `• E-WALLET: 081947215703\n` +
-                        `• BRI: 420601003953531 a.n WARJAYA\n\n` +
-                        `🙏 Terima kasih telah menggunakan Aplikasi kami.\n` +
-                        `🏢 *ALIJAYA DIGITAL NETWORK*`;
-
-                    // Kirim ke admin dari environment variable
-                    const adminNumber = getSetting('admins.0', '');
-                    if (adminNumber) {
-                        setTimeout(async () => {
-                            try {
-                                await sock.sendMessage(`${adminNumber}@s.whatsapp.net`, {
-                                    text: notificationMessage
-                                });
-                                console.log(`Pesan notifikasi terkirim ke admin ${adminNumber}`);
-                                // Kirim gambar QR donasi (jika tersedia)
-                                try {
-                                    const fs = require('fs');
-                                    const path = require('path');
-                                    // Prefer non-public path inside config
-                                    let qrPath = path.join(__dirname, 'qr-donasi.jpg');
-                                    if (!fs.existsSync(qrPath)) {
-                                        // Fallback to historical public path if config copy not found
-                                        const fallback = path.join(__dirname, '../public/img/qr-donasi.jpg');
-                                        if (fs.existsSync(fallback)) qrPath = fallback;
-                                    }
-                                    if (fs.existsSync(qrPath)) {
-                                        const qrBuffer = fs.readFileSync(qrPath);
-                                        await sock.sendMessage(`${adminNumber}@s.whatsapp.net`, {
-                                            image: qrBuffer,
-                                            caption: 'QR Donasi Aplikasi'
-                                        });
-                                        console.log('Gambar QR donasi terkirim ke admin');
-                                    } else {
-                                        console.log('📱 QR donasi tidak tersedia, skip pengiriman gambar');
-                                    }
-                                } catch (e) {
-                                    console.error('Gagal mengirim QR donasi ke admin:', e);
-                                }
-                            } catch (error) {
-                                console.error('Error sending connection notification to admin:', error);
-                            }
-                        }, 5000);
-                    }
-
-                    // Kirim ke admin utama (dari .env)
-                    if (adminNumber) {
-                        setTimeout(async () => {
-                            try {
-                                await sock.sendMessage(`${adminNumber}@s.whatsapp.net`, {
-                                    text: notificationMessage
-                                });
-                                const maskedEnvNumber = adminNumber.substring(0, 4) + '****' + adminNumber.substring(adminNumber.length - 4);
-                                console.log(`Pesan notifikasi terkirim ke admin utama ${maskedEnvNumber}`);
-                            } catch (error) {
-                                console.error(`Error sending connection notification to admin utama:`, error);
-                            }
-                        }, 3000);
-                    }
-                    // Kirim juga ke super admin (jika berbeda dengan admin utama)
-                    const currentSuperAdminNumber = getSuperAdminNumber();
-                    if (currentSuperAdminNumber && currentSuperAdminNumber !== adminNumber) {
-                        setTimeout(async () => {
-                            try {
-                                // Pesan startup untuk super admin menggunakan template yang sama
-                                const startupMessage = `📋 *BOT WHATSAPP ${companyHeaderShort}*\n\n` +
-                                    `✅ *Status:* Bot telah berhasil terhubung\n` +
-                                    `⏰ *Waktu:* ${connectedSince.toLocaleString()}\n\n` +
-                                    `📝 *Perintah Tersedia:*\n` +
-                                    `• Ketik *menu* untuk melihat daftar perintah\n` +
-                                    `• Ketik *admin* untuk menu khusus admin\n\n` +
-                                    `📞 *Dukungan Pengembang:*\n` +
-                                    `• E-WALLET: 081947215703\n` +
-                                    `• BRI: 420601003953531 a.n WARJAYA\n\n` +
-                                    `🙏 Terima kasih telah menggunakan Aplikasi kami.\n` +
-                                    `🏢 *ALIJAYA DIGITAL NETWORK*`;
-
-                                await sock.sendMessage(`${currentSuperAdminNumber}@s.whatsapp.net`, {
-                                    text: startupMessage
-                                });
-                                const maskedNumber = currentSuperAdminNumber.substring(0, 4) + '****' + currentSuperAdminNumber.substring(currentSuperAdminNumber.length - 4);
-                                console.log(`Pesan notifikasi terkirim ke super admin ${maskedNumber}`);
-                                // Kirim gambar QR donasi (jika tersedia)
-                                try {
-                                    const fs = require('fs');
-                                    const path = require('path');
-                                    // Prefer non-public path inside config
-                                    let qrPath = path.join(__dirname, 'qr-donasi.jpg');
-                                    if (!fs.existsSync(qrPath)) {
-                                        // Fallback to historical public path if config copy not found
-                                        const fallback = path.join(__dirname, '../public/img/qr-donasi.jpg');
-                                        if (fs.existsSync(fallback)) qrPath = fallback;
-                                    }
-                                    if (fs.existsSync(qrPath)) {
-                                        const qrBuffer = fs.readFileSync(qrPath);
-                                        await sock.sendMessage(`${currentSuperAdminNumber}@s.whatsapp.net`, {
-                                            image: qrBuffer,
-                                            caption: '📱 QR Donasi Aplikasi\n\n🙏 Dukungan Anda sangat berarti untuk pengembangan aplikasi ini'
-                                        });
-                                        console.log('✅ Gambar QR donasi terkirim ke super admin');
-                                    } else {
-                                        console.log('📱 QR donasi tidak tersedia, skip pengiriman gambar');
-                                    }
-                                } catch (e) {
-                                    console.error('❌ Gagal mengirim QR donasi ke super admin:', e);
-                                }
-                            } catch (error) {
-                                console.error(`Error sending connection notification to super admin:`, error);
-                            }
-                        }, 5000);
-                    }
+                    // Silent startup - notifications disabled
+                    console.log(`✅ WhatsApp bot connected successfully at ${connectedSince.toLocaleString()}`);
+                    // Super admin notifications disabled
                 } catch (error) {
                     console.error('Error sending connection notification:', error);
                 }
@@ -1177,6 +787,68 @@ async function getDeviceByNumber(number) {
         }
 
         console.log(`Perangkat tidak ditemukan untuk nomor ${number} dengan semua format yang dicoba`);
+
+        // Fallback: Cari perangkat berdasarkan PPPoE username dari database pelanggan
+        try {
+            console.log(`Mencoba mencari perangkat berdasarkan PPPoE username dari database pelanggan...`);
+
+            // Normalisasi nomor telepon untuk pencarian di database
+            let searchPhone = cleanNumber;
+            if (searchPhone.startsWith('0')) {
+                searchPhone = '62' + searchPhone.substring(1);
+            } else if (!searchPhone.startsWith('62')) {
+                searchPhone = '62' + searchPhone;
+            }
+
+            // Cari pelanggan berdasarkan nomor telepon (coba semua format)
+            const customer = await new Promise((resolve, reject) => {
+                const db = require('sqlite3').verbose();
+                const database = new db.Database('./data/billing.db');
+
+                // Debug: Tampilkan parameter pencarian
+                console.log(`🔍 [DEBUG] Mencari pelanggan dengan parameter:`);
+                console.log(`   cleanNumber: ${cleanNumber}`);
+                console.log(`   searchPhone: ${searchPhone}`);
+                console.log(`   '0' + cleanNumber.substring(2): ${'0' + cleanNumber.substring(2)}`);
+                console.log(`   cleanNumber.substring(2): ${cleanNumber.substring(2)}`);
+
+                database.get(
+                    'SELECT id, username, pppoe_username FROM customers WHERE phone = ? OR phone = ? OR phone = ? OR phone = ?',
+                    [cleanNumber, searchPhone, '0' + cleanNumber.substring(2), cleanNumber.substring(2)],
+                    (err, row) => {
+                        if (err) {
+                            console.error(`❌ [ERROR] Database error: ${err.message}`);
+                            reject(err);
+                        } else {
+                            console.log(`📋 [DEBUG] Hasil pencarian: ${row ? 'Ditemukan' : 'Tidak ditemukan'}`);
+                            if (row) {
+                                console.log(`   Pelanggan: ${row.username}`);
+                            }
+                            resolve(row);
+                        }
+                        database.close();
+                    }
+                );
+            });
+
+            if (customer && customer.pppoe_username) {
+                console.log(`Ditemukan pelanggan dengan PPPoE username: ${customer.pppoe_username}`);
+
+                // Cari perangkat berdasarkan PPPoE username
+                const device = await findDeviceByPPPoEUsername(customer.pppoe_username);
+                if (device) {
+                    console.log(`✅ Perangkat ditemukan dengan PPPoE username: ${customer.pppoe_username}`);
+                    return device;
+                } else {
+                    console.log(`⚠️ Perangkat tidak ditemukan dengan PPPoE username: ${customer.pppoe_username}`);
+                }
+            } else {
+                console.log(`⚠️ Tidak ada pelanggan ditemukan dengan nomor telepon ini`);
+            }
+        } catch (customerError) {
+            console.error(`Error saat mencari pelanggan: ${customerError.message}`);
+        }
+
         return null;
     } catch (error) {
         console.error('Error getting device by number:', error);
@@ -1957,6 +1629,38 @@ async function findDeviceByTag(tag) {
     } catch (error) {
         console.error('Error finding device by tag:', error);
         throw error;
+    }
+}
+
+// Fungsi untuk mencari perangkat berdasarkan PPPoE username
+async function findDeviceByPPPoEUsername(pppoeUsername) {
+    try {
+        console.log(`Searching for device with PPPoE username: ${pppoeUsername}`);
+        const { genieacsUrl, genieacsUsername, genieacsPassword } = getGenieacsConfig();
+
+        // Cari perangkat dengan PPPoE username yang sesuai
+        // PPPoE username biasanya tersimpan di parameter: InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username
+        const query = {
+            "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username": pppoeUsername
+        };
+
+        const response = await axios.get(`${genieacsUrl}/devices/?query=${encodeURIComponent(JSON.stringify(query))}`, {
+            auth: {
+                username: genieacsUsername,
+                password: genieacsPassword
+            }
+        });
+
+        if (response.data && response.data.length > 0) {
+            console.log(`✅ Device found with PPPoE username: ${pppoeUsername}`);
+            return response.data[0];
+        }
+
+        console.log(`⚠️ No device found with PPPoE username: ${pppoeUsername}`);
+        return null;
+    } catch (error) {
+        console.error('Error finding device by PPPoE username:', error.message);
+        return null;
     }
 }
 
@@ -4700,28 +4404,7 @@ async function handleVoucherCommand(remoteJid, params) {
 
 // Fungsi untuk menangani pesan masuk dengan penanganan error dan logging yang lebih baik
 async function handleIncomingMessage(sock, message) {
-    // Kirim pesan selamat datang ke super admin saat aplikasi pertama kali berjalan
-    if (!global.superAdminWelcomeSent && getSetting('superadmin_welcome_enabled', true)) {
-        try {
-            await sock.sendMessage(superAdminNumber + '@s.whatsapp.net', {
-                text: `${getSetting('company_header', 'ALIJAYA BOT MANAGEMENT ISP')}
-👋 *Selamat datang*
-
-Aplikasi WhatsApp Bot berhasil dijalankan.
-
-Rekening Donasi Untuk Pengembangan aplikasi
-# 4206 01 003953 53 1 BRI an WARJAYA
-
-E-Wallet : 081947215703
-
-${getSetting('footer_info', 'Internet Tanpa Batas')}`
-            });
-            global.superAdminWelcomeSent = true;
-            console.log('Pesan selamat datang terkirim ke super admin');
-        } catch (err) {
-            console.error('Gagal mengirim pesan selamat datang ke super admin:', err);
-        }
-    }
+    // Super admin welcome message disabled (silent startup)
     try {
         // Skip if message already processed by agent handler
         if (message._agentProcessed) {
@@ -4778,9 +4461,6 @@ ${getSetting('footer_info', 'Internet Tanpa Batas')}`
         let senderNumber;
         try {
             senderNumber = remoteJid.split('@')[0];
-            // Log JID lengkap untuk debugging
-            console.log('📱 [handleIncomingMessage] JID:', remoteJid);
-            console.log('📱 [handleIncomingMessage] Extracted Number:', senderNumber);
         } catch (error) {
             logger.error('Error extracting sender number', { remoteJid, error: error.message });
             return;
@@ -4791,394 +4471,45 @@ ${getSetting('footer_info', 'Internet Tanpa Batas')}`
 
         // Extract WhatsApp LID if present (for @lid format)
         let senderLid = null;
-        let isLidResolved = false;
-        console.log('🔍 [LID RESOLVE] Checking remoteJid:', remoteJid);
         if (remoteJid.includes('@lid')) {
             senderLid = remoteJid; // Format: 85280887435270@lid
-            console.log('🔍 [LID RESOLVE] LID detected:', senderLid);
             logger.debug(`WhatsApp LID detected`, { lid: senderLid });
 
-            // PRIORITAS 1: Cek admin_lid.X di settings.json terlebih dahulu (untuk admin)
-            const { getSetting } = require('./settingsManager');
-            let adminLidFound = false;
-            console.log('🔍 [LID RESOLVE] Checking admin_lid.X in settings.json...');
-            for (let i = 0; i < 20; i++) {
-                const adminLid = getSetting(`admin_lid.${i}`, '');
-                if (adminLid) {
-                    console.log(`🔍 [LID RESOLVE] admin_lid.${i} = ${adminLid}`);
-                }
-                if (adminLid && adminLid === senderLid) {
-                    console.log(`✅ [LID RESOLVE] Found matching admin_lid.${i}`);
-                    // LID ini terdaftar sebagai admin, ambil nomor admin yang sesuai
-                    const adminPhone = getSetting(`admins.${i}`, '');
-                    console.log(`🔍 [LID RESOLVE] admin_lid.${i} matched, checking admins.${i} = ${adminPhone}`);
-                    if (adminPhone) {
-                        senderNumber = adminPhone;
-                        // Normalize
-                        let cleanNumber = senderNumber.replace(/\D/g, '');
-                        if (cleanNumber.startsWith('0')) cleanNumber = '62' + cleanNumber.slice(1);
-                        if (!cleanNumber.startsWith('62')) cleanNumber = '62' + cleanNumber;
-                        senderNumber = cleanNumber;
-                        isLidResolved = true;
-                        adminLidFound = true;
-                        logger.info(`✅ Admin LID ${senderLid} resolved to admin phone: ${senderNumber} (slot ${i})`);
-                        console.log(`✅ [LID RESOLVE] Admin LID ${senderLid} resolved to admin phone: ${senderNumber} (slot ${i})`);
-                        break;
-                    }
-                }
-            }
-            if (!adminLidFound) {
-                console.log('⚠️ [LID RESOLVE] LID not found in admin_lid.X, trying other methods...');
-            }
-
-            // PRIORITAS 2: Jika bukan admin LID, coba resolve dari database customers
-            if (!adminLidFound) {
+            // PRIORITY 1: Try to get real number from remoteJidAlt (fastest, most reliable)
+            if (message.key?.remoteJidAlt) {
+                const actualJid = message.key.remoteJidAlt;
+                senderNumber = actualJid.replace('@s.whatsapp.net', '');
+                logger.info(`✅ Got real number from remoteJidAlt: ${senderNumber}`);
+            } else {
+                // FALLBACK: Try to resolve from database
                 try {
-                    const billingManager = require('./billing');
-                    const customer = await billingManager.getCustomerByWhatsAppLid(senderLid);
+                    const BillingManager = require('./billing');
+                    const billing = new BillingManager();
+                    const customer = await billing.getCustomerByWhatsAppLid(senderLid);
                     if (customer) {
                         senderNumber = customer.phone;
                         // Normalize
                         if (senderNumber.startsWith('0')) senderNumber = '62' + senderNumber.slice(1);
-                        if (!senderNumber.startsWith('62')) senderNumber = '62' + senderNumber;
-                        isLidResolved = true;
-                        logger.info(`✅ Resolved LID ${senderLid} to customer phone: ${senderNumber}`);
+                        logger.info(`✅ Resolved LID ${senderLid} from database to phone: ${senderNumber}`);
                     } else {
-                        // PRIORITAS 3: Coba cari customer dengan nomor admin yang terdaftar
-                        // Ini untuk kasus admin yang belum menjalankan SETLID tapi nomornya sudah terdaftar
-                        console.log('🔍 [LID RESOLVE] Trying to find customer with admin phone number...');
-                        const { getSetting } = require('./settingsManager');
-                        for (let i = 0; i < 20; i++) {
-                            const adminPhone = getSetting(`admins.${i}`, '');
-                            if (adminPhone) {
-                                // Normalize admin phone
-                                let cleanAdminPhone = adminPhone.replace(/\D/g, '');
-                                if (cleanAdminPhone.startsWith('0')) cleanAdminPhone = '62' + cleanAdminPhone.slice(1);
-                                if (!cleanAdminPhone.startsWith('62')) cleanAdminPhone = '62' + cleanAdminPhone;
-                                
-                                console.log(`🔍 [LID RESOLVE] Checking admin.${i} = ${cleanAdminPhone}`);
-                                
-                                // Cek apakah ada customer dengan nomor admin ini
-                                try {
-                                    const billingManager = require('./billing');
-                                    const customerByPhone = await billingManager.getCustomerByPhone(cleanAdminPhone);
-                                    if (customerByPhone) {
-                                        console.log(`🔍 [LID RESOLVE] Found customer: ${customerByPhone.name}, phone: ${customerByPhone.phone}, LID: ${customerByPhone.whatsapp_lid || '(none)'}`);
-                                        if (customerByPhone.whatsapp_lid === senderLid) {
-                                            // Customer dengan nomor admin ini memiliki LID yang sama
-                                            senderNumber = cleanAdminPhone;
-                                            isLidResolved = true;
-                                            logger.info(`✅ Resolved LID ${senderLid} to admin phone via customer: ${senderNumber}`);
-                                            console.log(`✅ [LID RESOLVE] Resolved LID ${senderLid} to admin phone via customer: ${senderNumber}`);
-                                            break;
-                                        } else if (!customerByPhone.whatsapp_lid) {
-                                            // Customer dengan nomor admin ini belum punya LID, auto-link LID ini
-                                            console.log(`🔍 [LID RESOLVE] Customer ${customerByPhone.name} has admin phone but no LID, auto-linking...`);
-                                            try {
-                                                await billingManager.updateCustomerWhatsAppLid(customerByPhone.id, senderLid);
-                                                senderNumber = cleanAdminPhone;
-                                                isLidResolved = true;
-                                                logger.info(`✅ Auto-linked LID ${senderLid} to admin phone via customer: ${senderNumber}`);
-                                                console.log(`✅ [LID RESOLVE] Auto-linked LID ${senderLid} to admin phone via customer: ${senderNumber}`);
-                                                break;
-                                            } catch (linkErr) {
-                                                console.error('❌ [LID RESOLVE] Error auto-linking LID:', linkErr);
-                                            }
-                                        }
-                                    } else {
-                                        console.log(`🔍 [LID RESOLVE] No customer found with phone: ${cleanAdminPhone}`);
-                                    }
-                                } catch (err) {
-                                    console.error(`❌ [LID RESOLVE] Error checking customer for admin.${i}:`, err.message);
-                                    // Continue to next admin
-                                }
-                            }
-                        }
-                        
-                        if (!isLidResolved) {
-                            // LID tidak ditemukan di database, jangan normalisasi LID sebagai nomor telepon
-                            logger.warn(`⚠️ LID ${senderLid} not found in database or admin_lid settings`);
-                            console.log(`⚠️ [LID RESOLVE] LID ${senderLid} not found in database, will check admin_lid directly`);
-                            // JANGAN ubah senderNumber jika LID tidak ter-resolve
-                            // Biarkan senderNumber tetap sebagai LID untuk pengecekan admin_lid nanti
-                        }
+                        logger.warn(`⚠️ LID ${senderLid} not found in database and no remoteJidAlt available`);
                     }
                 } catch (err) {
-                    logger.error('Error resolving LID from database:', err);
-                    console.error('❌ [LID RESOLVE] Error:', err);
+                    logger.warn(`⚠️ Could not resolve LID ${senderLid}:`, err.message);
                 }
             }
-        } else {
-            console.log('🔍 [LID RESOLVE] Not a LID, using regular phone number');
         }
 
         // Cek apakah pengirim adalah admin
-        console.log('🔍 [ADMIN CHECK] Starting admin check...');
-        console.log('🔍 [ADMIN CHECK] senderNumber:', senderNumber);
-        console.log('🔍 [ADMIN CHECK] senderLid:', senderLid);
-        console.log('🔍 [ADMIN CHECK] isLidResolved:', isLidResolved);
-        
-        let isAdmin = false;
-        
-        // PRIORITAS 1: Jika LID sudah ter-resolve ke nomor telepon, cek nomor telepon
-        if (isLidResolved) {
-            console.log('🔍 [ADMIN CHECK] LID resolved, checking resolved phone number...');
-            isAdmin = isAdminNumber(senderNumber);
-            console.log('✅ [ADMIN CHECK] Admin check via resolved phone:', isAdmin);
-        }
-        
-        // PRIORITAS 2: Jika belum terdeteksi sebagai admin dan ada LID, cek admin_lid.X langsung
-        if (!isAdmin && senderLid) {
-            console.log('🔍 [ADMIN CHECK] Checking admin_lid.X directly for:', senderLid);
-            isAdmin = isAdminLid(senderLid);
-            if (isAdmin) {
-                logger.info(`✅ Admin detected via admin_lid: ${senderLid}`);
-                console.log(`✅ [ADMIN CHECK] Admin detected via admin_lid: ${senderLid}`);
-            } else {
-                console.log('❌ [ADMIN CHECK] Not found in admin_lid.X');
-            }
-        }
-        
-        // PRIORITAS 3: Jika masih belum terdeteksi dan bukan LID, cek nomor telepon biasa
-        if (!isAdmin && !senderLid) {
-            console.log('🔍 [ADMIN CHECK] Not a LID, checking regular phone number...');
-            isAdmin = isAdminNumber(senderNumber);
-            console.log('✅ [ADMIN CHECK] Admin check via phone number:', isAdmin);
-        }
-        
-        // PRIORITAS 4: Jika masih belum terdeteksi dan ada LID tapi tidak ter-resolve, 
-        // JANGAN cek nomor LID yang dinormalisasi (itu salah!)
-        if (!isAdmin && senderLid && !isLidResolved) {
-            console.log('⚠️ [ADMIN CHECK] LID not resolved, skipping phone number check (would be wrong)');
-        }
-        
-        console.log('📊 [ADMIN CHECK] Final admin status:', isAdmin);
-        logger.debug(`Sender admin status`, { sender: senderNumber, lid: senderLid, isAdmin, isLidResolved });
-
-        // PRIORITAS TINGGI: Handle SETLID command SEBELUM pengecekan admin lainnya
-        // SETLID harus bisa dijalankan meskipun admin belum terdeteksi (karena LID belum ter-resolve)
-        const command = messageText.trim().toLowerCase();
-        if (command === 'setlid' || command.startsWith('setlid ') || 
-            command === '!setlid' || command.startsWith('!setlid ') ||
-            command === '/setlid' || command.startsWith('/setlid ')) {
-            console.log('🔍 [SETLID] Processing SETLID command...');
-            try {
-                const { setSetting, getSetting } = require('./settingsManager');
-
-                // Parse password dari command: SETLID [password]
-                const args = messageText.split(' ').slice(1);
-                const inputPassword = args[0] ? args[0].trim() : '';
-
-                if (!inputPassword) {
-                    await sock.sendMessage(remoteJid, {
-                        text: formatWithHeaderFooter(
-                            `🔐 *FORMAT SETLID*\n\n` +
-                            `Untuk keamanan, Anda harus memasukkan password admin.\n\n` +
-                            `Format: *SETLID [password]*\n\n` +
-                            `Contoh: SETLID 087828060111\n\n` +
-                            `Password adalah admin_password yang ada di settings.json`
-                        )
-                    });
-                    return;
-                }
-
-                // Validasi password
-                const adminPassword = getSetting('admin_password', '');
-                console.log('🔍 [SETLID] Verifying password...');
-                if (inputPassword !== adminPassword) {
-                    await sock.sendMessage(remoteJid, {
-                        text: formatWithHeaderFooter(
-                            `❌ *PASSWORD SALAH*\n\n` +
-                            `Password yang Anda masukkan tidak sesuai.\n\n` +
-                            `Silakan coba lagi dengan password yang benar.`
-                        )
-                    });
-                    console.log(`⚠️ [SETLID] Failed SETLID attempt - wrong password`);
-                    return;
-                }
-
-                if (!senderLid) {
-                    await sock.sendMessage(remoteJid, {
-                        text: formatWithHeaderFooter(
-                            `❌ *LID TIDAK TERDETEKSI*\n\n` +
-                            `WhatsApp LID tidak terdeteksi. Fitur ini hanya untuk akun WhatsApp dengan format @lid.\n\n` +
-                            `Nomor Anda: ${senderNumber}`
-                        )
-                    });
-                    return;
-                }
-
-                console.log('🔍 [SETLID] LID detected:', senderLid);
-                console.log('🔍 [SETLID] Resolved senderNumber:', senderNumber);
-                console.log('🔍 [SETLID] isLidResolved:', isLidResolved);
-
-                // Cari slot admin yang sesuai
-                // Jika LID sudah ter-resolve, gunakan nomor yang ter-resolve
-                // Jika belum, coba cari berdasarkan semua admin numbers
-                let adminSlot = null;
-                let matchedAdminPhone = null;
-
-                // Cek apakah ada nomor yang ter-resolve dan cocok dengan admin
-                if (isLidResolved && senderNumber) {
-                    console.log('🔍 [SETLID] Checking resolved number against admin list...');
-                    for (let i = 0; i < 20; i++) {
-                        const adminNum = getSetting(`admins.${i}`, '');
-                        if (adminNum) {
-                            // Normalize untuk perbandingan
-                            let cleanAdminNum = adminNum.replace(/\D/g, '');
-                            if (cleanAdminNum.startsWith('0')) cleanAdminNum = '62' + cleanAdminNum.slice(1);
-                            if (!cleanAdminNum.startsWith('62')) cleanAdminNum = '62' + cleanAdminNum;
-                            
-                            let cleanSenderNum = senderNumber.replace(/\D/g, '');
-                            if (cleanSenderNum.startsWith('0')) cleanSenderNum = '62' + cleanSenderNum.slice(1);
-                            if (!cleanSenderNum.startsWith('62')) cleanSenderNum = '62' + cleanSenderNum;
-                            
-                            if (cleanAdminNum === cleanSenderNum) {
-                                adminSlot = i;
-                                matchedAdminPhone = adminNum;
-                                console.log(`✅ [SETLID] Found matching admin.${i} = ${adminNum}`);
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                // Jika belum ditemukan, coba semua admin numbers (untuk kasus LID belum ter-resolve)
-                if (adminSlot === null) {
-                    console.log('🔍 [SETLID] Resolved number not found, checking all admin numbers...');
-                    // Untuk SETLID, kita perlu tahu nomor admin mana yang sesuai
-                    // Karena LID belum ter-resolve, kita tidak bisa langsung tahu
-                    // Solusi: Simpan ke slot pertama yang tersedia, atau minta user spesifik
-                    // Tapi lebih baik: cek apakah ada customer dengan LID ini yang punya nomor admin
-                    try {
-                        const billingManager = require('./billing');
-                        const customer = await billingManager.getCustomerByWhatsAppLid(senderLid);
-                        if (customer) {
-                            const customerPhone = customer.phone;
-                            let cleanCustomerPhone = customerPhone.replace(/\D/g, '');
-                            if (cleanCustomerPhone.startsWith('0')) cleanCustomerPhone = '62' + cleanCustomerPhone.slice(1);
-                            if (!cleanCustomerPhone.startsWith('62')) cleanCustomerPhone = '62' + cleanCustomerPhone;
-                            
-                            for (let i = 0; i < 20; i++) {
-                                const adminNum = getSetting(`admins.${i}`, '');
-                                if (adminNum) {
-                                    let cleanAdminNum = adminNum.replace(/\D/g, '');
-                                    if (cleanAdminNum.startsWith('0')) cleanAdminNum = '62' + cleanAdminNum.slice(1);
-                                    if (!cleanAdminNum.startsWith('62')) cleanAdminNum = '62' + cleanAdminNum;
-                                    
-                                    if (cleanAdminNum === cleanCustomerPhone) {
-                                        adminSlot = i;
-                                        matchedAdminPhone = adminNum;
-                                        console.log(`✅ [SETLID] Found matching admin.${i} via customer: ${adminNum}`);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    } catch (err) {
-                        console.error('❌ [SETLID] Error checking customer:', err);
-                    }
-                }
-
-                // Jika masih belum ditemukan, coba semua admin numbers untuk mencari yang cocok
-                // Ini untuk kasus dimana LID belum ter-resolve tapi kita tahu nomor admin dari settings
-                if (adminSlot === null) {
-                    console.log('🔍 [SETLID] No matching admin found via resolve, checking all admin numbers...');
-                    // Karena kita tidak tahu nomor admin mana yang sesuai dengan LID ini,
-                    // kita akan menggunakan slot pertama yang tersedia
-                    // User bisa menjalankan SETLID lagi jika salah slot
-                    for (let i = 0; i < 20; i++) {
-                        const adminNum = getSetting(`admins.${i}`, '');
-                        if (adminNum) {
-                            // Cek apakah slot ini sudah punya admin_lid
-                            const existingLid = getSetting(`admin_lid.${i}`, '');
-                            if (!existingLid) {
-                                // Slot ini belum punya LID, gunakan slot ini
-                                adminSlot = i;
-                                matchedAdminPhone = adminNum;
-                                console.log(`✅ [SETLID] Using admin.${i} = ${adminNum} (first available slot without LID)`);
-                                break;
-                            }
-                        }
-                    }
-                    
-                    // Jika semua slot sudah punya LID, gunakan slot pertama
-                    if (adminSlot === null) {
-                        const firstAdmin = getSetting(`admins.0`, '');
-                        if (firstAdmin) {
-                            adminSlot = 0;
-                            matchedAdminPhone = firstAdmin;
-                            console.log(`✅ [SETLID] All slots have LID, using admin.0 = ${firstAdmin}`);
-                        }
-                    }
-                }
-
-                if (adminSlot === null) {
-                    await sock.sendMessage(remoteJid, {
-                        text: formatWithHeaderFooter(
-                            `❌ *TIDAK ADA ADMIN TERDAFTAR*\n\n` +
-                            `Tidak ada admin yang terdaftar di settings.json.\n\n` +
-                            `Silakan tambahkan admin terlebih dahulu di settings.json sebagai admins.0, admins.1, dst.`
-                        )
-                    });
-                    return;
-                }
-
-                // Simpan LID ke settings.json dengan key admin_lid.X
-                const lidKey = `admin_lid.${adminSlot}`;
-                console.log(`🔍 [SETLID] Saving LID to ${lidKey}...`);
-                console.log(`🔍 [SETLID] LID: ${senderLid}`);
-                console.log(`🔍 [SETLID] Admin Slot: ${adminSlot}`);
-                console.log(`🔍 [SETLID] Matched Admin Phone: ${matchedAdminPhone}`);
-                
-                const success = setSetting(lidKey, senderLid);
-
-                if (success) {
-                    // Clear cache settings untuk memastikan perubahan terbaca
-                    const { clearSettingsCache } = require('./settingsManager');
-                    clearSettingsCache();
-                    
-                    await sock.sendMessage(remoteJid, {
-                        text: formatWithHeaderFooter(
-                            `✅ *LID TERSIMPAN*\n\n` +
-                            `WhatsApp LID Anda berhasil disimpan!\n\n` +
-                            `📋 *Detail:*\n` +
-                            `• Nomor Admin: ${matchedAdminPhone || 'N/A'}\n` +
-                            `• LID: ${senderLid}\n` +
-                            `• Slot: admin_lid.${adminSlot}\n\n` +
-                            `LID ini akan digunakan untuk identifikasi admin di masa depan.\n` +
-                            `Silakan kirim pesan lagi (misalnya: MENU) untuk verifikasi.`
-                        )
-                    });
-                    console.log(`✅ [SETLID] Admin LID saved: ${senderLid} for admin slot ${adminSlot} (${matchedAdminPhone})`);
-                    console.log(`✅ [SETLID] Settings cache cleared, changes should be visible immediately`);
-                } else {
-                    await sock.sendMessage(remoteJid, {
-                        text: formatWithHeaderFooter(
-                            `❌ *GAGAL MENYIMPAN*\n\n` +
-                            `Gagal menyimpan LID ke settings.json. Silakan cek log untuk detail.`
-                        )
-                    });
-                    console.error('❌ [SETLID] Failed to save LID to settings.json');
-                }
-            } catch (error) {
-                console.error('❌ [SETLID] Error:', error);
-                await sock.sendMessage(remoteJid, {
-                    text: formatWithHeaderFooter(
-                        `❌ *TERJADI KESALAHAN*\n\n` +
-                        `Terjadi kesalahan saat memproses SETLID:\n${error.message}`
-                    )
-                });
-            }
-            return; // Stop processing, SETLID sudah selesai
-        }
+        const isAdmin = isAdminNumber(senderNumber);
+        logger.debug(`Sender admin status`, { sender: senderNumber, isAdmin });
 
         // Try to handle with agent handler first (for non-admin messages)
         if (!isAdmin) {
             try {
                 const AgentWhatsAppIntegration = require('./agentWhatsAppIntegration');
                 const agentWhatsApp = new AgentWhatsAppIntegration(this);
-                const processed = await agentWhatsApp.handleIncomingMessage(message, remoteJid, messageText);
+                const processed = await agentWhatsApp.handleIncomingMessage(message, senderNumber, messageText);
                 if (processed) {
                     console.log('📱 [MAIN] Message processed by agent handler, skipping main handler');
                     return;
@@ -5194,7 +4525,8 @@ ${getSetting('footer_info', 'Internet Tanpa Batas')}`
             return;
         }
 
-        // Proses perintah (command sudah dideklarasikan di atas untuk SETLID)
+        // Proses perintah
+        const command = messageText.trim().toLowerCase();
 
         // Handler setheader
         if (command.startsWith('setheader ')) {
@@ -5592,8 +4924,105 @@ Pesan GenieACS telah diaktifkan kembali.`);
         }
 
         // Jika admin, cek perintah admin lainnya
-        // Catatan: SETLID sudah dipindah ke sebelum pengecekan admin agar bisa dijalankan meskipun admin belum terdeteksi
         if (isAdmin) {
+            // Perintah SETLID untuk admin menyimpan WhatsApp LID mereka
+            if (command === 'setlid' || command === '!setlid' || command === '/setlid') {
+                try {
+                    const { setSetting, getSetting } = require('./settingsManager');
+
+                    // Parse password dari command: SETLID [password]
+                    const args = messageText.split(' ').slice(1);
+                    const inputPassword = args[0] ? args[0].trim() : '';
+
+                    if (!inputPassword) {
+                        await sock.sendMessage(remoteJid, {
+                            text: formatWithHeaderFooter(
+                                `🔐 *FORMAT SETLID*\n\n` +
+                                `Untuk keamanan, Anda harus memasukkan password admin.\n\n` +
+                                `Format: *SETLID [password]*\n\n` +
+                                `Contoh: SETLID admin123\n\n` +
+                                `Password adalah admin_password yang ada di settings.json`
+                            )
+                        });
+                        return;
+                    }
+
+                    // Validasi password
+                    const adminPassword = getSetting('admin_password', '');
+                    if (inputPassword !== adminPassword) {
+                        await sock.sendMessage(remoteJid, {
+                            text: formatWithHeaderFooter(
+                                `❌ *PASSWORD SALAH*\n\n` +
+                                `Password yang Anda masukkan tidak sesuai.\n\n` +
+                                `Silakan coba lagi dengan password yang benar.`
+                            )
+                        });
+                        console.log(`⚠️ Failed SETLID attempt from ${senderNumber} - wrong password`);
+                        return;
+                    }
+
+                    if (!senderLid) {
+                        await sock.sendMessage(remoteJid, {
+                            text: formatWithHeaderFooter(
+                                `❌ *LID TIDAK TERDETEKSI*\n\n` +
+                                `WhatsApp LID tidak terdeteksi. Fitur ini hanya untuk akun WhatsApp dengan format @lid.\n\n` +
+                                `Nomor Anda: ${senderNumber}`
+                            )
+                        });
+                        return;
+                    }
+
+                    // Cari slot admin yang sesuai dengan nomor pengirim
+                    let adminSlot = null;
+                    for (let i = 0; i < 10; i++) {
+                        const adminNum = getSetting(`admins.${i}`, '');
+                        if (adminNum === senderNumber || adminNum === `0${senderNumber.slice(2)}`) {
+                            adminSlot = i;
+                            break;
+                        }
+                    }
+
+                    if (adminSlot === null) {
+                        await sock.sendMessage(remoteJid, {
+                            text: formatWithHeaderFooter(
+                                `❌ *NOMOR TIDAK TERDAFTAR*\n\n` +
+                                `Nomor ${senderNumber} tidak terdaftar sebagai admin di settings.json.\n\n` +
+                                `Silakan tambahkan nomor Anda ke settings.json terlebih dahulu sebagai admins.0, admins.1, dst.`
+                            )
+                        });
+                        return;
+                    }
+
+                    // Simpan LID ke settings.json dengan key admin_lid.X
+                    const lidKey = `admin_lid.${adminSlot}`;
+                    const success = setSetting(lidKey, senderLid);
+
+                    if (success) {
+                        await sock.sendMessage(remoteJid, {
+                            text: formatWithHeaderFooter(
+                                `✅ *LID TERSIMPAN*\n\n` +
+                                `WhatsApp LID Anda berhasil disimpan!\n\n` +
+                                `📋 *Detail:*\n` +
+                                `• Nomor: ${senderNumber}\n` +
+                                `• LID: ${senderLid}\n` +
+                                `• Slot: admin_lid.${adminSlot}\n\n` +
+                                `LID ini akan digunakan untuk identifikasi admin di masa depan.`
+                            )
+                        });
+                        console.log(`✅ Admin LID saved: ${senderLid} for admin slot ${adminSlot}`);
+                    } else {
+                        await sock.sendMessage(remoteJid, {
+                            text: `❌ Gagal menyimpan LID ke settings.json. Silakan cek log.`
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error in SETLID command:', error);
+                    await sock.sendMessage(remoteJid, {
+                        text: `❌ Terjadi kesalahan: ${error.message}`
+                    });
+                }
+                return;
+            }
 
             // Perintah cek ONU (tapi bukan cek tagihan)
             if ((command.startsWith('cek ') || command.startsWith('!cek ') || command.startsWith('/cek ')) &&
@@ -6360,9 +5789,9 @@ Pesan GenieACS telah diaktifkan kembali.`);
 
             // Perintah REG untuk registrasi WhatsApp LID pelanggan
             if (command.startsWith('reg ') || command.startsWith('!reg ') || command.startsWith('/reg ')) {
-                console.log('🔍 [REG] Processing REG command...');
                 try {
                     const billingManager = require('./billing');
+                    const billing = new billingManager();
 
                     // Extract search term (nama atau nomor)
                     const searchTerm = messageText.split(' ').slice(1).join(' ').trim();
@@ -6383,31 +5812,11 @@ Pesan GenieACS telah diaktifkan kembali.`);
                     }
 
                     // Check if LID is available
-                    console.log(`🔍 [REG] Checking LID: ${senderLid}`);
                     if (!senderLid) {
-                        // Jika bukan LID, cek apakah nomor ini sudah terdaftar sebagai customer
-                        console.log(`🔍 [REG] No LID detected, checking if number is already registered...`);
-                        const existingCustomer = await billingManager.getCustomerByPhone(senderNumber);
-                        if (existingCustomer) {
-                            await sock.sendMessage(remoteJid, {
-                                text: formatWithHeaderFooter(
-                                    `✅ *SUDAH TERDAFTAR*\n\n` +
-                                    `Nomor WhatsApp ini sudah terdaftar sebagai:\n\n` +
-                                    `👤 *Nama:* ${existingCustomer.name}\n` +
-                                    `📞 *Nomor:* ${existingCustomer.phone}\n\n` +
-                                    `Anda tidak perlu melakukan registrasi ulang.\n` +
-                                    `Ketik *MENU* untuk melihat daftar perintah.`
-                                )
-                            });
-                            return;
-                        }
-                        
                         await sock.sendMessage(remoteJid, {
                             text: formatWithHeaderFooter(
-                                `⚠️ *REGISTRASI LID*\n\n` +
-                                `WhatsApp LID tidak terdeteksi. Fitur REG dengan LID hanya untuk akun WhatsApp dengan format @lid.\n\n` +
-                                `Jika Anda menggunakan WhatsApp biasa (bukan LID), sistem akan otomatis mengenali nomor Anda jika sudah terdaftar sebagai pelanggan.\n\n` +
-                                `Jika nomor Anda belum terdaftar, silakan hubungi admin untuk registrasi.`
+                                `❌ *REGISTRASI GAGAL*\n\n` +
+                                `WhatsApp LID tidak terdeteksi. Fitur ini hanya untuk akun WhatsApp dengan format @lid.`
                             )
                         });
                         return;
@@ -6420,17 +5829,13 @@ Pesan GenieACS telah diaktifkan kembali.`);
 
                     if (isPhoneNumber) {
                         // Search by phone number
-                        console.log(`🔍 [REG] Searching by phone: ${searchTerm}`);
-                        const customer = await billingManager.getCustomerByPhone(searchTerm);
+                        const customer = await billing.getCustomerByPhone(searchTerm);
                         if (customer) {
                             customers = [customer];
-                            console.log(`✅ [REG] Found customer: ${customer.name}`);
                         }
                     } else {
                         // Search by name
-                        console.log(`🔍 [REG] Searching by name: ${searchTerm}`);
-                        customers = await billingManager.findCustomersByNameOrPhone(searchTerm);
-                        console.log(`✅ [REG] Found ${customers.length} customer(s)`);
+                        customers = await billing.findCustomersByNameOrPhone(searchTerm);
                     }
 
                     if (customers.length === 0) {
@@ -6498,9 +5903,7 @@ Pesan GenieACS telah diaktifkan kembali.`);
 
                     // Register the WhatsApp LID
                     try {
-                        console.log(`🔍 [REG] Registering LID ${senderLid} for customer ${customer.name} (${customer.phone})`);
-                        await billingManager.updateCustomerWhatsAppLid(customer.id, senderLid);
-                        console.log(`✅ [REG] LID registered successfully`);
+                        await billing.updateCustomerWhatsAppLid(customer.id, senderLid);
 
                         await sock.sendMessage(remoteJid, {
                             text: formatWithHeaderFooter(

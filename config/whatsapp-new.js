@@ -145,15 +145,8 @@ async function connectToWhatsApp() {
                 initializeMonitoring();
             }
         });
-        
-        // Event handler untuk pesan masuk
-        sock.ev.on('messages.upsert', async (m) => {
-            const msg = m.messages[0];
-            if (!msg.key.fromMe && m.type === 'notify') {
-                await messageHandlers.handleIncomingMessage(sock, msg);
-            }
-        });
-        
+
+        return sock;
     } catch (error) {
         logger.error('Error connecting to WhatsApp:', error);
         setTimeout(connectToWhatsApp, 30000); // Retry setelah 30 detik

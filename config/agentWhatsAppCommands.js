@@ -35,8 +35,21 @@ class AgentWhatsAppCommands {
     // Handle incoming message
     async handleMessage(from, message) {
         try {
-            // Extract phone number from WhatsApp JID
-            const phoneNumber = from.replace('@s.whatsapp.net', '');
+            // Extract phone number from WhatsApp JID or use directly if already a phone number
+            let phoneNumber = from;
+            if (from.includes('@s.whatsapp.net')) {
+                phoneNumber = from.replace('@s.whatsapp.net', '');
+            } else if (from.includes('@lid')) {
+                phoneNumber = from.replace('@lid', '');
+            }
+            
+            // Normalize phone number
+            phoneNumber = phoneNumber.replace(/\D/g, '');
+            if (phoneNumber.startsWith('0')) {
+                phoneNumber = '62' + phoneNumber.slice(1);
+            } else if (!phoneNumber.startsWith('62')) {
+                phoneNumber = '62' + phoneNumber;
+            }
             
             // Authenticate agent by phone number
             const agent = await this.agentManager.getAgentByPhone(phoneNumber);

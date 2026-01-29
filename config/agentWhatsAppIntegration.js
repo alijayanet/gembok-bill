@@ -62,7 +62,23 @@ class AgentWhatsAppIntegration {
             }
             
             // Handle agent commands
-            const response = await this.commands.handleMessage(from, text);
+            // Extract phone number from from parameter
+            let phoneNumber = from;
+            if (from.includes('@s.whatsapp.net')) {
+                phoneNumber = from.replace('@s.whatsapp.net', '');
+            } else if (from.includes('@lid')) {
+                phoneNumber = from.replace('@lid', '');
+            }
+            
+            // Normalize phone number
+            phoneNumber = phoneNumber.replace(/\D/g, '');
+            if (phoneNumber.startsWith('0')) {
+                phoneNumber = '62' + phoneNumber.slice(1);
+            } else if (!phoneNumber.startsWith('62')) {
+                phoneNumber = '62' + phoneNumber;
+            }
+            
+            const response = await this.commands.handleMessage(phoneNumber, text);
             
             // Only mark as processed if a response was actually sent
             if (response !== null) {

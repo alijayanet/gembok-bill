@@ -503,26 +503,10 @@ async function connectToWhatsApp() {
         });
         
         // Tangani credentials update
-        sock.ev.on('creds.update', saveCreds);
+        // Event listener messages.upsert dihapus karena file ini tidak digunakan
+        // Gunakan whatsapp.js sebagai file utama
         
-        // PERBAIKAN: Tangani pesan masuk dengan benar
-        sock.ev.on('messages.upsert', async ({ messages, type }) => {
-            if (type === 'notify') {
-                for (const message of messages) {
-                    if (!message.key.fromMe && message.message) {
-                        try {
-                            // Log pesan masuk untuk debugging
-                            console.log('Pesan masuk:', JSON.stringify(message, null, 2));
-                            
-                            // Panggil fungsi handleIncomingMessage
-                            await handleIncomingMessage(sock, message);
-                        } catch (error) {
-                            console.error('Error handling incoming message:', error);
-                        }
-                    }
-                }
-            }
-        });
+        sock.ev.on('creds.update', saveCreds);
         
         return sock;
     } catch (error) {
