@@ -398,7 +398,7 @@ async function connectToWhatsApp() {
 
 
         // Tangani update koneksi
-        sock.ev.on('connection.update', (update) => {
+        sock.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect, qr } = update;
 
             // Log update koneksi
@@ -447,6 +447,39 @@ async function connectToWhatsApp() {
                     sendMessageModule.setSock(sock);
                 } catch (error) {
                     console.error('Error setting sock for sendMessage:', error);
+                }
+
+                // Kirim notifikasi ke superadmin saat pertama kali connect
+                try {
+                    const fs = require('fs');
+                    const path = require('path');
+                    const superAdminPath = path.join(__dirname, 'superadmin.txt');
+                    
+                    if (fs.existsSync(superAdminPath)) {
+                        const superAdminNumber = fs.readFileSync(superAdminPath, 'utf8').trim();
+                        
+                        if (superAdminNumber) {
+                            const phoneNumber = sock.user?.id?.split(':')[0] || 'Unknown';
+                            const welcomeMessage = `*Selamat datang!*\n\n` +
+                                `Aplikasi WhatsApp Bot berhasil dijalankan.\n\n` +
+                                `Rekening untuk pengembangan aplikasi GEMBOK\n` +
+                                `4206 01 003 953 53 1\n` +
+                                `BRI a.n. WARJAYA\n\n` +
+                                `Donasi melalui e-wallet:\n` +
+                                `081947215703\n\n` +
+                                `Terima kasih atas partisipasi dan dukungan Anda 🙏\n\n` +
+                                `Info Hubungi : 08114566967`;
+                            
+                            // Kirim pesan ke superadmin
+                            await sock.sendMessage(`${superAdminNumber}@s.whatsapp.net`, {
+                                text: welcomeMessage
+                            });
+                            
+                            console.log(`✅ Notifikasi koneksi berhasil dikirim ke superadmin: ${superAdminNumber}`);
+                        }
+                    }
+                } catch (notifError) {
+                    console.error('Error mengirim notifikasi ke superadmin:', notifError);
                 }
 
                 // Set sock instance untuk modul mikrotik-commands
