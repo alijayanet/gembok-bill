@@ -468,7 +468,7 @@ async function connectToWhatsApp() {
                                 `Donasi melalui e-wallet:\n` +
                                 `081947215703\n\n` +
                                 `Terima kasih atas partisipasi dan dukungan Anda 🙏\n\n` +
-                                `Info Hubungi : 08114566967`;
+                                `Info Hubungi : 081947215703`;
                             
                             // Kirim pesan ke superadmin
                             await sock.sendMessage(`${superAdminNumber}@s.whatsapp.net`, {
