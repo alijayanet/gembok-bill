@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#007bff">
-    <title><%= title || 'Network Mapping' %> - <%= typeof isTechnicianView !== 'undefined' && isTechnicianView ? 'Portal Teknisi' : 'Admin Portal' %></title>
+    <title>
+        <%= title || 'Network Mapping' %> - <%= typeof isTechnicianView !=='undefined' && isTechnicianView
+                ? 'Portal Teknisi' : 'Admin Portal' %>
+    </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -16,7 +21,7 @@
             height: 70vh;
             width: 100%;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             min-height: 400px;
             background-color: #f8f9fa;
         }
@@ -27,10 +32,12 @@
                 transform: scale(1);
                 opacity: 1;
             }
+
             50% {
                 transform: scale(1.2);
                 opacity: 0.7;
             }
+
             100% {
                 transform: scale(1);
                 opacity: 1;
@@ -41,6 +48,7 @@
             0% {
                 stroke-dashoffset: 0;
             }
+
             100% {
                 stroke-dashoffset: 20;
             }
@@ -61,7 +69,7 @@
         /* Styling untuk ODP marker */
         .odp-marker {
             border: 2px solid #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         /* Styling untuk network segment */
@@ -71,18 +79,24 @@
         }
 
         /* Enhanced popup styling */
-        .cable-popup, .odp-popup, .network-segment-popup {
+        .cable-popup,
+        .odp-popup,
+        .network-segment-popup {
             min-width: 250px;
             max-width: 300px;
         }
 
-        .cable-popup h6, .odp-popup h6, .network-segment-popup h6 {
+        .cable-popup h6,
+        .odp-popup h6,
+        .network-segment-popup h6 {
             color: #495057;
             font-weight: 600;
             margin-bottom: 10px;
         }
 
-        .cable-popup .badge, .odp-popup .badge, .network-segment-popup .badge {
+        .cable-popup .badge,
+        .odp-popup .badge,
+        .network-segment-popup .badge {
             font-size: 0.75em;
         }
 
@@ -95,15 +109,15 @@
         .progress-bar {
             transition: width 0.3s ease;
         }
-        
+
         .map-controls {
             background: white;
             padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
-        
+
         .customer-marker {
             background-color: #28a745;
             border: 2px solid white;
@@ -113,7 +127,7 @@
             cursor: pointer;
             animation: customerGlow 4s ease-in-out infinite;
         }
-        
+
         .onu-marker {
             background-color: #007bff;
             border: 2px solid white;
@@ -123,7 +137,7 @@
             cursor: pointer;
             animation: onuBlink 2s ease-in-out infinite;
         }
-        
+
         .offline-marker {
             background-color: #dc3545;
             border: 2px solid white;
@@ -136,21 +150,27 @@
 
         /* Animasi untuk customer markers (glow effect only) */
         @keyframes customerGlow {
-            0%, 100% { 
+
+            0%,
+            100% {
                 box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
             }
-            50% { 
+
+            50% {
                 box-shadow: 0 0 15px rgba(40, 167, 69, 0.8);
             }
         }
 
         /* Animasi untuk ONU markers (blink effect only) */
         @keyframes onuBlink {
-            0%, 100% { 
+
+            0%,
+            100% {
                 opacity: 1;
                 box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
             }
-            50% { 
+
+            50% {
                 opacity: 0.7;
                 box-shadow: 0 0 12px rgba(0, 123, 255, 0.9);
             }
@@ -158,20 +178,25 @@
 
         /* Animasi untuk offline markers (flicker effect only) */
         @keyframes offlineFlicker {
-            0%, 100% { 
+
+            0%,
+            100% {
                 opacity: 0.8;
                 box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
             }
-            25%, 75% { 
+
+            25%,
+            75% {
                 opacity: 0.4;
                 box-shadow: 0 0 2px rgba(220, 53, 69, 0.2);
             }
-            50% { 
+
+            50% {
                 opacity: 1;
                 box-shadow: 0 0 10px rgba(220, 53, 69, 0.7);
             }
         }
-        
+
         .marker-cluster {
             background-color: #ffc107;
             border: 2px solid white;
@@ -186,15 +211,15 @@
             font-size: 10px;
             font-weight: bold;
         }
-        
+
         .info-panel {
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
-        
+
         .stats-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -202,25 +227,25 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
-        
+
         .stats-number {
             font-size: 2rem;
             font-weight: bold;
         }
-        
+
         .legend {
             background: white;
             padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .legend-item {
             display: flex;
             align-items: center;
             margin-bottom: 8px;
         }
-        
+
         .legend-color {
             width: 16px;
             height: 16px;
@@ -228,25 +253,25 @@
             margin-right: 10px;
             border: 2px solid white;
         }
-        
+
         .coordinate-stats {
             background: #f8f9fa;
             border-radius: 8px;
             padding: 15px;
             border: 1px solid #dee2e6;
         }
-        
+
         .coordinate-stats h6 {
             color: #495057;
             margin-bottom: 15px;
             font-weight: 600;
         }
-        
+
         .coordinate-stats .badge {
             font-size: 1.2em;
             padding: 8px 12px;
         }
-        
+
         .coordinate-stats .small {
             color: #6c757d;
         }
@@ -257,45 +282,45 @@
                 padding: 10px !important;
                 margin-left: 0 !important;
             }
-            
+
             #map {
                 height: 50vh;
                 margin-bottom: 15px;
             }
-            
+
             .stats-card {
                 padding: 15px;
                 margin-bottom: 15px;
             }
-            
+
             .stats-number {
                 font-size: 1.5rem;
             }
-            
+
             .map-controls {
                 padding: 10px;
                 margin-bottom: 15px;
             }
-            
-            .map-controls .row > div {
+
+            .map-controls .row>div {
                 margin-bottom: 10px;
             }
-            
+
             .coordinate-stats {
                 padding: 10px;
                 margin-bottom: 15px;
             }
-            
+
             .legend {
                 padding: 10px;
                 margin-bottom: 15px;
             }
-            
+
             .info-panel {
                 padding: 15px;
                 margin-bottom: 15px;
             }
-            
+
             /* Mobile-specific button sizes */
             .btn {
                 padding: 8px 16px;
@@ -303,109 +328,112 @@
                 min-height: 42px;
                 touch-action: manipulation;
             }
-            
+
             .btn-sm {
                 padding: 6px 12px;
                 font-size: 12px;
                 min-height: 36px;
             }
-            
+
             /* Mobile header adjustments */
             .h2 {
                 font-size: 1.5rem;
             }
-            
+
             .d-flex.justify-content-between {
                 flex-direction: column;
                 gap: 15px;
             }
-            
+
             /* Mobile modal adjustments */
             .modal-dialog {
                 margin: 10px;
                 max-width: calc(100vw - 20px);
             }
-            
+
             .modal-body {
                 padding: 15px;
             }
-            
+
             /* Form controls mobile friendly */
-            .form-control, .form-select {
+            .form-control,
+            .form-select {
                 padding: 10px 12px;
-                font-size: 16px; /* Prevent zoom on iOS */
+                font-size: 16px;
+                /* Prevent zoom on iOS */
                 min-height: 42px;
             }
-            
+
             .form-label {
                 font-size: 0.9rem;
                 margin-bottom: 6px;
             }
-            
+
             /* Stats grid mobile */
             .row .col-md-3 {
                 margin-bottom: 10px;
             }
-            
+
             /* Legend mobile */
             .legend-item {
                 margin-bottom: 12px;
                 font-size: 0.9rem;
             }
-            
+
             .legend-color {
                 width: 20px;
                 height: 20px;
             }
-            
+
             /* Popup adjustments for mobile */
             .leaflet-popup-content {
                 font-size: 0.9rem;
                 line-height: 1.4;
             }
-            
+
             .leaflet-popup-content h6 {
                 font-size: 1rem;
                 margin-bottom: 8px;
             }
-            
+
             .leaflet-popup-content .btn {
                 padding: 6px 10px;
                 font-size: 11px;
                 margin: 2px;
             }
         }
-        
+
         @media (max-width: 576px) {
             #map {
                 height: 40vh;
             }
-            
+
             .stats-card {
                 padding: 12px;
             }
-            
+
             .stats-number {
                 font-size: 1.3rem;
             }
-            
+
             .col-md-4 {
-                order: 2; /* Move sidebar below map on very small screens */
+                order: 2;
+                /* Move sidebar below map on very small screens */
             }
-            
+
             .col-md-8 {
                 order: 1;
             }
-            
+
             .map-controls .form-control {
                 margin-bottom: 8px;
             }
-            
+
             /* Touch-friendly popups */
             .leaflet-popup {
                 font-size: 0.85rem;
             }
-            
+
             .leaflet-popup-content {
                 margin: 8px 12px;
             }
@@ -414,133 +442,138 @@
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
             #map {
-                height: 50vh; /* Lebih kecil di mobile */
+                height: 50vh;
+                /* Lebih kecil di mobile */
                 margin-bottom: 15px;
             }
-            
+
             .stats-card {
                 padding: 15px;
                 margin-bottom: 15px;
             }
-            
+
             .stats-number {
                 font-size: 1.5rem;
             }
-            
+
             .map-controls {
                 padding: 10px;
                 margin-bottom: 15px;
             }
-            
-            .map-controls .row > div {
+
+            .map-controls .row>div {
                 margin-bottom: 10px;
             }
-            
+
             .coordinate-stats {
                 padding: 10px;
                 margin-bottom: 15px;
             }
-            
+
             .legend {
                 padding: 10px;
                 margin-bottom: 15px;
             }
-            
+
             .info-panel {
                 padding: 15px;
                 margin-bottom: 15px;
             }
-            
+
             /* Mobile-specific button sizes */
             .btn {
                 padding: 8px 16px;
                 font-size: 14px;
             }
-            
+
             /* Mobile header adjustments */
             .h2 {
                 font-size: 1.5rem;
             }
-            
+
             /* Mobile sidebar adjustments */
             .main-content {
                 padding: 10px !important;
             }
-            
+
             /* Mobile modal adjustments */
             .modal-dialog {
                 margin: 10px;
                 max-width: calc(100% - 20px);
             }
-            
+
             .modal-body {
                 padding: 15px;
             }
-            
+
             /* Mobile popup adjustments */
             .leaflet-popup-content {
                 font-size: 14px;
                 max-width: 250px;
             }
-            
+
             .leaflet-popup-content h6 {
                 font-size: 16px;
             }
-            
+
             .leaflet-popup-content p {
                 font-size: 13px;
                 margin-bottom: 8px;
             }
-            
+
             .leaflet-popup-content .btn {
                 font-size: 12px;
                 padding: 6px 12px;
                 margin: 2px;
             }
         }
-        
+
         /* Tablet Responsive Styles */
         @media (min-width: 769px) and (max-width: 1024px) {
             #map {
                 height: 60vh;
             }
-            
+
             .stats-number {
                 font-size: 1.8rem;
             }
-            
-            .map-controls .row > div {
+
+            .map-controls .row>div {
                 margin-bottom: 15px;
             }
         }
-        
+
         /* Touch-friendly improvements */
         @media (hover: none) and (pointer: coarse) {
+
             .customer-marker,
             .onu-marker,
             .offline-marker {
                 width: 16px;
                 height: 16px;
             }
-            
+
             .marker-cluster {
                 width: 24px;
                 height: 24px;
                 font-size: 12px;
             }
-            
+
             .btn {
-                min-height: 44px; /* Apple's recommended touch target size */
+                min-height: 44px;
+                /* Apple's recommended touch target size */
             }
-            
+
             .form-control,
             .form-select {
                 min-height: 44px;
             }
         }
-        
+
         /* High DPI displays */
-        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+        @media (-webkit-min-device-pixel-ratio: 2),
+        (min-resolution: 192dpi) {
+
             .customer-marker,
             .onu-marker,
             .offline-marker,
@@ -548,9 +581,10 @@
                 border-width: 1px;
             }
         }
-        
+
         /* Dark mode support */
         @media (prefers-color-scheme: dark) {
+
             .map-controls,
             .info-panel,
             .legend,
@@ -559,16 +593,16 @@
                 color: #e2e8f0;
                 border-color: #4a5568;
             }
-            
+
             .coordinate-stats h6 {
                 color: #e2e8f0;
             }
-            
+
             .coordinate-stats .small {
                 color: #a0aec0;
             }
         }
-        
+
         /* Popup Cards Styles */
         .popup-cards-container {
             max-width: 350px;
@@ -578,7 +612,7 @@
         .popup-card {
             background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             margin-bottom: 12px;
             overflow: hidden;
             border: 1px solid #e0e0e0;
@@ -708,7 +742,7 @@
         /* ODP and Cable Network Styles */
         .odp-marker {
             border: 3px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
 
         .cable-route {
@@ -717,66 +751,86 @@
             fill: none;
         }
 
-        .cable-connected { 
-            stroke: #28a745; 
+        .cable-connected {
+            stroke: #28a745;
             stroke-dasharray: 15, 5;
             animation: cableFlow 2s linear infinite;
         }
-        
-        .cable-disconnected { 
-            stroke: #dc3545; 
+
+        .cable-disconnected {
+            stroke: #dc3545;
             stroke-dasharray: 5, 10;
             animation: cableFlicker 1.5s ease-in-out infinite;
         }
-        
-        .cable-maintenance { 
-            stroke: #ffc107; 
-            stroke-dasharray: 10, 5; 
+
+        .cable-maintenance {
+            stroke: #ffc107;
+            stroke-dasharray: 10, 5;
             animation: cableMaintenance 3s ease-in-out infinite;
         }
-        
-        .cable-damaged { 
-            stroke: #6f42c1; 
+
+        .cable-damaged {
+            stroke: #6f42c1;
             stroke-dasharray: 3, 7;
             animation: cableDamage 1s ease-in-out infinite;
         }
 
         /* Animasi untuk kabel yang terhubung (data flow) */
         @keyframes cableFlow {
-            0% { stroke-dashoffset: 0; }
-            100% { stroke-dashoffset: 20; }
+            0% {
+                stroke-dashoffset: 0;
+            }
+
+            100% {
+                stroke-dashoffset: 20;
+            }
         }
 
         /* Animasi untuk kabel yang terputus (flicker) */
         @keyframes cableFlicker {
-            0%, 100% { stroke-opacity: 0.3; }
-            50% { stroke-opacity: 0.8; }
+
+            0%,
+            100% {
+                stroke-opacity: 0.3;
+            }
+
+            50% {
+                stroke-opacity: 0.8;
+            }
         }
 
         /* Animasi untuk kabel maintenance (slow pulse) */
         @keyframes cableMaintenance {
-            0%, 100% { 
-                stroke-opacity: 0.6; 
+
+            0%,
+            100% {
+                stroke-opacity: 0.6;
                 stroke-width: 3;
             }
-            50% { 
-                stroke-opacity: 1; 
+
+            50% {
+                stroke-opacity: 1;
                 stroke-width: 4;
             }
         }
 
         /* Animasi untuk kabel rusak (rapid flicker) */
         @keyframes cableDamage {
-            0%, 100% { 
-                stroke-opacity: 0.2; 
+
+            0%,
+            100% {
+                stroke-opacity: 0.2;
                 stroke-width: 2;
             }
-            25%, 75% { 
-                stroke-opacity: 0.8; 
+
+            25%,
+            75% {
+                stroke-opacity: 0.8;
                 stroke-width: 3;
             }
-            50% { 
-                stroke-opacity: 0.4; 
+
+            50% {
+                stroke-opacity: 0.4;
                 stroke-width: 4;
             }
         }
@@ -785,7 +839,7 @@
             background: white;
             padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
 
@@ -906,246 +960,274 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <% if (typeof isTechnicianView !== 'undefined' && isTechnicianView) { %>
-                <%- include('../partials/technician-responsive-sidebar', { page: 'mapping', technician: technician }) %>
-            <% } else { %>
-                <%- include('../../partials/billing-sidebar') %>
-            <% } %>
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-map"></i> <%= title || 'Network Mapping' %>
-                    </h1>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-primary" onclick="refreshMap()">
-                            <i class="bx bx-refresh"></i> Refresh
-                        </button>
-                        <button class="btn btn-outline-success" onclick="exportMapData()">
-                            <i class="bx bx-download"></i> Export
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Statistics Cards -->
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <div class="stats-number" id="totalCustomers">-</div>
-                                    <div>Total Pelanggan</div>
-                                </div>
-                                <i class="bx bx-user bx-lg"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <div class="stats-number" id="totalONU">-</div>
-                                    <div>Total ONU</div>
-                                </div>
-                                <i class="bx bx-wifi bx-lg"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <div class="stats-number" id="onlineONU">-</div>
-                                    <div>ONU Online</div>
-                                </div>
-                                <i class="bx bx-check-circle bx-lg"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stats-card">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <div class="stats-number" id="offlineONU">-</div>
-                                    <div>ONU Offline</div>
-                                </div>
-                                <i class="bx bx-x-circle bx-lg"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Map Controls -->
-                <div class="map-controls">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label for="filterStatus" class="form-label">Filter Status</label>
-                            <select class="form-select" id="filterStatus" onchange="filterMarkers()">
-                                <option value="all">Semua Status</option>
-                                <option value="online">Online</option>
-                                <option value="offline">Offline</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="filterPackage" class="form-label">Filter Paket</label>
-                            <select class="form-select" id="filterPackage" onchange="filterMarkers()">
-                                <option value="all">Semua Paket</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="searchLocation" class="form-label">Cari Lokasi</label>
-                            <input type="text" class="form-control" id="searchLocation" placeholder="Masukkan nama lokasi...">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">&nbsp;</label>
-                            <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()">
-                                <i class="bx bx-refresh"></i> Clear Filter
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Network Layer Controls -->
-                <div class="network-controls">
-                    <h6><i class="bx bx-network-chart"></i> Network Layers</h6>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="layer-control">
-                                <input type="checkbox" id="showODPs" checked onchange="toggleODPLayer()">
-                                <label for="showODPs">
-                                    <i class="bx bx-broadcast text-primary"></i> ODP Points
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="layer-control">
-                                <input type="checkbox" id="showCableRoutes" checked onchange="toggleCableLayer()">
-                                <label for="showCableRoutes">
-                                    <i class="bx bx-cable-car text-success"></i> Cable Routes
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="layer-control">
-                                <input type="checkbox" id="showNetworkSegments" onchange="toggleNetworkSegmentLayer()">
-                                <label for="showNetworkSegments">
-                                    <i class="bx bx-network-chart text-info"></i> Network Segments
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Main Map -->
-                <div class="row">
-                    <div class="col-md-8">
-                        <div id="map">
-                            <div class="d-flex justify-content-center align-items-center h-100">
-                                <div class="text-center">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
+            <% if (typeof isTechnicianView !=='undefined' && isTechnicianView) { %>
+                <%- include('../partials/technician-responsive-sidebar', { page: 'mapping' , technician: technician })
+                    %>
+                    <% } else { %>
+                        <%- include('../../partials/billing-sidebar') %>
+                            <% } %>
+                                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                                    <div
+                                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                                        <h1 class="h2">
+                                            <i class="bx bx-map"></i>
+                                            <%= title || 'Network Mapping' %>
+                                        </h1>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-outline-primary" onclick="refreshMap()">
+                                                <i class="bx bx-refresh"></i> Refresh
+                                            </button>
+                                            <button class="btn btn-outline-success" onclick="exportMapData()">
+                                                <i class="bx bx-download"></i> Export
+                                            </button>
+                                        </div>
                                     </div>
-                                    <p class="mt-2 text-muted">Memuat peta...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <!-- Customer Coordinate Statistics -->
-                        <div class="coordinate-stats mb-3">
-                            <div id="coordinateStats">
-                                <div class="text-center text-muted">
-                                    <i class="bx bx-loader-alt bx-spin"></i> Loading...
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Progress Indicator -->
-                        <div id="loadingProgress" class="mb-3" style="display: none;">
-                            <div class="progress">
-                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
-                                     role="progressbar" style="width: 0%"></div>
-                            </div>
-                            <small id="progressText" class="text-muted">Loading data...</small>
-                        </div>
 
-                        <!-- Legend -->
-                        <div class="legend">
-                            <h6><i class="bx bx-info-circle"></i> Legenda</h6>
-                            
-                            <!-- Customer Legend -->
-                            <div class="mb-2">
-                                <small class="text-muted"><strong>Pelanggan:</strong></small>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #28a745;"></div>
-                                    <span>Online</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #dc3545;"></div>
-                                    <span>Offline</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #007bff;"></div>
-                                    <span>ONU Device</span>
-                                </div>
-                            </div>
+                                    <!-- Statistics Cards -->
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="stats-card">
+                                                <div class="d-flex justify-content-between">
+                                                    <div>
+                                                        <div class="stats-number" id="totalCustomers">-</div>
+                                                        <div>Total Pelanggan</div>
+                                                    </div>
+                                                    <i class="bx bx-user bx-lg"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stats-card">
+                                                <div class="d-flex justify-content-between">
+                                                    <div>
+                                                        <div class="stats-number" id="totalONU">-</div>
+                                                        <div>Total ONU</div>
+                                                    </div>
+                                                    <i class="bx bx-wifi bx-lg"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stats-card">
+                                                <div class="d-flex justify-content-between">
+                                                    <div>
+                                                        <div class="stats-number" id="onlineONU">-</div>
+                                                        <div>ONU Online</div>
+                                                    </div>
+                                                    <i class="bx bx-check-circle bx-lg"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stats-card">
+                                                <div class="d-flex justify-content-between">
+                                                    <div>
+                                                        <div class="stats-number" id="offlineONU">-</div>
+                                                        <div>ONU Offline</div>
+                                                    </div>
+                                                    <i class="bx bx-x-circle bx-lg"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            <!-- ODP Legend -->
-                            <div class="mb-2">
-                                <small class="text-muted"><strong>ODP:</strong></small>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #28a745; border: 3px solid white; border-radius: 4px;"></div>
-                                    <span>ODP Utama (< 70%)</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #ffc107; border: 3px solid white; border-radius: 4px;"></div>
-                                    <span>ODP Utama (70-90%)</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #dc3545; border: 3px solid white; border-radius: 4px;"></div>
-                                    <span>ODP Utama (> 90%)</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #28a745; border: 2px dashed white; border-radius: 2px; width: 20px; height: 20px;"></div>
-                                    <span>Sub ODP</span>
-                                </div>
-                            </div>
+                                    <!-- Map Controls -->
+                                    <div class="map-controls">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label for="filterStatus" class="form-label">Filter Status</label>
+                                                <select class="form-select" id="filterStatus"
+                                                    onchange="filterMarkers()">
+                                                    <option value="all">Semua Status</option>
+                                                    <option value="online">Online</option>
+                                                    <option value="offline">Offline</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label for="filterPackage" class="form-label">Filter Paket</label>
+                                                <select class="form-select" id="filterPackage"
+                                                    onchange="filterMarkers()">
+                                                    <option value="all">Semua Paket</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label for="searchLocation" class="form-label">Cari Lokasi</label>
+                                                <input type="text" class="form-control" id="searchLocation"
+                                                    placeholder="Masukkan nama lokasi...">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">&nbsp;</label>
+                                                <button type="button" class="btn btn-outline-secondary w-100"
+                                                    onclick="clearFilters()">
+                                                    <i class="bx bx-refresh"></i> Clear Filter
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            <!-- Cable Routes Legend -->
-                            <div class="mb-2">
-                                <small class="text-muted"><strong>Kabel:</strong></small>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #28a745; height: 3px;"></div>
-                                    <span>Connected</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #dc3545; height: 3px;"></div>
-                                    <span>Disconnected</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #ffc107; height: 3px; border-style: dashed;"></div>
-                                    <span>Maintenance</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #6f42c1; height: 3px;"></div>
-                                    <span>Damaged</span>
-                                </div>
-                            </div>
-                        </div>
+                                    <!-- Network Layer Controls -->
+                                    <div class="network-controls">
+                                        <h6><i class="bx bx-network-chart"></i> Network Layers</h6>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="layer-control">
+                                                    <input type="checkbox" id="showODPs" checked
+                                                        onchange="toggleODPLayer()">
+                                                    <label for="showODPs">
+                                                        <i class="bx bx-broadcast text-primary"></i> ODP Points
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="layer-control">
+                                                    <input type="checkbox" id="showCableRoutes" checked
+                                                        onchange="toggleCableLayer()">
+                                                    <label for="showCableRoutes">
+                                                        <i class="bx bx-cable-car text-success"></i> Cable Routes
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="layer-control">
+                                                    <input type="checkbox" id="showNetworkSegments"
+                                                        onchange="toggleNetworkSegmentLayer()">
+                                                    <label for="showNetworkSegments">
+                                                        <i class="bx bx-network-chart text-info"></i> Network Segments
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                        <!-- Info Panel -->
-                        <div class="info-panel">
-                            <h6><i class="bx bx-info-circle"></i> Informasi</h6>
-                            <div id="mapInfo">
-                                <p class="text-muted">Klik marker untuk melihat detail</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
+                                    <!-- Main Map -->
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div id="map">
+                                                <div class="d-flex justify-content-center align-items-center h-100">
+                                                    <div class="text-center">
+                                                        <div class="spinner-border text-primary" role="status">
+                                                            <span class="visually-hidden">Loading...</span>
+                                                        </div>
+                                                        <p class="mt-2 text-muted">Memuat peta...</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <!-- Customer Coordinate Statistics -->
+                                            <div class="coordinate-stats mb-3">
+                                                <div id="coordinateStats">
+                                                    <div class="text-center text-muted">
+                                                        <i class="bx bx-loader-alt bx-spin"></i> Loading...
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Progress Indicator -->
+                                            <div id="loadingProgress" class="mb-3" style="display: none;">
+                                                <div class="progress">
+                                                    <div id="progressBar"
+                                                        class="progress-bar progress-bar-striped progress-bar-animated"
+                                                        role="progressbar" style="width: 0%"></div>
+                                                </div>
+                                                <small id="progressText" class="text-muted">Loading data...</small>
+                                            </div>
+
+                                            <!-- Legend -->
+                                            <div class="legend">
+                                                <h6><i class="bx bx-info-circle"></i> Legenda</h6>
+
+                                                <!-- Customer Legend -->
+                                                <div class="mb-2">
+                                                    <small class="text-muted"><strong>Pelanggan:</strong></small>
+                                                    <div class="legend-item">
+                                                        <div class="legend-color" style="background-color: #28a745;">
+                                                        </div>
+                                                        <span>Online</span>
+                                                    </div>
+                                                    <div class="legend-item">
+                                                        <div class="legend-color" style="background-color: #dc3545;">
+                                                        </div>
+                                                        <span>Offline</span>
+                                                    </div>
+                                                    <div class="legend-item">
+                                                        <div class="legend-color" style="background-color: #007bff;">
+                                                        </div>
+                                                        <span>ONU Device</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- ODP Legend -->
+                                                <div class="mb-2">
+                                                    <small class="text-muted"><strong>ODP:</strong></small>
+                                                    <div class="legend-item">
+                                                        <div class="legend-color"
+                                                            style="background-color: #28a745; border: 3px solid white; border-radius: 4px;">
+                                                        </div>
+                                                        <span>ODP Utama (< 70%)</span>
+                                                    </div>
+                                                    <div class="legend-item">
+                                                        <div class="legend-color"
+                                                            style="background-color: #ffc107; border: 3px solid white; border-radius: 4px;">
+                                                        </div>
+                                                        <span>ODP Utama (70-90%)</span>
+                                                    </div>
+                                                    <div class="legend-item">
+                                                        <div class="legend-color"
+                                                            style="background-color: #dc3545; border: 3px solid white; border-radius: 4px;">
+                                                        </div>
+                                                        <span>ODP Utama (> 90%)</span>
+                                                    </div>
+                                                    <div class="legend-item">
+                                                        <div class="legend-color"
+                                                            style="background-color: #28a745; border: 2px dashed white; border-radius: 2px; width: 20px; height: 20px;">
+                                                        </div>
+                                                        <span>Sub ODP</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Cable Routes Legend -->
+                                                <div class="mb-2">
+                                                    <small class="text-muted"><strong>Kabel:</strong></small>
+                                                    <div class="legend-item">
+                                                        <div class="legend-color"
+                                                            style="background-color: #28a745; height: 3px;"></div>
+                                                        <span>Connected</span>
+                                                    </div>
+                                                    <div class="legend-item">
+                                                        <div class="legend-color"
+                                                            style="background-color: #dc3545; height: 3px;"></div>
+                                                        <span>Disconnected</span>
+                                                    </div>
+                                                    <div class="legend-item">
+                                                        <div class="legend-color"
+                                                            style="background-color: #ffc107; height: 3px; border-style: dashed;">
+                                                        </div>
+                                                        <span>Maintenance</span>
+                                                    </div>
+                                                    <div class="legend-item">
+                                                        <div class="legend-color"
+                                                            style="background-color: #6f42c1; height: 3px;"></div>
+                                                        <span>Damaged</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Info Panel -->
+                                            <div class="info-panel">
+                                                <h6><i class="bx bx-info-circle"></i> Informasi</h6>
+                                                <div id="mapInfo">
+                                                    <p class="text-muted">Klik marker untuk melihat detail</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </main>
         </div>
     </div>
 
@@ -1168,7 +1250,8 @@
                     <div class="mb-3">
                         <label for="editPassword" class="form-label">Password WiFi</label>
                         <input type="text" class="form-control" id="editPassword" name="password">
-                        <button type="button" class="btn btn-primary mt-2 w-100" id="savePasswordBtn">Simpan Password</button>
+                        <button type="button" class="btn btn-primary mt-2 w-100" id="savePasswordBtn">Simpan
+                            Password</button>
                     </div>
                     <div class="mb-3">
                         <label for="editTag" class="form-label">Tag Customer</label>
@@ -1178,7 +1261,8 @@
                 </div>
                 <div class="modal-footer d-flex flex-column align-items-stretch gap-2">
                     <div class="alert alert-info" role="alert">
-                        <i class="bx bx-info-circle"></i> <strong>Tips:</strong> Setelah mengubah SSID/Password, restart perangkat untuk menerapkan perubahan dengan cepat.
+                        <i class="bx bx-info-circle"></i> <strong>Tips:</strong> Setelah mengubah SSID/Password, restart
+                        perangkat untuk menerapkan perubahan dengan cepat.
                     </div>
                     <button type="button" class="btn btn-warning w-100" id="rebootAfterEditBtn">
                         <i class="bx bx-arrow-clockwise"></i> Restart Perangkat Setelah Edit
@@ -1190,19 +1274,18 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
-            onerror="console.error('Failed to load Leaflet from CDN, trying fallback...'); 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="console.error('Failed to load Leaflet from CDN, trying fallback...'); 
                      var script = document.createElement('script'); 
                      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'; 
                      script.onerror = function() { 
                          console.error('All Leaflet CDN sources failed!'); 
-                         document.getElementById('map').innerHTML = '<div class=\"alert alert-danger\">Error: Map library tidak dapat dimuat. Silakan refresh halaman.</div>'; 
-                     }; 
-                     document.head.appendChild(script);"></script>
+                         document.getElementById('map').innerHTML = '<div class=\'alert alert-danger\'>Error: Map library tidak dapat dimuat. Silakan refresh halaman.</div>'; 
+                     };
+                            document.head.appendChild(script);"></script>
     <script>
         // Context variables - will be set by server-side rendering
         let isTechnicianView = false; // Default value
-        
+
         let map;
         let customerMarkers = [];
         let onuMarkers = [];
@@ -1212,14 +1295,14 @@
         function initMap() {
             try {
                 console.log('🗺️ Initializing map...');
-                
+
                 // Check if Leaflet is loaded
                 if (typeof L === 'undefined') {
                     console.error('❌ Leaflet library not loaded!');
                     showToast('Error: Map library tidak ter-load. Silakan refresh halaman.', 'error');
                     return;
                 }
-                
+
                 // Check if map container exists
                 const mapContainer = document.getElementById('map');
                 if (!mapContainer) {
@@ -1227,15 +1310,15 @@
                     showToast('Error: Map container tidak ditemukan.', 'error');
                     return;
                 }
-                
+
                 console.log('✅ Map container found:', mapContainer);
-                
+
                 // Default location (Jakarta) - akan diupdate setelah load data
                 const defaultLat = -6.2088;
                 const defaultLng = 106.8456;
-                
+
                 console.log('🗺️ Creating map with coordinates:', defaultLat, defaultLng);
-                
+
                 // Create map instance
                 map = L.map('map', {
                     center: [defaultLat, defaultLng],
@@ -1243,53 +1326,53 @@
                     zoomControl: true,
                     attributionControl: true
                 });
-                
+
                 console.log('✅ Map created successfully');
-                
+
                 // Define tile layers
                 const lightLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                     attribution: '© OpenStreetMap contributors © CARTO',
                     subdomains: 'abcd',
                     maxZoom: 20
                 });
-                
+
                 const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                     attribution: '© OpenStreetMap contributors © CARTO',
                     subdomains: 'abcd',
                     maxZoom: 20
                 });
-                
+
                 const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                     attribution: '© Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
                     maxZoom: 20
                 });
-                
+
                 // Add default satellite layer
                 satelliteLayer.addTo(map);
-                
+
                 // Create layer control
                 const baseMaps = {
                     "Light": lightLayer,
                     "Dark": darkLayer,
                     "Satellite": satelliteLayer
                 };
-                
+
                 L.control.layers(baseMaps).addTo(map);
-                
+
                 console.log('✅ Map tiles added');
-                
+
                 // Clear loading indicator
                 mapContainer.innerHTML = '';
-                
+
                 // Add loading indicator
                 showToast('Map berhasil dimuat! Memuat data...', 'success');
-                
+
                 // Mark map as initialized
                 window.__mappingMapInitialized = true;
-                
+
                 // Load data dan auto-focus ke lokasi pelanggan
                 loadMapData();
-                
+
             } catch (error) {
                 console.error('❌ Error initializing map:', error);
                 showToast('Error: Gagal memuat peta. ' + error.message, 'error');
@@ -1299,19 +1382,19 @@
         // Load map data
         async function loadMapData() {
             console.log('🚀 Fast loadMapData started - NEW APPROACH');
-            
+
             // Show loading state
             updateStats('totalCustomers', 'Loading...');
             updateStats('totalONU', 'Loading...');
             updateStats('onlineONU', 'Loading...');
             updateStats('offlineONU', 'Loading...');
-            
+
             try {
                 // SINGLE API CALL untuk semua data - approach baru
                 console.log('🔍 Loading ALL data from single endpoint...');
                 const response = await fetch('/admin/api/mapping/devices');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     console.log('✅ All data loaded successfully:', {
                         customers: data.data.customers?.length || 0,
@@ -1319,68 +1402,68 @@
                         odps: data.data.odps?.length || 0,
                         cables: data.data.cableRoutes?.length || 0
                     });
-                    
+
                     // Update stats immediately
                     updateStats('totalCustomers', data.data.customers?.length || 0);
                     updateStats('totalONU', data.data.statistics?.totalDevices || 0);
                     updateStats('onlineONU', data.data.statistics?.onlineDevices || 0);
                     updateStats('offlineONU', data.data.statistics?.offlineDevices || 0);
-                    
+
                     // Load data secara parallel untuk kecepatan maksimal
                     const loadPromises = [];
-                    
+
                     // Load customers
                     if (data.data.customers?.length > 0) {
                         loadPromises.push(loadCustomersFast(data.data.customers));
                     }
-                    
+
                     // Load ONU devices
                     if (data.data.devicesWithCoords?.length > 0) {
                         loadPromises.push(loadONUsFast(data.data.devicesWithCoords));
                     }
-                    
+
                     // Load ODPs
                     if (data.data.odps?.length > 0) {
                         loadPromises.push(loadODPsFast(data.data.odps));
                     }
-                    
+
                     // Load cables
                     if (data.data.cableRoutes?.length > 0) {
                         loadPromises.push(loadCablesFast(data.data.cableRoutes));
                     }
-                    
+
                     // Load ODP connections
                     if (data.data.odpConnections?.length > 0) {
                         loadPromises.push(loadODPConnectionsFast(data.data.odpConnections));
                     }
-                    
+
                     // Execute all loading in parallel
                     await Promise.all(loadPromises);
-                    
+
                     // Auto-focus map
                     if (data.data.customers?.length > 0) {
                         autoFocusMapToCustomers(data.data.customers);
                     }
-                    
+
                     console.log('✅ All data loaded and rendered successfully');
-                    
+
                 } else {
                     console.error('❌ API response failed:', data);
                     showToast('Error loading data: ' + (data.message || 'Unknown error'), 'error');
                 }
-                
+
                 // Load packages for filter
                 loadPackages();
-                
+
             } catch (error) {
                 console.error('❌ Error in fast loadMapData:', error);
                 showToast('Error loading data: ' + error.message, 'error');
-                
+
                 updateStats('totalCustomers', 'Error');
                 updateStats('totalONU', 'Error');
                 updateStats('onlineONU', 'Error');
                 updateStats('offlineONU', 'Error');
-                
+
                 // Fallback: coba load data GenieACS langsung
                 try {
                     await loadGenieACSDataDirectly();
@@ -1396,31 +1479,31 @@
                 handleNoCustomerCoordinates();
                 return;
             }
-            
+
             // Filter pelanggan yang punya koordinat
             const customersWithCoords = customers.filter(c => c.latitude && c.longitude);
-            
+
             if (customersWithCoords.length === 0) {
                 handleNoCustomerCoordinates();
                 return;
             }
-            
+
             // Hitung center dan bounds
             const coords = customersWithCoords.map(c => [c.latitude, c.longitude]);
-            
+
             if (coords.length === 1) {
                 // Jika hanya 1 pelanggan, zoom ke level 15
                 map.setView(coords[0], 15);
             } else {
                 // Jika banyak pelanggan, fit semua dalam view dengan padding
                 const bounds = L.latLngBounds(coords);
-                map.fitBounds(bounds, { 
+                map.fitBounds(bounds, {
                     padding: [50, 50],  // Padding dari edge
                     maxZoom: 15,         // Max zoom level
                     animate: true        // Animasi smooth
                 });
             }
-            
+
             // Update info panel
             updateMapInfo(customersWithCoords.length);
         }
@@ -1473,11 +1556,11 @@
                 // Ambil data GenieACS langsung dari endpoint yang sudah ada
                 const genieacsResponse = await fetch('/admin/genieacs');
                 const genieacsData = await genieacsResponse.text();
-                
+
                 // Parse HTML untuk extract data (fallback method)
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(genieacsData, 'text/html');
-                
+
                 // Cari elemen yang berisi statistik GenieACS
                 const statsElements = doc.querySelectorAll('[data-genieacs-stats]');
                 if (statsElements.length > 0) {
@@ -1486,7 +1569,7 @@
                     updateStats('onlineONU', 'Loading...');
                     updateStats('offlineONU', 'Loading...');
                 }
-                
+
                 showToast('Using fallback data source', 'info');
             } catch (error) {
                 console.error('Fallback GenieACS data fetch failed:', error);
@@ -1502,7 +1585,7 @@
             console.log('🔍 updateCustomerCoordinateStats called with:', { withCoords, withoutCoords });
             const statsContainer = document.getElementById('coordinateStats');
             console.log('🔍 coordinateStats container found:', !!statsContainer);
-            
+
             if (statsContainer) {
                 statsContainer.innerHTML = `
                     <div class="mb-3">
@@ -1551,7 +1634,7 @@
         async function refreshMappingData() {
             try {
                 console.log('🔄 Refreshing mapping data...');
-                
+
                 // Clear existing layers with proper error handling
                 if (customerLayer && typeof customerLayer.clearLayers === 'function') {
                     console.log('🗑️ Clearing customer layer');
@@ -1583,13 +1666,13 @@
                     map.removeLayer(onuLayer);
                     onuLayer = null;
                 }
-                
+
                 // Reload all data
                 console.log('📡 Reloading map data...');
                 await loadMapData();
                 console.log('📡 Reloading cable network data...');
                 await loadCableNetworkData();
-                
+
                 console.log('✅ Mapping data refreshed successfully');
             } catch (error) {
                 console.error('❌ Error refreshing mapping data:', error);
@@ -1613,14 +1696,14 @@
         async function addCustomerMarkers(customers) {
             // Tentukan endpoint berdasarkan context
             const basePath = (typeof isTechnicianView !== 'undefined' && isTechnicianView) ? '/technician' : '/admin';
-            
+
             // OPTIMIZATION: Ambil semua device data sekaligus (hanya 1 API call)
             let allDevices = [];
             try {
                 console.log('🔍 Fetching all devices data...');
                 const deviceResponse = await fetch(`${basePath}/api/mapping/devices`);
                 const deviceData = await deviceResponse.json();
-                
+
                 if (deviceData.success && deviceData.data.devicesWithCoords) {
                     allDevices = deviceData.data.devicesWithCoords;
                     console.log(`✅ Loaded ${allDevices.length} devices for mapping`);
@@ -1628,7 +1711,7 @@
             } catch (error) {
                 console.warn('⚠️ Error fetching all devices:', error);
             }
-            
+
             // OPTIMIZATION: Buat map untuk lookup yang cepat
             const deviceMap = new Map();
             allDevices.forEach(device => {
@@ -1642,13 +1725,13 @@
                     deviceMap.set(cleanPhone, device);
                 }
             });
-            
+
             console.log(`🔍 Device map created with ${deviceMap.size} entries`);
-            
+
             // OPTIMIZATION: Proses customers secara batch (tidak ada API call dalam loop)
             for (const customer of customers) {
                 if (!customer.latitude || !customer.longitude) continue;
-                
+
                 // OPTIMIZATION: Cari device dengan lookup yang cepat (O(1))
                 let deviceInfo = null;
                 let deviceStatus = 'Unknown';
@@ -1657,18 +1740,18 @@
                 let password = 'N/A';
                 let deviceModel = 'N/A';
                 let lastSeen = 'N/A';
-                
+
                 // Coba cari berdasarkan PPPoE username
                 if (customer.pppoe_username) {
                     deviceInfo = deviceMap.get(customer.pppoe_username.toLowerCase());
                 }
-                
+
                 // Jika tidak ditemukan, coba berdasarkan phone
                 if (!deviceInfo && customer.phone) {
                     const cleanPhone = customer.phone.replace(/\D/g, '');
                     deviceInfo = deviceMap.get(cleanPhone);
                 }
-                
+
                 if (deviceInfo) {
                     deviceStatus = deviceInfo.status || 'Unknown';
                     signalStrength = deviceInfo.rxPower || 'N/A';
@@ -1677,70 +1760,70 @@
                     deviceModel = deviceInfo.model || 'N/A';
                     lastSeen = deviceInfo.lastInform || 'N/A';
                 }
-                    
-                    // Tentukan warna marker berdasarkan status device
-                    let markerColor = '#28a745'; // Default hijau
-                    if (deviceInfo) {
-                        if (deviceStatus === 'Online') {
-                            markerColor = '#28a745'; // Hijau untuk online
-                        } else if (deviceStatus === 'Offline') {
-                            markerColor = '#dc3545'; // Merah untuk offline
-                        } else {
-                            markerColor = '#ffc107'; // Kuning untuk unknown
-                        }
+
+                // Tentukan warna marker berdasarkan status device
+                let markerColor = '#28a745'; // Default hijau
+                if (deviceInfo) {
+                    if (deviceStatus === 'Online') {
+                        markerColor = '#28a745'; // Hijau untuk online
+                    } else if (deviceStatus === 'Offline') {
+                        markerColor = '#dc3545'; // Merah untuk offline
+                    } else {
+                        markerColor = '#ffc107'; // Kuning untuk unknown
                     }
-                    
-                    const marker = L.circleMarker([customer.latitude, customer.longitude], {
-                        radius: 8,
-                        fillColor: markerColor,
-                        color: 'white',
-                        weight: 2,
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    }).addTo(map);
-                    
-                    // Buat popup content dengan struktur 2-card yang sama seperti teknisi
-                    console.log('Admin Mapping - Creating popup for customer:', customer.name);
-                    console.log('Admin Mapping - Device info for popup:', deviceInfo);
-                    console.log('Admin Mapping - SSID:', deviceInfo?.ssid, 'Password:', deviceInfo?.password || deviceInfo?.password5g);
+                }
 
-                    let popupContent = `
-                        <div class="popup-cards-container">
+                const marker = L.circleMarker([customer.latitude, customer.longitude], {
+                    radius: 8,
+                    fillColor: markerColor,
+                    color: 'white',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+
+                // Buat popup content dengan struktur 2-card yang sama seperti teknisi
+                console.log('Admin Mapping - Creating popup for customer:', customer.name);
+                console.log('Admin Mapping - Device info for popup:', deviceInfo);
+                console.log('Admin Mapping - SSID:', deviceInfo?.ssid, 'Password:', deviceInfo?.password || deviceInfo?.password5g);
+
+                let popupContent = `
+                                <div class="popup-cards-container">
                             <!-- Card 1: Customer Info -->
-                            <div class="popup-card customer-card">
-                                <div class="card-header">
-                                    <i class="bi bi-person"></i>
-                                    <span class="card-title">Informasi Pelanggan</span>
-                                </div>
-                                <div class="card-content">
-                                    <h6 class="customer-name">${customer.name}</h6>
-                                    <div class="info-row">
-                                        <span class="label">Username:</span>
-                                        <span class="value">${customer.username || '-'}</span>
+                                    <div class="popup-card customer-card">
+                                        <div class="card-header">
+                                            <i class="bi bi-person"></i>
+                                            <span class="card-title">Informasi Pelanggan</span>
+                                        </div>
+                                        <div class="card-content">
+                                            <h6 class="customer-name">${customer.name}</h6>
+                                            <div class="info-row">
+                                                <span class="label">Username:</span>
+                                                <span class="value">${customer.username || '-'}</span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="label">Phone:</span>
+                                                <span class="value">${customer.phone}</span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="label">Package:</span>
+                                                <span class="value">${customer.package_name || '-'}</span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="label">Status:</span>
+                                                <span class="badge bg-success">${customer.status}</span>
+                                            </div>
+                                            <div class="info-row">
+                                                <span class="label">Address:</span>
+                                                <span class="value">${customer.address || 'N/A'}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="info-row">
-                                        <span class="label">Phone:</span>
-                                        <span class="value">${customer.phone}</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="label">Package:</span>
-                                        <span class="value">${customer.package_name || '-'}</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="label">Status:</span>
-                                        <span class="badge bg-success">${customer.status}</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="label">Address:</span>
-                                        <span class="value">${customer.address || 'N/A'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                    `;
+                                    `;
 
-                    // Card 2: Device Control (hanya jika ada device)
-                    if (deviceInfo) {
-                        popupContent += `
+                // Card 2: Device Control (hanya jika ada device)
+                if (deviceInfo) {
+                    popupContent += `
                             <!-- Card 2: Device Control -->
                             <div class="popup-card device-card">
                                 <div class="card-header">
@@ -1829,22 +1912,22 @@
                                 </div>
                             </div>
                         `;
-                    }
-
-                    popupContent += `
-                        </div>
-                    `;
-                    
-                    marker.bindPopup(popupContent);
-                    
-                    // Store customer and device data in marker for filtering
-                    marker.customerData = customer;
-                    marker.deviceInfo = deviceInfo;
-                    
-                    customerMarkers.push(marker);
                 }
+
+                popupContent += `
+                                </div>
+                                `;
+
+                marker.bindPopup(popupContent);
+
+                // Store customer and device data in marker for filtering
+                marker.customerData = customer;
+                marker.deviceInfo = deviceInfo;
+
+                customerMarkers.push(marker);
             }
         }
+
 
         // Add ONU markers
         function addONUMarkers(devices) {
@@ -1852,7 +1935,7 @@
                 if (device.latitude && device.longitude) {
                     const isOnline = device.status === 'Online';
                     const color = isOnline ? '#007bff' : '#dc3545';
-                    
+
                     const marker = L.circleMarker([device.latitude, device.longitude], {
                         radius: 6,
                         fillColor: color,
@@ -1861,7 +1944,7 @@
                         opacity: 1,
                         fillOpacity: 0.8
                     }).addTo(map);
-                    
+
                     marker.bindPopup(`
                         <div class="text-center">
                             <h6><strong>ONU Device</strong></h6>
@@ -1884,11 +1967,11 @@
                             </div>
                         </div>
                     `);
-                    
+
                     // Store device and customer data in marker for filtering
                     marker.deviceData = device;
                     marker.customerData = device.customerId ? { package_id: device.packageId } : null;
-                    
+
                     onuMarkers.push(marker);
                 }
             });
@@ -1899,10 +1982,10 @@
             try {
                 // Tentukan endpoint berdasarkan context
                 const apiPath = (typeof isTechnicianView !== 'undefined' && isTechnicianView) ? '/technician/api' : '/admin/billing/api';
-                
+
                 const response = await fetch(`${apiPath}/packages`);
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const select = document.getElementById('filterPackage');
                     data.packages.forEach(package => {
@@ -1921,13 +2004,13 @@
         function filterMarkers() {
             const statusFilter = document.getElementById('filterStatus').value;
             const packageFilter = document.getElementById('filterPackage').value;
-            
+
             console.log('Filtering markers:', { statusFilter, packageFilter });
-            
+
             // Show/hide customer markers based on filter
             customerMarkers.forEach(marker => {
                 let show = true;
-                
+
                 // Apply package filter
                 if (packageFilter !== 'all') {
                     const customerData = marker.customerData;
@@ -1937,7 +2020,7 @@
                         show = false; // Hide if no package data
                     }
                 }
-                
+
                 // Apply status filter (if customer has device data)
                 if (statusFilter !== 'all' && marker.deviceInfo) {
                     const deviceStatus = marker.deviceInfo.status || 'Unknown';
@@ -1947,7 +2030,7 @@
                         show = false;
                     }
                 }
-                
+
                 if (show) {
                     if (!map.hasLayer(marker)) {
                         marker.addTo(map);
@@ -1958,11 +2041,11 @@
                     }
                 }
             });
-            
+
             // Show/hide ONU markers based on filter
             onuMarkers.forEach(marker => {
                 let show = true;
-                
+
                 // Apply status filter
                 if (statusFilter !== 'all') {
                     const deviceStatus = marker.deviceData.status || 'Unknown';
@@ -1972,7 +2055,7 @@
                         show = false;
                     }
                 }
-                
+
                 // Apply package filter (if ONU has customer data)
                 if (packageFilter !== 'all' && marker.customerData) {
                     if (marker.customerData.package_id) {
@@ -1981,7 +2064,7 @@
                         show = false;
                     }
                 }
-                
+
                 if (show) {
                     if (!map.hasLayer(marker)) {
                         marker.addTo(map);
@@ -1992,33 +2075,33 @@
                     }
                 }
             });
-            
+
             // Update filter info
             updateFilterInfo();
         }
-        
+
         // Update filter information display
         function updateFilterInfo() {
             const statusFilter = document.getElementById('filterStatus').value;
             const packageFilter = document.getElementById('filterPackage').value;
-            
+
             let visibleCustomers = 0;
             let visibleONUs = 0;
-            
+
             // Count visible customer markers
             customerMarkers.forEach(marker => {
                 if (map.hasLayer(marker)) {
                     visibleCustomers++;
                 }
             });
-            
+
             // Count visible ONU markers
             onuMarkers.forEach(marker => {
                 if (map.hasLayer(marker)) {
                     visibleONUs++;
                 }
             });
-            
+
             // Update map info with filter results
             const filterInfoPanel = document.getElementById('mapInfo');
             if (filterInfoPanel) {
@@ -2035,47 +2118,47 @@
                         </div>
                     `;
                 }
-                
+
                 filterInfoPanel.innerHTML = `
-                    <div class="mb-3">
-                        <h6 class="text-success">📍 Lokasi Pelanggan</h6>
-                        <div class="small">
-                            <div>• Total ditampilkan: <strong>${visibleCustomers}</strong> pelanggan</div>
-                            <div>• Total ONU ditampilkan: <strong>${visibleONUs}</strong> device</div>
-                            ${filterText}
-                        </div>
-                    </div>
-                    <div class="alert alert-info alert-sm">
-                        <small>
-                            <strong>💡 Tips:</strong> Gunakan filter untuk melihat pelanggan berdasarkan paket atau status device.
-                        </small>
-                    </div>
-                `;
+                                <div class="mb-3">
+                                    <h6 class="text-success">📍 Lokasi Pelanggan</h6>
+                                    <div class="small">
+                                        <div>• Total ditampilkan: <strong>${visibleCustomers}</strong> pelanggan</div>
+                                        <div>• Total ONU ditampilkan: <strong>${visibleONUs}</strong> device</div>
+                                        ${filterText}
+                                    </div>
+                                </div>
+                                <div class="alert alert-info alert-sm">
+                                    <small>
+                                        <strong>💡 Tips:</strong> Gunakan filter untuk melihat pelanggan berdasarkan paket atau status device.
+                                    </small>
+                                </div>
+                                `;
             }
         }
-        
+
         // Clear all filters
         function clearFilters() {
             document.getElementById('filterStatus').value = 'all';
             document.getElementById('filterPackage').value = 'all';
             document.getElementById('searchLocation').value = '';
-            
+
             // Show all markers
             customerMarkers.forEach(marker => {
                 if (!map.hasLayer(marker)) {
                     marker.addTo(map);
                 }
             });
-            
+
             onuMarkers.forEach(marker => {
                 if (!map.hasLayer(marker)) {
                     marker.addTo(map);
                 }
             });
-            
+
             // Update info
             updateFilterInfo();
-            
+
             // Show success message
             showToast('Filter berhasil di-clear', 'success');
         }
@@ -2087,22 +2170,22 @@
             document.getElementById('editSSID').value = ssid || '';
             document.getElementById('editPassword').value = password || '';
             document.getElementById('editTag').value = tag || '';
-            
+
             new bootstrap.Modal(document.getElementById('editDeviceModal')).show();
         }
 
         // Save device changes
         async function saveDeviceChanges() {
             if (!currentDeviceId) return;
-            
+
             const ssid = document.getElementById('editSSID').value;
             const password = document.getElementById('editPassword').value;
             const tag = document.getElementById('editTag').value;
-            
+
             try {
                 // Tentukan endpoint berdasarkan context
                 const endpoint = isTechnicianView ? `/technician/genieacs/devices/${currentDeviceId}` : `/admin/genieacs/devices/${currentDeviceId}`;
-                
+
                 const response = await fetch(endpoint, {
                     method: 'PUT',
                     headers: {
@@ -2114,7 +2197,7 @@
                         tag
                     })
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     showToast('Device updated successfully', 'success');
@@ -2182,7 +2265,7 @@
             onuMarkers.forEach(marker => marker.remove());
             customerMarkers = [];
             onuMarkers = [];
-            
+
             // Reload data
             loadMapData();
         }
@@ -2220,28 +2303,28 @@
             return new Promise((resolve) => {
                 console.log('⚡ Fast loading customers...');
                 addCustomerMarkers(customers);
-                
+
                 // Update customer coordinate stats
                 const customersWithCoords = customers.filter(c => c.latitude && c.longitude).length;
                 const customersWithoutCoords = customers.length - customersWithCoords;
                 updateCustomerCoordinateStats(customersWithCoords, customersWithoutCoords);
-                
+
                 resolve();
             });
         }
-        
+
         async function loadONUsFast(devices) {
             return new Promise((resolve) => {
                 console.log('⚡ Fast loading ONU devices...');
                 addONUMarkers(devices);
-                
+
                 // Show device coordinate info
                 showDeviceCoordinateInfo({ devicesWithCoords: devices });
-                
+
                 resolve();
             });
         }
-        
+
         async function loadODPsFast(odps) {
             return new Promise((resolve) => {
                 console.log('⚡ Fast loading ODPs...');
@@ -2249,7 +2332,7 @@
                 resolve();
             });
         }
-        
+
         async function loadCablesFast(cables) {
             return new Promise((resolve) => {
                 console.log('⚡ Fast loading cables...');
@@ -2257,7 +2340,7 @@
                 resolve();
             });
         }
-        
+
         async function loadODPConnectionsFast(connections) {
             return new Promise((resolve) => {
                 console.log('⚡ Fast loading ODP connections...');
@@ -2273,12 +2356,12 @@
             toast.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
             toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
             toast.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            
+                                ${message}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                `;
+
             document.body.appendChild(toast);
-            
+
             setTimeout(() => {
                 toast.remove();
             }, 5000);
@@ -2287,7 +2370,7 @@
         // Helper function untuk menentukan badge signal strength
         function getSignalStrengthBadge(signalStrength) {
             if (signalStrength === 'N/A') return 'bg-secondary';
-            
+
             const signal = parseFloat(signalStrength);
             if (signal >= -25) return 'bg-success';      // Excellent
             if (signal >= -27) return 'bg-info';         // Good
@@ -2298,22 +2381,22 @@
         // Helper function untuk format last seen
         function formatLastSeen(lastSeen) {
             if (lastSeen === 'N/A') return 'N/A';
-            
+
             try {
                 const date = new Date(lastSeen);
                 if (isNaN(date.getTime())) return lastSeen;
-                
+
                 const now = new Date();
                 const diffMs = now - date;
                 const diffMins = Math.floor(diffMs / (1000 * 60));
                 const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
                 const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                
+
                 if (diffMins < 1) return 'Just now';
                 if (diffMins < 60) return `${diffMins} minutes ago`;
                 if (diffHours < 24) return `${diffHours} hours ago`;
                 if (diffDays < 7) return `${diffDays} days ago`;
-                
+
                 return date.toLocaleDateString('id-ID', {
                     day: '2-digit',
                     month: 'short',
@@ -2342,28 +2425,28 @@
         }
 
         // Initialize map when page loads
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('📄 DOM Content Loaded');
-            
+
             // Prevent double initialization
             if (window.__mappingMapInitialized) {
                 console.log('⚠️ Map already initialized, skipping...');
                 return;
             }
-            
+
             // Wait a bit for Leaflet to load
             setTimeout(() => {
                 console.log('⏰ Initializing map after delay...');
                 initMap();
             }, 500);
-            
+
             // Initialize modal event listeners
             initializeModalListeners();
-            
+
             // Initialize mobile-specific features
             initializeMobileFeatures();
         });
-        
+
         // Fallback initialization if DOMContentLoaded already fired
         if (document.readyState === 'loading') {
             // Still loading, wait for DOMContentLoaded
@@ -2378,34 +2461,34 @@
         // Initialize modal event listeners
         function initializeModalListeners() {
             // Save SSID button
-            document.getElementById('saveSsidBtn').addEventListener('click', function() {
+            document.getElementById('saveSsidBtn').addEventListener('click', function () {
                 const deviceId = document.getElementById('editDeviceId').value;
                 const newSSID = document.getElementById('editSSID').value;
                 if (deviceId && newSSID) {
                     updateDeviceSSID(deviceId, newSSID);
                 }
             });
-            
+
             // Save Password button
-            document.getElementById('savePasswordBtn').addEventListener('click', function() {
+            document.getElementById('savePasswordBtn').addEventListener('click', function () {
                 const deviceId = document.getElementById('editDeviceId').value;
                 const newPassword = document.getElementById('editPassword').value;
                 if (deviceId && newPassword) {
                     updateDevicePassword(deviceId, newPassword);
                 }
             });
-            
+
             // Save Tag button
-            document.getElementById('saveTagBtn').addEventListener('click', function() {
+            document.getElementById('saveTagBtn').addEventListener('click', function () {
                 const deviceId = document.getElementById('editDeviceId').value;
                 const newTag = document.getElementById('editTag').value;
                 if (deviceId && newTag) {
                     updateDeviceTag(deviceId, newTag);
                 }
             });
-            
+
             // Restart device button
-            document.getElementById('rebootAfterEditBtn').addEventListener('click', function() {
+            document.getElementById('rebootAfterEditBtn').addEventListener('click', function () {
                 const deviceId = document.getElementById('editDeviceId').value;
                 if (deviceId) {
                     restartDevice(deviceId);
@@ -2426,7 +2509,7 @@
                         ssid: newSSID
                     })
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     showToast('SSID berhasil diupdate!', 'success');
@@ -2459,7 +2542,7 @@
                         password: newPassword
                     })
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     showToast('Password berhasil diupdate!', 'success');
@@ -2520,7 +2603,7 @@
                 alertDiv.className = `alert alert-${type}`;
                 alertDiv.textContent = message;
                 alertDiv.style.display = 'block';
-                
+
                 // Auto-hide after 3 seconds
                 setTimeout(() => {
                     alertDiv.style.display = 'none';
@@ -2540,24 +2623,24 @@
             // Detect mobile device
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-            
+
             if (isMobile || isTouch) {
                 // Add mobile-specific classes
                 document.body.classList.add('mobile-device');
-                
+
                 // Adjust map for mobile
                 adjustMapForMobile();
-                
+
                 // Add touch gesture handlers
                 addTouchGestureHandlers();
-                
+
                 // Optimize for mobile performance
                 optimizeForMobile();
             }
-            
+
             // Handle orientation change
-            window.addEventListener('orientationchange', function() {
-                setTimeout(function() {
+            window.addEventListener('orientationchange', function () {
+                setTimeout(function () {
                     if (map) {
                         map.invalidateSize();
                         // Re-center map if needed
@@ -2571,9 +2654,9 @@
                     }
                 }, 100);
             });
-            
+
             // Handle resize
-            window.addEventListener('resize', function() {
+            window.addEventListener('resize', function () {
                 if (map) {
                     map.invalidateSize();
                 }
@@ -2583,28 +2666,28 @@
         // Adjust map for mobile devices
         function adjustMapForMobile() {
             if (!map) return;
-            
+
             // Disable double click zoom on mobile
             if (map.doubleClickZoom) {
                 map.doubleClickZoom.disable();
             }
-            
+
             // Enable tap handler if available
             if (map.tap && map.tap.enable) {
                 map.tap.enable();
             }
-            
+
             // Adjust zoom control position for mobile
             const zoomControl = L.control.zoom({
                 position: 'bottomright',
                 zoomInTitle: 'Zoom In',
                 zoomOutTitle: 'Zoom Out'
             });
-            
+
             // Remove default zoom control and add custom one
             map.removeControl(map.zoomControl);
             map.addControl(zoomControl);
-            
+
             // Add fullscreen control for mobile
             const fullscreenControl = L.control.fullscreen({
                 position: 'topleft',
@@ -2616,21 +2699,21 @@
         // Add touch gesture handlers
         function addTouchGestureHandlers() {
             if (!map) return;
-            
+
             let touchStartTime = 0;
             let touchStartPos = null;
-            
+
             // Handle touch start
-            map.on('touchstart', function(e) {
+            map.on('touchstart', function (e) {
                 touchStartTime = Date.now();
                 touchStartPos = e.touches[0];
             });
-            
+
             // Handle touch end
-            map.on('touchend', function(e) {
+            map.on('touchend', function (e) {
                 const touchEndTime = Date.now();
                 const touchDuration = touchEndTime - touchStartTime;
-                
+
                 // Long press detection (500ms)
                 if (touchDuration > 500 && touchStartPos) {
                     const touchEndPos = e.changedTouches[0];
@@ -2638,7 +2721,7 @@
                         Math.pow(touchEndPos.clientX - touchStartPos.clientX, 2) +
                         Math.pow(touchEndPos.clientY - touchStartPos.clientY, 2)
                     );
-                    
+
                     // If finger didn't move much, it's a long press
                     if (distance < 10) {
                         handleLongPress(e);
@@ -2650,7 +2733,7 @@
         // Handle long press on map
         function handleLongPress(e) {
             const latlng = map.containerPointToLatLng(e.containerPoint);
-            
+
             // Show context menu or additional options
             showMobileContextMenu(latlng, e.containerPoint);
         }
@@ -2662,44 +2745,44 @@
             if (existingMenu) {
                 existingMenu.remove();
             }
-            
+
             // Create context menu
             const menu = document.createElement('div');
             menu.className = 'mobile-context-menu';
             menu.style.cssText = `
-                position: fixed;
-                top: ${containerPoint.y}px;
-                left: ${containerPoint.x}px;
-                background: white;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 10000;
-                padding: 8px 0;
-                min-width: 150px;
-            `;
-            
+                                position: fixed;
+                                top: ${containerPoint.y}px;
+                                left: ${containerPoint.x}px;
+                                background: white;
+                                border: 1px solid #ddd;
+                                border-radius: 8px;
+                                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                                z-index: 10000;
+                                padding: 8px 0;
+                                min-width: 150px;
+                                `;
+
             menu.innerHTML = `
-                <div class="context-menu-item" onclick="addCustomerMarkerAt(${latlng.lat}, ${latlng.lng})">
-                    <i class="bx bx-user-plus"></i> Tambah Customer
-                </div>
-                <div class="context-menu-item" onclick="getLocationInfo(${latlng.lat}, ${latlng.lng})">
-                    <i class="bx bx-map-pin"></i> Info Lokasi
-                </div>
-                <div class="context-menu-item" onclick="copyCoordinates(${latlng.lat}, ${latlng.lng})">
-                    <i class="bx bx-copy"></i> Copy Koordinat
-                </div>
-            `;
-            
+                                <div class="context-menu-item" onclick="addCustomerMarkerAt(${latlng.lat}, ${latlng.lng})">
+                                    <i class="bx bx-user-plus"></i> Tambah Customer
+                                </div>
+                                <div class="context-menu-item" onclick="getLocationInfo(${latlng.lat}, ${latlng.lng})">
+                                    <i class="bx bx-map-pin"></i> Info Lokasi
+                                </div>
+                                <div class="context-menu-item" onclick="copyCoordinates(${latlng.lat}, ${latlng.lng})">
+                                    <i class="bx bx-copy"></i> Copy Koordinat
+                                </div>
+                                `;
+
             document.body.appendChild(menu);
-            
+
             // Auto-hide after 3 seconds
             setTimeout(() => {
                 if (menu.parentNode) {
                     menu.remove();
                 }
             }, 3000);
-            
+
             // Hide when clicking outside
             document.addEventListener('click', function hideMenu() {
                 if (menu.parentNode) {
@@ -2713,7 +2796,7 @@
         function optimizeForMobile() {
             // Reduce marker update frequency on mobile
             if (map) {
-                map.on('zoomend', function() {
+                map.on('zoomend', function () {
                     // Update marker visibility based on zoom level
                     const zoom = map.getZoom();
                     customerMarkers.forEach(marker => {
@@ -2726,49 +2809,49 @@
                     });
                 });
             }
-            
+
             // Add mobile-specific CSS
             const style = document.createElement('style');
             style.textContent = `
-                .mobile-context-menu {
-                    font-size: 14px;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                .mobile-context-menu {
+                                    font - size: 14px;
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 }
-                
-                .context-menu-item {
-                    padding: 12px 16px;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    border-bottom: 1px solid #eee;
-                    transition: background-color 0.2s;
+
+                                .context-menu-item {
+                                    padding: 12px 16px;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                                border-bottom: 1px solid #eee;
+                                transition: background-color 0.2s;
                 }
-                
-                .context-menu-item:last-child {
-                    border-bottom: none;
+
+                                .context-menu-item:last-child {
+                                    border - bottom: none;
                 }
-                
-                .context-menu-item:hover {
-                    background-color: #f8f9fa;
+
+                                .context-menu-item:hover {
+                                    background - color: #f8f9fa;
                 }
-                
-                .context-menu-item i {
-                    font-size: 16px;
-                    color: #6c757d;
+
+                                .context-menu-item i {
+                                    font - size: 16px;
+                                color: #6c757d;
                 }
-                
-                @media (max-width: 768px) {
-                    .mobile-context-menu {
-                        min-width: 180px;
-                        font-size: 16px;
+
+                                @media (max-width: 768px) {
+                    .mobile - context - menu {
+                                    min - width: 180px;
+                                font-size: 16px;
                     }
-                    
-                    .context-menu-item {
-                        padding: 16px 20px;
+
+                                .context-menu-item {
+                                    padding: 16px 20px;
                     }
                 }
-            `;
+                                `;
             document.head.appendChild(style);
         }
 
@@ -2851,7 +2934,7 @@
         }
 
         // ===== ODP AND CABLE NETWORK FUNCTIONS =====
-        
+
         let odpLayer = null;
         let cableLayer = null;
         let networkSegmentLayer = null;
@@ -2882,7 +2965,7 @@
             try {
                 console.log('📡 Cable network data already loaded from loadMapData, skipping duplicate loading...');
                 return; // Skip duplicate loading
-                
+
             } catch (error) {
                 console.error('❌ Error in loadCableNetworkData:', error);
             }
@@ -2891,34 +2974,34 @@
         // Load ODP markers
         function loadODPs() {
             if (!cableNetworkData || !cableNetworkData.odps) return;
-            
+
             // Clear existing ODP layer
             if (odpLayer) {
                 map.removeLayer(odpLayer);
             }
-            
+
             odpLayer = L.layerGroup();
-            
+
             cableNetworkData.odps.forEach(odp => {
                 const percentage = (odp.used_ports / odp.capacity) * 100;
-                
+
                 // Determine color based on capacity usage
                 let color = '#28a745'; // Green - < 70%
                 if (percentage >= 90) color = '#dc3545'; // Red - > 90%
                 else if (percentage >= 70) color = '#ffc107'; // Yellow - 70-90%
-                
+
                 // Different visual for sub ODP vs main ODP
                 const isSubODP = odp.parent_odp_id;
                 const iconSize = isSubODP ? 20 : 24;
                 const borderWidth = isSubODP ? 2 : 3;
                 const borderRadius = isSubODP ? 2 : 4;
                 const dotSize = isSubODP ? 6 : 8;
-                
+
                 // Create custom ODP icon with hierarchy indication
                 const odpIcon = L.divIcon({
                     className: 'odp-custom-icon',
                     html: `
-                        <div class="odp-icon-container" style="
+                                <div class="odp-icon-container" style="
                             width: ${iconSize}px;
                             height: ${iconSize}px;
                             background-color: ${color};
@@ -2931,24 +3014,24 @@
                             position: relative;
                             ${isSubODP ? 'border-style: dashed;' : ''}
                         ">
-                            <div style="
+                                    <div style="
                                 width: ${dotSize}px;
                                 height: ${dotSize}px;
                                 background-color: white;
                                 border-radius: 50%;
                                 position: relative;
                             ">
-                                <div style="
+                                        <div style="
                                     position: absolute;
                                     top: -2px;
                                     left: 50%;
                                     transform: translateX(-50%);
-                                    width: ${dotSize/2}px;
-                                    height: ${dotSize/2}px;
+                                    width: ${dotSize / 2}px;
+                                    height: ${dotSize / 2}px;
                                     background-color: white;
                                     border-radius: 50%;
                                 "></div>
-                                <div style="
+                                        <div style="
                                     position: absolute;
                                     bottom: -2px;
                                     left: 50%;
@@ -2958,9 +3041,9 @@
                                     background-color: white;
                                     border-radius: 50%;
                                 "></div>
-                            </div>
-                        </div>
-                    `,
+                                    </div>
+                                </div>
+                                `,
                     iconSize: [24, 24],
                     iconAnchor: [12, 12]
                 });
@@ -2969,66 +3052,66 @@
                 const marker = L.marker([odp.latitude, odp.longitude], {
                     icon: odpIcon
                 });
-                
+
                 // Create popup content with hierarchy info
                 const popupContent = `
-                    <div class="odp-popup">
-                        <h6>
-                            <i class="bx ${isSubODP ? 'bx-sitemap' : 'bx-broadcast'}"></i> 
-                            ${odp.name}
-                            ${isSubODP ? '<small class="text-muted">(Sub ODP)</small>' : ''}
-                        </h6>
-                        <div class="mb-2">
-                            <strong>Kode:</strong> ${odp.code}<br>
-                            <strong>Alamat:</strong> ${odp.address || 'Tidak ada'}<br>
-                            <strong>Status:</strong> <span class="badge bg-${odp.status === 'active' ? 'success' : 'warning'}">${odp.status}</span>
-                            ${isSubODP && odp.parent_name ? `<br><strong>Parent:</strong> ${odp.parent_name} (${odp.parent_code})` : ''}
-                        </div>
-                        <div class="mb-2">
-                            <strong>Kapasitas:</strong> ${odp.used_ports}/${odp.capacity} ports<br>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-${percentage >= 90 ? 'danger' : percentage >= 70 ? 'warning' : 'success'}" 
-                                     style="width: ${percentage}%"></div>
-                            </div>
-                        </div>
-                        <div class="mb-2">
-                            <strong>Pelanggan:</strong> ${odp.connected_customers || 0}<br>
-                            <strong>Aktif:</strong> ${odp.active_connections || 0}
-                        </div>
-                        <div class="d-flex gap-1">
-                            <button class="btn btn-sm btn-primary" onclick="viewODPDetails(${odp.id})">
-                                <i class="bx bx-info-circle"></i> Detail
-                            </button>
-                            <button class="btn btn-sm btn-secondary" onclick="copyCoordinates(${odp.latitude}, ${odp.longitude})">
-                                <i class="bx bx-copy"></i> Koordinat
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
+                                <div class="odp-popup">
+                                    <h6>
+                                        <i class="bx ${isSubODP ? 'bx-sitemap' : 'bx-broadcast'}"></i>
+                                        ${odp.name}
+                                        ${isSubODP ? '<small class="text-muted">(Sub ODP)</small>' : ''}
+                                    </h6>
+                                    <div class="mb-2">
+                                        <strong>Kode:</strong> ${odp.code}<br>
+                                            <strong>Alamat:</strong> ${odp.address || 'Tidak ada'}<br>
+                                                <strong>Status:</strong> <span class="badge bg-${odp.status === 'active' ? 'success' : 'warning'}">${odp.status}</span>
+                                                ${isSubODP && odp.parent_name ? `<br><strong>Parent:</strong> ${odp.parent_name} (${odp.parent_code})` : ''}
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Kapasitas:</strong> ${odp.used_ports}/${odp.capacity} ports<br>
+                                                    <div class="progress" style="height: 8px;">
+                                                        <div class="progress-bar bg-${percentage >= 90 ? 'danger' : percentage >= 70 ? 'warning' : 'success'}"
+                                                            style="width: ${percentage}%"></div>
+                                                    </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Pelanggan:</strong> ${odp.connected_customers || 0}<br>
+                                                    <strong>Aktif:</strong> ${odp.active_connections || 0}
+                                            </div>
+                                            <div class="d-flex gap-1">
+                                                <button class="btn btn-sm btn-primary" onclick="viewODPDetails(${odp.id})">
+                                                    <i class="bx bx-info-circle"></i> Detail
+                                                </button>
+                                                <button class="btn btn-sm btn-secondary" onclick="copyCoordinates(${odp.latitude}, ${odp.longitude})">
+                                                    <i class="bx bx-copy"></i> Koordinat
+                                                </button>
+                                            </div>
+                                    </div>
+                                    `;
+
                 marker.bindPopup(popupContent);
                 odpLayer.addLayer(marker);
             });
-            
+
             map.addLayer(odpLayer);
         }
 
         // Load ODP markers
         function loadODPMarkers(odps) {
             if (!odps || odps.length === 0) return;
-            
+
             try {
                 // Initialize layers if needed
                 initializeLayers();
-                
+
                 // Clear existing ODP layer with proper error handling
                 if (odpLayer && typeof odpLayer.clearLayers === 'function') {
                     odpLayer.clearLayers();
                     map.removeLayer(odpLayer);
                 }
-                
+
                 odpLayer = L.layerGroup();
-                
+
                 odps.forEach(odp => {
                     if (odp.latitude && odp.longitude) {
                         // Create ODP marker
@@ -3040,24 +3123,24 @@
                             opacity: 1,
                             fillOpacity: 0.8
                         });
-                        
+
                         // Create popup content
                         const popupContent = `
-                            <div class="odp-popup">
-                                <h6><i class="bx bx-broadcast"></i> ${odp.name}</h6>
-                                <p><strong>Kode:</strong> ${odp.code}</p>
-                                <p><strong>Alamat:</strong> ${odp.address || 'N/A'}</p>
-                                <p><strong>Kapasitas:</strong> ${odp.used_ports}/${odp.capacity} port</p>
-                                <p><strong>Status:</strong> <span class="badge bg-${odp.status === 'active' ? 'success' : odp.status === 'maintenance' ? 'warning' : 'secondary'}">${odp.status}</span></p>
-                                <p><strong>Pelanggan:</strong> ${odp.connected_customers || 0}</p>
-                            </div>
-                        `;
-                        
+                                    <div class="odp-popup">
+                                        <h6><i class="bx bx-broadcast"></i> ${odp.name}</h6>
+                                        <p><strong>Kode:</strong> ${odp.code}</p>
+                                        <p><strong>Alamat:</strong> ${odp.address || 'N/A'}</p>
+                                        <p><strong>Kapasitas:</strong> ${odp.used_ports}/${odp.capacity} port</p>
+                                        <p><strong>Status:</strong> <span class="badge bg-${odp.status === 'active' ? 'success' : odp.status === 'maintenance' ? 'warning' : 'secondary'}">${odp.status}</span></p>
+                                        <p><strong>Pelanggan:</strong> ${odp.connected_customers || 0}</p>
+                                    </div>
+                                    `;
+
                         marker.bindPopup(popupContent);
                         marker.addTo(odpLayer);
                     }
                 });
-                
+
                 odpLayer.addTo(map);
                 console.log(`✅ Loaded ${odps.length} ODP markers`);
             } catch (error) {
@@ -3071,91 +3154,91 @@
                 console.log('⚠️ No cable routes to load or empty array');
                 return;
             }
-            
+
             console.log(`🔍 Loading ${cableRoutes.length} cable routes from database...`);
-            
+
             try {
                 // Initialize layers if needed
                 initializeLayers();
-                
+
                 // Clear existing cable layer with proper error handling
                 if (cableLayer && typeof cableLayer.clearLayers === 'function') {
                     cableLayer.clearLayers();
                     map.removeLayer(cableLayer);
                 }
-                
+
                 cableLayer = L.layerGroup();
-            
-            cableRoutes.forEach((cable, index) => {
-                if (cable.customer_latitude && cable.customer_longitude && 
-                    cable.odp_latitude && cable.odp_longitude) {
-                    
-                    // Determine color based on status
-                    let color = '#28a745'; // Green - connected
-                    let dashArray = null;
-                    
-                    switch(cable.status) {
-                        case 'connected':
-                            color = '#28a745';
-                            break;
-                        case 'disconnected':
-                            color = '#dc3545';
-                            break;
-                        case 'maintenance':
-                            color = '#ffc107';
-                            dashArray = '10, 5';
-                            break;
-                        case 'damaged':
-                            color = '#6f42c1';
-                            break;
+
+                cableRoutes.forEach((cable, index) => {
+                    if (cable.customer_latitude && cable.customer_longitude &&
+                        cable.odp_latitude && cable.odp_longitude) {
+
+                        // Determine color based on status
+                        let color = '#28a745'; // Green - connected
+                        let dashArray = null;
+
+                        switch (cable.status) {
+                            case 'connected':
+                                color = '#28a745';
+                                break;
+                            case 'disconnected':
+                                color = '#dc3545';
+                                break;
+                            case 'maintenance':
+                                color = '#ffc107';
+                                dashArray = '10, 5';
+                                break;
+                            case 'damaged':
+                                color = '#6f42c1';
+                                break;
+                        }
+
+                        // Create cable route polyline with animation
+                        const polyline = L.polyline([
+                            [cable.odp_latitude, cable.odp_longitude],
+                            [cable.customer_latitude, cable.customer_longitude]
+                        ], {
+                            color: color,
+                            weight: 4,
+                            opacity: 0.8,
+                            dashArray: dashArray,
+                            className: `cable-route cable-${cable.status} animated-cable`
+                        });
+
+                        // Add animated data flow for connected cables
+                        if (cable.status === 'connected') {
+                            createDataFlowAnimation(cable, polyline, index);
+                        }
+
+                        // Create popup content
+                        const popupContent = `
+                                    <div class="cable-popup">
+                                        <h6><i class="bx bx-cable-car"></i> Cable Route #${cable.id}</h6>
+                                        <div class="mb-2">
+                                            <strong>Customer:</strong> ${cable.customer_name}<br>
+                                                <strong>Phone:</strong> ${cable.customer_phone}<br>
+                                                    <strong>ODP:</strong> ${cable.odp_name}<br>
+                                                        <strong>Status:</strong> <span class="badge bg-${cable.status === 'connected' ? 'success' : cable.status === 'disconnected' ? 'danger' : 'warning'}">${cable.status}</span>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <strong>Length:</strong> ${cable.cable_length ? (parseFloat(cable.cable_length) / 1000).toFixed(1) + ' km' : 'N/A'}<br>
+                                                            <strong>Type:</strong> ${cable.cable_type || 'Fiber Optic'}<br>
+                                                                <strong>Port:</strong> ${cable.port_number || 'N/A'}
+                                                            </div>
+                                                            ${cable.notes ? `<div class="mb-2"><strong>Notes:</strong><br><small>${cable.notes}</small></div>` : ''}
+                                                            <div class="mt-2">
+                                                                <small class="text-muted">
+                                                                    <i class="bx bx-data"></i> Data flowing: ${cable.status === 'connected' ? 'Yes' : 'No'}
+                                                                </small>
+                                                            </div>
+                                                    </div>
+                                                    `;
+
+                        polyline.bindPopup(popupContent);
+                        cableLayer.addLayer(polyline);
                     }
-                    
-                    // Create cable route polyline with animation
-                    const polyline = L.polyline([
-                        [cable.odp_latitude, cable.odp_longitude],
-                        [cable.customer_latitude, cable.customer_longitude]
-                    ], {
-                        color: color,
-                        weight: 4,
-                        opacity: 0.8,
-                        dashArray: dashArray,
-                        className: `cable-route cable-${cable.status} animated-cable`
-                    });
-                    
-                    // Add animated data flow for connected cables
-                    if (cable.status === 'connected') {
-                        createDataFlowAnimation(cable, polyline, index);
-                    }
-                    
-                    // Create popup content
-                    const popupContent = `
-                        <div class="cable-popup">
-                            <h6><i class="bx bx-cable-car"></i> Cable Route #${cable.id}</h6>
-                            <div class="mb-2">
-                                <strong>Customer:</strong> ${cable.customer_name}<br>
-                                <strong>Phone:</strong> ${cable.customer_phone}<br>
-                                <strong>ODP:</strong> ${cable.odp_name}<br>
-                                <strong>Status:</strong> <span class="badge bg-${cable.status === 'connected' ? 'success' : cable.status === 'disconnected' ? 'danger' : 'warning'}">${cable.status}</span>
-                            </div>
-                            <div class="mb-2">
-                                <strong>Length:</strong> ${cable.cable_length ? (parseFloat(cable.cable_length) / 1000).toFixed(1) + ' km' : 'N/A'}<br>
-                                <strong>Type:</strong> ${cable.cable_type || 'Fiber Optic'}<br>
-                                <strong>Port:</strong> ${cable.port_number || 'N/A'}
-                            </div>
-                            ${cable.notes ? `<div class="mb-2"><strong>Notes:</strong><br><small>${cable.notes}</small></div>` : ''}
-                            <div class="mt-2">
-                                <small class="text-muted">
-                                    <i class="bx bx-data"></i> Data flowing: ${cable.status === 'connected' ? 'Yes' : 'No'}
-                                </small>
-                            </div>
-                        </div>
-                    `;
-                    
-                    polyline.bindPopup(popupContent);
-                    cableLayer.addLayer(polyline);
-                }
-            });
-            
+                });
+
                 map.addLayer(cableLayer);
                 console.log(`✅ Loaded ${cableRoutes.length} cable routes from database with animations`);
             } catch (error) {
@@ -3169,7 +3252,7 @@
             const startLng = cable.odp_longitude;
             const endLat = cable.customer_latitude;
             const endLng = cable.customer_longitude;
-            
+
             // Create animated marker for data flow
             const dataFlowMarker = L.circleMarker([startLat, startLng], {
                 radius: 3,
@@ -3180,45 +3263,45 @@
                 fillOpacity: 0.8,
                 className: 'data-flow-marker'
             });
-            
+
             // Add pulsing effect
-            dataFlowMarker.on('add', function() {
+            dataFlowMarker.on('add', function () {
                 this.getElement().style.animation = 'pulse 2s infinite';
             });
-            
+
             cableLayer.addLayer(dataFlowMarker);
-            
+
             // Animate data flow along the cable
             const totalDistance = Math.sqrt(
                 Math.pow(endLat - startLat, 2) + Math.pow(endLng - startLng, 2)
             );
-            
+
             let progress = 0;
             const animationSpeed = 0.02; // Adjust speed
             const animationDelay = index * 200; // Stagger animations
-            
+
             setTimeout(() => {
                 const animateFlow = () => {
                     if (progress >= 1) {
                         progress = 0; // Reset for continuous flow
                     }
-                    
+
                     const currentLat = startLat + (endLat - startLat) * progress;
                     const currentLng = startLng + (endLng - startLng) * progress;
-                    
+
                     dataFlowMarker.setLatLng([currentLat, currentLng]);
-                    
+
                     // Change color based on direction (upload/download simulation)
                     const isUpload = progress < 0.5;
                     dataFlowMarker.setStyle({
                         fillColor: isUpload ? '#00ff00' : '#0066ff',
                         radius: isUpload ? 3 : 2
                     });
-                    
+
                     progress += animationSpeed;
                     requestAnimationFrame(animateFlow);
                 };
-                
+
                 animateFlow();
             }, animationDelay);
         }
@@ -3229,27 +3312,27 @@
                 console.log('⚠️ No ODPs to load or empty array');
                 return;
             }
-            
+
             console.log(`🔍 Loading ${odps.length} ODPs from database...`);
-            
+
             // Clear existing ODP layer
             if (odpLayer) {
                 map.removeLayer(odpLayer);
             }
-            
+
             odpLayer = L.layerGroup();
-            
+
             odps.forEach((odp, index) => {
                 console.log(`📍 Processing ODP ${index + 1}: ${odp.name} at ${odp.latitude}, ${odp.longitude}`);
                 if (odp.latitude && odp.longitude) {
                     // Calculate utilization percentage
                     const utilization = (odp.used_ports / odp.capacity) * 100;
-                    
+
                     // Determine color based on utilization
                     let color = '#28a745'; // Green - healthy
                     if (utilization >= 90) color = '#dc3545'; // Red - critical
                     else if (utilization >= 70) color = '#ffc107'; // Yellow - warning
-                    
+
                     // Create ODP marker
                     const marker = L.circleMarker([odp.latitude, odp.longitude], {
                         radius: 8 + (utilization / 10), // Size based on utilization
@@ -3260,41 +3343,41 @@
                         fillOpacity: 0.8,
                         className: 'odp-marker'
                     });
-                    
+
                     // Create popup content
                     const popupContent = `
-                        <div class="odp-popup">
-                            <h6><i class="bx bx-broadcast"></i> ${odp.name}</h6>
-                            <div class="mb-2">
-                                <strong>Code:</strong> ${odp.code}<br>
-                                <strong>Status:</strong> <span class="badge bg-${odp.status === 'active' ? 'success' : 'warning'}">${odp.status}</span>
-                            </div>
-                            <div class="mb-2">
-                                <strong>Capacity:</strong> ${odp.used_ports}/${odp.capacity} ports<br>
-                                <strong>Utilization:</strong> ${utilization.toFixed(1)}%
-                                <div class="progress mt-1" style="height: 5px;">
-                                    <div class="progress-bar bg-${utilization >= 90 ? 'danger' : utilization >= 70 ? 'warning' : 'success'}" 
-                                         style="width: ${utilization}%"></div>
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <strong>Address:</strong> ${odp.address || 'N/A'}<br>
-                                <strong>Installation:</strong> ${odp.installation_date || 'N/A'}
-                            </div>
-                            ${odp.notes ? `<div class="mb-2"><strong>Notes:</strong><br><small>${odp.notes}</small></div>` : ''}
-                            <div class="mt-2">
-                                <small class="text-muted">
-                                    <i class="bx bx-data"></i> Connected: ${odp.active_connections || 0} customers
-                                </small>
-                            </div>
-                        </div>
-                    `;
-                    
+                                                    <div class="odp-popup">
+                                                        <h6><i class="bx bx-broadcast"></i> ${odp.name}</h6>
+                                                        <div class="mb-2">
+                                                            <strong>Code:</strong> ${odp.code}<br>
+                                                                <strong>Status:</strong> <span class="badge bg-${odp.status === 'active' ? 'success' : 'warning'}">${odp.status}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <strong>Capacity:</strong> ${odp.used_ports}/${odp.capacity} ports<br>
+                                                                <strong>Utilization:</strong> ${utilization.toFixed(1)}%
+                                                                <div class="progress mt-1" style="height: 5px;">
+                                                                    <div class="progress-bar bg-${utilization >= 90 ? 'danger' : utilization >= 70 ? 'warning' : 'success'}"
+                                                                        style="width: ${utilization}%"></div>
+                                                                </div>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <strong>Address:</strong> ${odp.address || 'N/A'}<br>
+                                                                <strong>Installation:</strong> ${odp.installation_date || 'N/A'}
+                                                        </div>
+                                                        ${odp.notes ? `<div class="mb-2"><strong>Notes:</strong><br><small>${odp.notes}</small></div>` : ''}
+                                                        <div class="mt-2">
+                                                            <small class="text-muted">
+                                                                <i class="bx bx-data"></i> Connected: ${odp.active_connections || 0} customers
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                    `;
+
                     marker.bindPopup(popupContent);
                     odpLayer.addLayer(marker);
                 }
             });
-            
+
             map.addLayer(odpLayer);
             console.log(`✅ Loaded ${odps.length} ODP markers from database`);
         }
@@ -3302,23 +3385,23 @@
         // Load ODP connections for backbone visualization
         function loadODPConnectionsFromDatabase(odpConnections) {
             if (!odpConnections || odpConnections.length === 0) return;
-            
+
             // Clear existing network segment layer
             if (networkSegmentLayer) {
                 map.removeLayer(networkSegmentLayer);
             }
-            
+
             networkSegmentLayer = L.layerGroup();
-            
+
             odpConnections.forEach(connection => {
-                if (connection.from_odp_latitude && connection.from_odp_longitude && 
+                if (connection.from_odp_latitude && connection.from_odp_longitude &&
                     connection.to_odp_latitude && connection.to_odp_longitude) {
-                    
+
                     // Determine color and weight based on connection type
                     let color = '#8e44ad'; // Purple - default backbone
                     let weight = 4;
-                    
-                    switch(connection.connection_type) {
+
+                    switch (connection.connection_type) {
                         case 'Backbone':
                             color = '#8e44ad';
                             weight = 6;
@@ -3332,7 +3415,7 @@
                             weight = 4;
                             break;
                     }
-                    
+
                     // Create network segment polyline
                     const polyline = L.polyline([
                         [connection.from_odp_latitude, connection.from_odp_longitude],
@@ -3344,30 +3427,30 @@
                         dashArray: connection.status === 'maintenance' ? '15, 10' : null,
                         className: 'network-segment'
                     });
-                    
+
                     // Create popup content
                     const popupContent = `
-                        <div class="network-segment-popup">
-                            <h6><i class="bx bx-network-chart"></i> Network Segment</h6>
-                            <div class="mb-2">
-                                <strong>From:</strong> ${connection.from_odp_name} (${connection.from_odp_code})<br>
-                                <strong>To:</strong> ${connection.to_odp_name} (${connection.to_odp_code})<br>
-                                <strong>Type:</strong> <span class="badge bg-info">${connection.connection_type}</span>
-                            </div>
-                            <div class="mb-2">
-                                <strong>Length:</strong> ${connection.cable_length ? (parseFloat(connection.cable_length) / 1000).toFixed(1) + ' km' : 'N/A'}<br>
-                                <strong>Capacity:</strong> ${connection.cable_capacity || 'N/A'}<br>
-                                <strong>Status:</strong> <span class="badge bg-${connection.status === 'active' ? 'success' : 'warning'}">${connection.status}</span>
-                            </div>
-                            ${connection.notes ? `<div class="mb-2"><strong>Notes:</strong><br><small>${connection.notes}</small></div>` : ''}
-                        </div>
-                    `;
-                    
+                                                    <div class="network-segment-popup">
+                                                        <h6><i class="bx bx-network-chart"></i> Network Segment</h6>
+                                                        <div class="mb-2">
+                                                            <strong>From:</strong> ${connection.from_odp_name} (${connection.from_odp_code})<br>
+                                                                <strong>To:</strong> ${connection.to_odp_name} (${connection.to_odp_code})<br>
+                                                                    <strong>Type:</strong> <span class="badge bg-info">${connection.connection_type}</span>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <strong>Length:</strong> ${connection.cable_length ? (parseFloat(connection.cable_length) / 1000).toFixed(1) + ' km' : 'N/A'}<br>
+                                                                        <strong>Capacity:</strong> ${connection.cable_capacity || 'N/A'}<br>
+                                                                            <strong>Status:</strong> <span class="badge bg-${connection.status === 'active' ? 'success' : 'warning'}">${connection.status}</span>
+                                                                        </div>
+                                                                        ${connection.notes ? `<div class="mb-2"><strong>Notes:</strong><br><small>${connection.notes}</small></div>` : ''}
+                                                                </div>
+                                                                `;
+
                     polyline.bindPopup(popupContent);
                     networkSegmentLayer.addLayer(polyline);
                 }
             });
-            
+
             map.addLayer(networkSegmentLayer);
             console.log(`✅ Loaded ${odpConnections.length} ODP connections from database`);
         }
@@ -3375,48 +3458,48 @@
         // Update mapping statistics
         function updateMappingStatistics(statistics) {
             if (!statistics) return;
-            
+
             // Update device statistics
             if (statistics.totalDevices !== undefined) {
                 updateStats('totalONU', statistics.totalDevices);
                 updateStats('onlineONU', statistics.onlineDevices);
                 updateStats('offlineONU', statistics.offlineDevices);
             }
-            
+
             // Update cable network statistics
             if (statistics.totalODPs !== undefined) {
                 updateStats('totalODPs', statistics.totalODPs);
             }
-            
+
             if (statistics.totalCableRoutes !== undefined) {
                 updateStats('totalCables', statistics.totalCableRoutes);
                 updateStats('connectedCables', statistics.connectedCables);
                 updateStats('disconnectedCables', statistics.disconnectedCables);
             }
-            
+
             console.log('📊 Updated mapping statistics:', statistics);
         }
 
         // Load network segments
         function loadNetworkSegments() {
             if (!cableNetworkData || !cableNetworkData.networkSegments) return;
-            
+
             // Clear existing network segment layer
             if (networkSegmentLayer) {
                 map.removeLayer(networkSegmentLayer);
             }
-            
+
             networkSegmentLayer = L.layerGroup();
-            
+
             cableNetworkData.networkSegments.forEach(segment => {
-                if (segment.start_latitude && segment.start_longitude && 
+                if (segment.start_latitude && segment.start_longitude &&
                     segment.end_latitude && segment.end_longitude) {
-                    
+
                     // Determine color and weight based on segment type
                     let color = '#007bff'; // Blue - default
                     let weight = 3;
-                    
-                    switch(segment.segment_type) {
+
+                    switch (segment.segment_type) {
                         case 'Backbone':
                             color = '#6f42c1'; // Purple
                             weight = 5;
@@ -3430,7 +3513,7 @@
                             weight = 3;
                             break;
                     }
-                    
+
                     // Create network segment polyline
                     const polyline = L.polyline([
                         [segment.start_latitude, segment.start_longitude],
@@ -3441,29 +3524,29 @@
                         opacity: 0.7,
                         dashArray: segment.status === 'maintenance' ? '15, 10' : null
                     });
-                    
+
                     // Create popup content
                     const popupContent = `
-                        <div class="network-popup">
-                            <h6><i class="bx bx-network-chart"></i> ${segment.name}</h6>
-                            <div class="mb-2">
-                                <strong>Type:</strong> ${segment.segment_type}<br>
-                                <strong>Status:</strong> <span class="badge bg-${segment.status === 'active' ? 'success' : 'warning'}">${segment.status}</span><br>
-                                <strong>Length:</strong> ${segment.cable_length ? (parseFloat(segment.cable_length) / 1000).toFixed(1) + ' km' : 'N/A'}
-                            </div>
-                            <div class="mb-2">
-                                <strong>From:</strong> ${segment.start_odp_name}<br>
-                                <strong>To:</strong> ${segment.end_odp_name || 'N/A'}
-                            </div>
-                            ${segment.notes ? `<div class="mb-2"><strong>Notes:</strong><br><small>${segment.notes}</small></div>` : ''}
-                        </div>
-                    `;
-                    
+                                                                <div class="network-popup">
+                                                                    <h6><i class="bx bx-network-chart"></i> ${segment.name}</h6>
+                                                                    <div class="mb-2">
+                                                                        <strong>Type:</strong> ${segment.segment_type}<br>
+                                                                            <strong>Status:</strong> <span class="badge bg-${segment.status === 'active' ? 'success' : 'warning'}">${segment.status}</span><br>
+                                                                                <strong>Length:</strong> ${segment.cable_length ? (parseFloat(segment.cable_length) / 1000).toFixed(1) + ' km' : 'N/A'}
+                                                                            </div>
+                                                                            <div class="mb-2">
+                                                                                <strong>From:</strong> ${segment.start_odp_name}<br>
+                                                                                    <strong>To:</strong> ${segment.end_odp_name || 'N/A'}
+                                                                            </div>
+                                                                            ${segment.notes ? `<div class="mb-2"><strong>Notes:</strong><br><small>${segment.notes}</small></div>` : ''}
+                                                                    </div>
+                                                                    `;
+
                     polyline.bindPopup(popupContent);
                     networkSegmentLayer.addLayer(polyline);
                 }
             });
-            
+
             map.addLayer(networkSegmentLayer);
         }
 
@@ -3552,12 +3635,12 @@
         }
 
         // Load cable network data when page loads
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Data sudah dimuat dari loadMapData, tidak perlu load lagi
         });
 
         // Listen for customer update events (dari parent window atau storage events)
-        window.addEventListener('storage', function(e) {
+        window.addEventListener('storage', function (e) {
             console.log('📡 Storage event received:', e.key, e.newValue);
             if (e.key === 'customer_updated') {
                 console.log('🔄 Customer update detected via storage, refreshing mapping...');
@@ -3568,7 +3651,7 @@
         });
 
         // Listen for custom events dari parent window
-        window.addEventListener('customerUpdated', function() {
+        window.addEventListener('customerUpdated', function () {
             console.log('🔄 Customer update event received via custom event, refreshing mapping...');
             refreshMappingData();
         });
@@ -3576,6 +3659,8 @@
         // Expose refresh function globally untuk dipanggil dari parent window
         window.refreshMappingData = refreshMappingData;
     </script>
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'mapping' }) %>
 </body>
-</html>
 
+</html>

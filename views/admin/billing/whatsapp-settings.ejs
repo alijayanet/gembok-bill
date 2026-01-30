@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,25 +10,27 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
+    <link href="/css/mobile-sidebar.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
     <style>
         .status-card {
             background: white;
             border-radius: 15px;
             padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
             border-left: 5px solid #667eea;
         }
-        
+
         .template-card {
             background: white;
             border-radius: 15px;
             padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
             border: 1px solid #e9ecef;
         }
-        
+
         .template-header {
             display: flex;
             justify-content: between;
@@ -36,31 +39,33 @@
             padding-bottom: 1rem;
             border-bottom: 2px solid #f8f9fa;
         }
-        
+
         .template-title {
             font-weight: bold;
             color: #2c3e50;
             margin: 0;
         }
-        
+
         .template-description {
             color: #6c757d;
             font-size: 0.9rem;
             margin-top: 0.5rem;
         }
-        
-        .form-control, .form-select {
+
+        .form-control,
+        .form-select {
             border-radius: 10px;
             border: 2px solid #e9ecef;
             padding: 0.75rem 1rem;
             transition: all 0.3s ease;
         }
-        
-        .form-control:focus, .form-select:focus {
+
+        .form-control:focus,
+        .form-select:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }
-        
+
         .btn {
             border-radius: 10px;
             padding: 0.75rem 1.5rem;
@@ -68,53 +73,53 @@
             transition: all 0.3s ease;
             border: none;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
-        
+
         .btn-success {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         }
-        
+
         .btn-warning {
             background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
         }
-        
+
         .btn-danger {
             background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
         }
-        
+
         .alert {
             border-radius: 10px;
             border: none;
         }
-        
+
         .form-check-input:checked {
             background-color: #28a745;
             border-color: #28a745;
         }
-        
+
         .form-check-input:not(:checked) {
             background-color: #dc3545;
             border-color: #dc3545;
         }
-        
+
         .template-disabled {
             opacity: 0.6;
             background-color: #f8f9fa !important;
         }
-        
+
         .template-enabled {
             opacity: 1;
             background-color: #fff !important;
         }
-        
+
         .variable-item {
             display: inline-block;
             background: #e9ecef;
@@ -124,7 +129,7 @@
             font-size: 0.8rem;
             color: #495057;
         }
-        
+
         .variable-list {
             margin-bottom: 1rem;
             padding: 0.5rem;
@@ -133,1283 +138,1617 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Include Billing Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <h3 class="mb-4">Pengaturan</h3>
+                <!-- Main content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <h3 class="mb-4">Pengaturan</h3>
 
-                <!-- Tab Navigation -->
-                <ul class="nav nav-tabs mb-4">
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'payment-settings' ? 'active' : '' %>" href="/admin/billing/payment-settings">
-                            <i class="bi bi-cog"></i> Pengaturan Pembayaran
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'whatsapp-settings' ? 'active' : '' %>" href="/admin/billing/whatsapp-settings">
-                            <i class="bi bi-chat-dots"></i> Pengaturan WhatsApp
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'service-suspension' ? 'active' : '' %>" href="/admin/billing/service-suspension">
-                            <i class="bi bi-pause-circle"></i> Pengaturan ISOLIR
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'mapping-new' ? 'active' : '' %>" href="/admin/billing/mapping-new">
-                            <i class="bi bi-map"></i> Network Mapping
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'genieacs' ? 'active' : '' %>" href="/admin/genieacs">
-                            <i class="bi bi-wifi"></i> GenieACS
-                        </a>
-                    </li>
-                </ul>
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs mb-4">
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'payment-settings' ? 'active' : '' %>"
+                                href="/admin/billing/payment-settings">
+                                <i class="bi bi-cog"></i> Pengaturan Pembayaran
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'whatsapp-settings' ? 'active' : '' %>"
+                                href="/admin/billing/whatsapp-settings">
+                                <i class="bi bi-chat-dots"></i> Pengaturan WhatsApp
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'service-suspension' ? 'active' : '' %>"
+                                href="/admin/billing/service-suspension">
+                                <i class="bi bi-pause-circle"></i> Pengaturan ISOLIR
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'mapping-new' ? 'active' : '' %>"
+                                href="/admin/billing/mapping-new">
+                                <i class="bi bi-map"></i> Network Mapping
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'genieacs' ? 'active' : '' %>"
+                                href="/admin/genieacs">
+                                <i class="bi bi-wifi"></i> GenieACS
+                            </a>
+                        </li>
+                    </ul>
 
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-whatsapp"></i> WhatsApp Settings
-                    </h1>
-                </div>
-                
-                <!-- Status Cards -->
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="status-card">
-                            <h5><i class="bi bi-whatsapp text-success"></i> WhatsApp Status</h5>
-                            <p class="mb-0" id="whatsappStatus">Checking...</p>
-                        </div>
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="bx bx-whatsapp"></i> WhatsApp Settings
+                        </h1>
                     </div>
-                    <div class="col-md-3">
-                        <div class="status-card">
-                            <h5><i class="bi bi-people text-primary"></i> Active Customers</h5>
-                            <p class="mb-0" id="activeCustomers">Loading...</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="status-card">
-                            <h5><i class="bi bi-receipt text-warning"></i> Pending Invoices</h5>
-                            <p class="mb-0" id="pendingInvoices">Loading...</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="status-card">
-                            <h5><i class="bi bi-calendar-check text-info"></i> Next Reminder</h5>
-                            <p class="mb-0" id="nextReminder">Loading...</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- WhatsApp Provider Selection Section -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="template-card">
-                            <div class="template-header">
-                                <h4 class="template-title">
-                                    <i class="bi bi-toggle-on"></i> WhatsApp Provider
-                                </h4>
+
+                    <!-- Status Cards -->
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="status-card">
+                                <h5><i class="bi bi-whatsapp text-success"></i> WhatsApp Status</h5>
+                                <p class="mb-0" id="whatsappStatus">Checking...</p>
                             </div>
-
-                            <div class="template-description">
-                                Pilih provider WhatsApp yang akan digunakan untuk mengirim pesan. Baileys menggunakan WhatsApp Web (gratis), Meta API menggunakan API resmi Facebook (berbayar).
-                                <br><br>
-                                <strong class="text-danger">⚠️ Meta API Khusus Broadcast:</strong>
-                                <ul class="mb-0">
-                                    <li>Meta API hanya untuk <strong>broadcast tagihan & info</strong> (outbound)</li>
-                                    <li>Tidak support command handling (REG, STATUS, MENU, dll)</li>
-                                    <li>Gunakan Baileys atau Dual Mode untuk fitur lengkap</li>
-                                </ul>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="status-card">
+                                <h5><i class="bi bi-people text-primary"></i> Active Customers</h5>
+                                <p class="mb-0" id="activeCustomers">Loading...</p>
                             </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="status-card">
+                                <h5><i class="bi bi-receipt text-warning"></i> Pending Invoices</h5>
+                                <p class="mb-0" id="pendingInvoices">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="status-card">
+                                <h5><i class="bi bi-calendar-check text-info"></i> Next Reminder</h5>
+                                <p class="mb-0" id="nextReminder">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
 
-                            <form id="providerForm">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="whatsappProvider" class="form-label">
-                                                <i class="bi bi-whatsapp"></i> Pilih Provider
-                                            </label>
-                                            <select class="form-select" id="whatsappProvider" name="whatsapp_provider">
-                                                <option value="baileys" selected>Baileys (WhatsApp Web - Gratis)</option>
-                                                <option value="meta_api">Meta API (Official - Berbayar)</option>
-                                            </select>
-                                            <div class="form-text mt-2">
+                    <!-- WhatsApp Provider Selection Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="template-card">
+                                <div class="template-header">
+                                    <h4 class="template-title">
+                                        <i class="bi bi-toggle-on"></i> WhatsApp Provider
+                                    </h4>
+                                </div>
+
+                                <div class="template-description">
+                                    Pilih provider WhatsApp yang akan digunakan untuk mengirim pesan. Baileys
+                                    menggunakan WhatsApp Web (gratis), Meta API menggunakan API resmi Facebook
+                                    (berbayar).
+                                    <br><br>
+                                    <strong class="text-danger">⚠️ Meta API Khusus Broadcast:</strong>
+                                    <ul class="mb-0">
+                                        <li>Meta API hanya untuk <strong>broadcast tagihan & info</strong> (outbound)
+                                        </li>
+                                        <li>Tidak support command handling (REG, STATUS, MENU, dll)</li>
+                                        <li>Gunakan Baileys atau Dual Mode untuk fitur lengkap</li>
+                                    </ul>
+                                </div>
+
+                                <form id="providerForm">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="whatsappProvider" class="form-label">
+                                                    <i class="bi bi-whatsapp"></i> Pilih Provider
+                                                </label>
+                                                <select class="form-select" id="whatsappProvider"
+                                                    name="whatsapp_provider">
+                                                    <option value="baileys" selected>Baileys (WhatsApp Web - Gratis)
+                                                    </option>
+                                                    <option value="meta_api">Meta API (Official - Berbayar)</option>
+                                                </select>
+                                                <div class="form-text mt-2">
+                                                    <small>
+                                                        <strong>Baileys:</strong> Gratis, menggunakan WhatsApp Web,
+                                                        mudah diblokir<br>
+                                                        <strong>Meta API:</strong> Berbayar, stabil, membutuhkan API Key
+                                                        dari Meta
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">
+                                                    <i class="bi bi-info-circle"></i> Status Provider
+                                                </label>
+                                                <div class="alert alert-info" id="providerStatus">
+                                                    <i class="bi bi-check-circle"></i> Provider Aktif: Baileys
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Dual Mode Option -->
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="dualModeEnabled"
+                                                    name="whatsapp_dual_mode">
+                                                <label class="form-check-label" for="dualModeEnabled">
+                                                    <strong>Aktifkan Dual Mode (Baileys + Meta API)</strong>
+                                                </label>
+                                            </div>
+                                            <div class="alert alert-warning" id="dualModeInfo" style="display: none;">
+                                                <i class="bi bi-info-circle"></i>
+                                                <strong>Dual Mode Aktif:</strong><br>
                                                 <small>
-                                                    <strong>Baileys:</strong> Gratis, menggunakan WhatsApp Web, mudah diblokir<br>
-                                                    <strong>Meta API:</strong> Berbayar, stabil, membutuhkan API Key dari Meta
+                                                    • Baileys: Command handling (REG, STATUS, MENU)<br>
+                                                    • Meta API: Broadcast massal yang stabil<br>
                                                 </small>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">
-                                                <i class="bi bi-info-circle"></i> Status Provider
-                                            </label>
-                                            <div class="alert alert-info" id="providerStatus">
-                                                <i class="bi bi-check-circle"></i> Provider Aktif: Baileys
+
+                                    <!-- Meta API Configuration (Hidden by default) -->
+                                    <div id="metaApiConfig" style="display: none;">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="metaApiKey" class="form-label">
+                                                        <i class="bi bi-key"></i> Meta API Key
+                                                    </label>
+                                                    <input type="password" class="form-control" id="metaApiKey"
+                                                        name="whatsapp_meta_api_key"
+                                                        placeholder="Masukkan API Key dari Meta">
+                                                    <div class="form-text">Dapatkan dari Meta for Developers</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="phoneNumberId" class="form-label">
+                                                        <i class="bi bi-phone"></i> Phone Number ID
+                                                    </label>
+                                                    <input type="text" class="form-control" id="phoneNumberId"
+                                                        name="whatsapp_phone_number_id"
+                                                        placeholder="Masukkan Phone Number ID">
+                                                    <div class="form-text">ID dari WhatsApp Business Account</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="webhookUrl" class="form-label">
+                                                        <i class="bi bi-link"></i> Webhook URL
+                                                    </label>
+                                                    <input type="url" class="form-control" id="webhookUrl"
+                                                        name="whatsapp_webhook_url"
+                                                        placeholder="https://yourdomain.com/webhook/whatsapp">
+                                                    <div class="form-text">URL untuk menerima pesan masuk</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="verifyToken" class="form-label">
+                                                        <i class="bi bi-shield-lock"></i> Verify Token
+                                                    </label>
+                                                    <input type="text" class="form-control" id="verifyToken"
+                                                        name="whatsapp_verify_token"
+                                                        placeholder="Token verifikasi webhook">
+                                                    <div class="form-text">Token untuk verifikasi webhook</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+
+                                    <div class="mt-3">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-save"></i> Simpan Pengaturan Provider
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WhatsApp Groups Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="template-card">
+                                <div class="template-header">
+                                    <h4 class="template-title">
+                                        <i class="bi bi-people-fill"></i> WhatsApp Groups
+                                    </h4>
                                 </div>
 
-                                <!-- Dual Mode Option -->
-                                <div class="row mt-3">
-                                    <div class="col-12">
-                                        <div class="form-check form-switch mb-2">
-                                            <input class="form-check-input" type="checkbox" id="dualModeEnabled" name="whatsapp_dual_mode">
-                                            <label class="form-check-label" for="dualModeEnabled">
-                                                <strong>Aktifkan Dual Mode (Baileys + Meta API)</strong>
-                                            </label>
+                                <div class="template-description">
+                                    Pilih group WhatsApp untuk menerima broadcast notifikasi (misal: group teknisi,
+                                    group admin, dll).
+                                </div>
+
+                                <form id="waGroupsForm">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="mb-3">
+                                                <label class="form-label">
+                                                    <i class="bi bi-toggle-on"></i> Aktifkan WhatsApp Groups
+                                                </label>
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="waGroupsEnabled"
+                                                        name="whatsapp_groups_enabled">
+                                                    <label class="form-check-label" for="waGroupsEnabled">
+                                                        <strong>Aktifkan broadcast ke WhatsApp Groups</strong>
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="alert alert-warning" id="dualModeInfo" style="display: none;">
+                                    </div>
+
+                                    <div id="waGroupsConfig" style="display: none;">
+                                        <div class="alert alert-info">
                                             <i class="bi bi-info-circle"></i>
-                                            <strong>Dual Mode Aktif:</strong><br>
-                                            <small>
-                                                • Baileys: Command handling (REG, STATUS, MENU)<br>
-                                                • Meta API: Broadcast massal yang stabil<br>
-                                            </small>
+                                            <strong>Info:</strong> Pilih group yang akan menerima broadcast notifikasi.
+                                            Pastikan WhatsApp sudah terhubung untuk melihat daftar group.
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <button type="button" class="btn btn-primary btn-sm"
+                                                        onclick="loadWhatsAppGroups()">
+                                                        <i class="bi bi-sync"></i> Refresh Daftar Group
+                                                    </button>
+                                                    <span id="groupsLoading" class="ms-2" style="display: none;">
+                                                        <i class="bi bi-spinner-border spin"></i> Loading...
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="mb-3">
+                                                    <label class="form-label">
+                                                        <i class="bi bi-list-check"></i> Pilih Group Teknisi
+                                                    </label>
+                                                    <div id="groupsList" class="border rounded p-3"
+                                                        style="max-height: 300px; overflow-y: auto;">
+                                                        <div class="text-muted">
+                                                            <small>Klik "Refresh Daftar Group" untuk melihat daftar
+                                                                group WhatsApp</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="mb-3">
+                                                    <label class="form-label">
+                                                        <i class="bi bi-check2-square"></i> Group Terpilih
+                                                    </label>
+                                                    <div id="selectedGroups" class="border rounded p-2"
+                                                        style="min-height: 50px;">
+                                                        <span class="text-muted">Belum ada group yang dipilih</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+
+                                    <div class="mt-3">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-save"></i> Simpan Pengaturan Group
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rate Limiting Settings Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="template-card">
+                                <div class="template-header">
+                                    <h4 class="template-title">
+                                        <i class="bi bi-speedometer2"></i> Rate Limiting Settings
+                                    </h4>
                                 </div>
 
-                                <!-- Meta API Configuration (Hidden by default) -->
-                                <div id="metaApiConfig" style="display: none;">
+                                <div class="template-description">
+                                    Konfigurasi pengaturan pengiriman pesan untuk menghindari pemblokiran dari WhatsApp.
+                                    Atur jumlah pesan maksimal per batch dan jeda waktu antar pengiriman.
+                                </div>
+
+                                <form id="rateLimitForm">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <label for="metaApiKey" class="form-label">
-                                                    <i class="bi bi-key"></i> Meta API Key
+                                                <label for="maxMessagesPerBatch" class="form-label">
+                                                    <i class="bi bi-envelope"></i> Maksimal Pesan per Batch
                                                 </label>
-                                                <input type="password" class="form-control" id="metaApiKey" name="whatsapp_meta_api_key"
-                                                       placeholder="Masukkan API Key dari Meta">
-                                                <div class="form-text">Dapatkan dari Meta for Developers</div>
+                                                <input type="number" class="form-control" id="maxMessagesPerBatch"
+                                                    min="1" max="100" value="10"
+                                                    placeholder="Jumlah pesan maksimal yang dikirim sekaligus">
+                                                <div class="form-text">Rekomendasi: 5-20 pesan per batch untuk
+                                                    menghindari pemblokiran</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <label for="phoneNumberId" class="form-label">
-                                                    <i class="bi bi-phone"></i> Phone Number ID
+                                                <label for="delayBetweenBatches" class="form-label">
+                                                    <i class="bi bi-clock"></i> Jeda Antar Batch (detik)
                                                 </label>
-                                                <input type="text" class="form-control" id="phoneNumberId" name="whatsapp_phone_number_id"
-                                                       placeholder="Masukkan Phone Number ID">
-                                                <div class="form-text">ID dari WhatsApp Business Account</div>
+                                                <input type="number" class="form-control" id="delayBetweenBatches"
+                                                    min="1" max="300" value="30"
+                                                    placeholder="Jeda waktu antar batch pengiriman">
+                                                <div class="form-text">Rekomendasi: 30-60 detik untuk keamanan</div>
                                             </div>
                                         </div>
                                     </div>
+
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <label for="webhookUrl" class="form-label">
-                                                    <i class="bi bi-link"></i> Webhook URL
+                                                <label for="delayBetweenMessages" class="form-label">
+                                                    <i class="bi bi-hourglass-split"></i> Jeda Antar Pesan (detik)
                                                 </label>
-                                                <input type="url" class="form-control" id="webhookUrl" name="whatsapp_webhook_url"
-                                                       placeholder="https://yourdomain.com/webhook/whatsapp">
-                                                <div class="form-text">URL untuk menerima pesan masuk</div>
+                                                <input type="number" class="form-control" id="delayBetweenMessages"
+                                                    min="0" max="10" value="2"
+                                                    placeholder="Jeda waktu antar pesan dalam batch">
+                                                <div class="form-text">Rekomendasi: 1-3 detik untuk stabilitas</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <label for="verifyToken" class="form-label">
-                                                    <i class="bi bi-shield-lock"></i> Verify Token
+                                                <label for="maxRetries" class="form-label">
+                                                    <i class="bi bi-arrow-repeat"></i> Maksimal Retry
                                                 </label>
-                                                <input type="text" class="form-control" id="verifyToken" name="whatsapp_verify_token"
-                                                       placeholder="Token verifikasi webhook">
-                                                <div class="form-text">Token untuk verifikasi webhook</div>
+                                                <input type="number" class="form-control" id="maxRetries" min="0"
+                                                    max="5" value="2" placeholder="Jumlah percobaan ulang jika gagal">
+                                                <div class="form-text">Rekomendasi: 2-3 kali untuk efisiensi</div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="mt-3">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-save"></i> Simpan Pengaturan Provider
-                                    </button>
-                                </div>
-                            </form>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="dailyMessageLimit" class="form-label">
+                                                    <i class="bi bi-calendar-day"></i> Batas Harian (opsional)
+                                                </label>
+                                                <input type="number" class="form-control" id="dailyMessageLimit" min="0"
+                                                    max="1000" value="0" placeholder="0 = tidak terbatas">
+                                                <div class="form-text">Batasi total pesan per hari (0 = tidak terbatas)
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch mt-4">
+                                                    <input class="form-check-input" type="checkbox" id="enableRateLimit"
+                                                        checked>
+                                                    <label class="form-check-label" for="enableRateLimit">
+                                                        <strong>Aktifkan Rate Limiting</strong>
+                                                    </label>
+                                                </div>
+                                                <div class="form-text">Nonaktifkan untuk pengiriman tanpa batasan (tidak
+                                                    disarankan)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-primary" onclick="saveRateLimitSettings()">
+                                            <i class="bi bi-save"></i> Simpan Pengaturan Rate Limiting
+                                        </button>
+                                        <button type="button" class="btn btn-warning ms-2"
+                                            onclick="resetRateLimitSettings()">
+                                            <i class="bi bi-arrow-clockwise"></i> Reset ke Default
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Rate Limiting Settings Section -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="template-card">
-                            <div class="template-header">
-                                <h4 class="template-title">
-                                    <i class="bi bi-speedometer2"></i> Rate Limiting Settings
-                                </h4>
-                            </div>
-                            
-                            <div class="template-description">
-                                Konfigurasi pengaturan pengiriman pesan untuk menghindari pemblokiran dari WhatsApp. Atur jumlah pesan maksimal per batch dan jeda waktu antar pengiriman.
-                            </div>
-                            
-                            <form id="rateLimitForm">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="maxMessagesPerBatch" class="form-label">
-                                                <i class="bi bi-envelope"></i> Maksimal Pesan per Batch
-                                            </label>
-                                            <input type="number" class="form-control" id="maxMessagesPerBatch" 
-                                                   min="1" max="100" value="10" 
-                                                   placeholder="Jumlah pesan maksimal yang dikirim sekaligus">
-                                            <div class="form-text">Rekomendasi: 5-20 pesan per batch untuk menghindari pemblokiran</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="delayBetweenBatches" class="form-label">
-                                                <i class="bi bi-clock"></i> Jeda Antar Batch (detik)
-                                            </label>
-                                            <input type="number" class="form-control" id="delayBetweenBatches" 
-                                                   min="1" max="300" value="30" 
-                                                   placeholder="Jeda waktu antar batch pengiriman">
-                                            <div class="form-text">Rekomendasi: 30-60 detik untuk keamanan</div>
-                                        </div>
-                                    </div>
+                    <!-- WhatsApp Groups Settings Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="template-card">
+                                <div class="template-header">
+                                    <h4 class="template-title">
+                                        <i class="bi bi-people-fill"></i> WhatsApp Groups
+                                    </h4>
                                 </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="delayBetweenMessages" class="form-label">
-                                                <i class="bi bi-hourglass-split"></i> Jeda Antar Pesan (detik)
-                                            </label>
-                                            <input type="number" class="form-control" id="delayBetweenMessages" 
-                                                   min="0" max="10" value="2" 
-                                                   placeholder="Jeda waktu antar pesan dalam batch">
-                                            <div class="form-text">Rekomendasi: 1-3 detik untuk stabilitas</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="maxRetries" class="form-label">
-                                                <i class="bi bi-arrow-repeat"></i> Maksimal Retry
-                                            </label>
-                                            <input type="number" class="form-control" id="maxRetries" 
-                                                   min="0" max="5" value="2" 
-                                                   placeholder="Jumlah percobaan ulang jika gagal">
-                                            <div class="form-text">Rekomendasi: 2-3 kali untuk efisiensi</div>
-                                        </div>
-                                    </div>
+
+                                <div class="template-description">
+                                    Atur daftar Group WhatsApp untuk menerima broadcast (pengumuman/gangguan) secara
+                                    otomatis.
                                 </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="dailyMessageLimit" class="form-label">
-                                                <i class="bi bi-calendar-day"></i> Batas Harian (opsional)
-                                            </label>
-                                            <input type="number" class="form-control" id="dailyMessageLimit" 
-                                                   min="0" max="1000" value="0" 
-                                                   placeholder="0 = tidak terbatas">
-                                            <div class="form-text">Batasi total pesan per hari (0 = tidak terbatas)</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <div class="form-check form-switch mt-4">
-                                                <input class="form-check-input" type="checkbox" id="enableRateLimit" checked>
-                                                <label class="form-check-label" for="enableRateLimit">
-                                                    <strong>Aktifkan Rate Limiting</strong>
+
+                                <form id="waGroupForm">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check form-switch mb-3">
+                                                <input class="form-check-input" type="checkbox" id="waGroupsEnabled"
+                                                    checked>
+                                                <label class="form-check-label" for="waGroupsEnabled">
+                                                    <strong>Aktifkan Kirim ke Group</strong>
                                                 </label>
                                             </div>
-                                            <div class="form-text">Nonaktifkan untuk pengiriman tanpa batasan (tidak disarankan)</div>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <div class="mt-3">
-                                    <button type="button" class="btn btn-primary" onclick="saveRateLimitSettings()">
-                                        <i class="bi bi-save"></i> Simpan Pengaturan Rate Limiting
-                                    </button>
-                                    <button type="button" class="btn btn-warning ms-2" onclick="resetRateLimitSettings()">
-                                        <i class="bi bi-arrow-clockwise"></i> Reset ke Default
-                                    </button>
-                                </div>
-                            </form>
+
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="mb-3">
+                                                <label for="waGroupIds" class="form-label">
+                                                    <i class="bi bi-hash"></i> Group IDs (satu per baris)
+                                                </label>
+                                                <textarea class="form-control" id="waGroupIds" rows="4"
+                                                    placeholder="1203630xxxxxxxx@g.us\n12036yyyyyyyy@g.us"></textarea>
+                                                <div class="form-text">Gunakan JID group WhatsApp, contoh:
+                                                    120363031495796203@g.us. Baris kosong akan diabaikan.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <button type="button" class="btn btn-primary" onclick="saveWAGroups()">
+                                            <i class="bi bi-save"></i> Simpan Pengaturan Group
+                                        </button>
+                                        <button type="button" class="btn btn-warning ms-2"
+                                            onclick="resetWAGroupsToDefault()">
+                                            <i class="bi bi-arrow-clockwise"></i> Reset
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- WhatsApp Groups Settings Section -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="template-card">
-                            <div class="template-header">
-                                <h4 class="template-title">
-                                    <i class="bi bi-people-fill"></i> WhatsApp Groups
-                                </h4>
-                            </div>
 
-                            <div class="template-description">
-                                Atur daftar Group WhatsApp untuk menerima broadcast (pengumuman/gangguan) secara otomatis.
-                            </div>
-
-                            <form id="waGroupForm">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-check form-switch mb-3">
-                                            <input class="form-check-input" type="checkbox" id="waGroupsEnabled" checked>
-                                            <label class="form-check-label" for="waGroupsEnabled">
-                                                <strong>Aktifkan Kirim ke Group</strong>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="mb-3">
-                                            <label for="waGroupIds" class="form-label">
-                                                <i class="bi bi-hash"></i> Group IDs (satu per baris)
-                                            </label>
-                                            <textarea class="form-control" id="waGroupIds" rows="4" placeholder="1203630xxxxxxxx@g.us\n12036yyyyyyyy@g.us"></textarea>
-                                            <div class="form-text">Gunakan JID group WhatsApp, contoh: 120363031495796203@g.us. Baris kosong akan diabaikan.</div>
-                                        </div>
+                    <!-- Templates Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="template-card">
+                                <div class="template-header">
+                                    <h4 class="template-title">
+                                        <i class="bi bi-chat-text"></i> Message Templates
+                                    </h4>
+                                    <div>
+                                        <button class="btn btn-success btn-sm me-2" onclick="enableAllTemplates()">
+                                            <i class="bi bi-check-all"></i> Enable All
+                                        </button>
+                                        <button class="btn btn-danger btn-sm me-2" onclick="disableAllTemplates()">
+                                            <i class="bi bi-x-all"></i> Disable All
+                                        </button>
+                                        <button class="btn btn-primary" onclick="saveAllTemplates()">
+                                            <i class="bi bi-save"></i> Save All Templates
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div class="mt-3">
-                                    <button type="button" class="btn btn-primary" onclick="saveWAGroups()">
-                                        <i class="bi bi-save"></i> Simpan Pengaturan Group
-                                    </button>
-                                    <button type="button" class="btn btn-warning ms-2" onclick="resetWAGroupsToDefault()">
-                                        <i class="bi bi-arrow-clockwise"></i> Reset
-                                    </button>
+                                <div class="template-description">
+                                    Manage WhatsApp notification templates for different billing events. Use variables
+                                    in curly braces {} to insert dynamic data.
                                 </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Templates Section -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="template-card">
-                            <div class="template-header">
-                                <h4 class="template-title">
-                                    <i class="bi bi-chat-text"></i> Message Templates
-                                </h4>
-                                <div>
-                                    <button class="btn btn-success btn-sm me-2" onclick="enableAllTemplates()">
-                                        <i class="bi bi-check-all"></i> Enable All
-                                    </button>
-                                    <button class="btn btn-danger btn-sm me-2" onclick="disableAllTemplates()">
-                                        <i class="bi bi-x-all"></i> Disable All
-                                    </button>
-                                    <button class="btn btn-primary" onclick="saveAllTemplates()">
-                                        <i class="bi bi-save"></i> Save All Templates
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="template-description">
-                                Manage WhatsApp notification templates for different billing events. Use variables in curly braces {} to insert dynamic data.
-                            </div>
-                            
-                            <!-- Template Forms -->
-                            <div id="templateForms">
-                                <!-- Invoice Created Template -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h5>📋 Invoice Created Notification</h5>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="invoice_created_enabled" checked>
-                                            <label class="form-check-label" for="invoice_created_enabled">
-                                                <strong>Enable Notification</strong>
-                                            </label>
+
+                                <!-- Template Forms -->
+                                <div id="templateForms">
+                                    <!-- Invoice Created Template -->
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h5>📋 Invoice Created Notification</h5>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="invoice_created_enabled" checked>
+                                                <label class="form-check-label" for="invoice_created_enabled">
+                                                    <strong>Enable Notification</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="variable-list">
+                                            <strong>Available Variables:</strong>
+                                            <span class="variable-item">{customer_name}</span>
+                                            <span class="variable-item">{invoice_number}</span>
+                                            <span class="variable-item">{amount}</span>
+                                            <span class="variable-item">{due_date}</span>
+                                            <span class="variable-item">{package_name}</span>
+                                            <span class="variable-item">{package_speed}</span>
+                                            <span class="variable-item">{notes}</span>
+                                        </div>
+                                        <textarea class="form-control" id="invoice_created_template" rows="8"
+                                            placeholder="Enter template message..."></textarea>
+                                        <div class="mt-2">
+                                            <button class="btn btn-warning btn-sm"
+                                                onclick="testTemplate('invoice_created')">
+                                                <i class="bi bi-send"></i> Test Template
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="variable-list">
-                                        <strong>Available Variables:</strong>
-                                        <span class="variable-item">{customer_name}</span>
-                                        <span class="variable-item">{invoice_number}</span>
-                                        <span class="variable-item">{amount}</span>
-                                        <span class="variable-item">{due_date}</span>
-                                        <span class="variable-item">{package_name}</span>
-                                        <span class="variable-item">{package_speed}</span>
-                                        <span class="variable-item">{notes}</span>
-                                    </div>
-                                    <textarea class="form-control" id="invoice_created_template" rows="8" placeholder="Enter template message..."></textarea>
-                                    <div class="mt-2">
-                                        <button class="btn btn-warning btn-sm" onclick="testTemplate('invoice_created')">
-                                            <i class="bi bi-send"></i> Test Template
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Due Date Reminder Template -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h5>⚠️ Due Date Reminder</h5>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="due_date_reminder_enabled" checked>
-                                            <label class="form-check-label" for="due_date_reminder_enabled">
-                                                <strong>Enable Notification</strong>
-                                            </label>
+
+                                    <!-- Due Date Reminder Template -->
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h5>⚠️ Due Date Reminder</h5>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="due_date_reminder_enabled" checked>
+                                                <label class="form-check-label" for="due_date_reminder_enabled">
+                                                    <strong>Enable Notification</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="variable-list">
+                                            <strong>Available Variables:</strong>
+                                            <span class="variable-item">{customer_name}</span>
+                                            <span class="variable-item">{invoice_number}</span>
+                                            <span class="variable-item">{amount}</span>
+                                            <span class="variable-item">{due_date}</span>
+                                            <span class="variable-item">{days_remaining}</span>
+                                            <span class="variable-item">{package_name}</span>
+                                            <span class="variable-item">{package_speed}</span>
+                                        </div>
+                                        <textarea class="form-control" id="due_date_reminder_template" rows="8"
+                                            placeholder="Enter template message..."></textarea>
+                                        <div class="mt-2">
+                                            <button class="btn btn-warning btn-sm"
+                                                onclick="testTemplate('due_date_reminder')">
+                                                <i class="bi bi-send"></i> Test Template
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="variable-list">
-                                        <strong>Available Variables:</strong>
-                                        <span class="variable-item">{customer_name}</span>
-                                        <span class="variable-item">{invoice_number}</span>
-                                        <span class="variable-item">{amount}</span>
-                                        <span class="variable-item">{due_date}</span>
-                                        <span class="variable-item">{days_remaining}</span>
-                                        <span class="variable-item">{package_name}</span>
-                                        <span class="variable-item">{package_speed}</span>
-                                    </div>
-                                    <textarea class="form-control" id="due_date_reminder_template" rows="8" placeholder="Enter template message..."></textarea>
-                                    <div class="mt-2">
-                                        <button class="btn btn-warning btn-sm" onclick="testTemplate('due_date_reminder')">
-                                            <i class="bi bi-send"></i> Test Template
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Payment Received Template -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h5>✅ Payment Received Notification</h5>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="payment_received_enabled" checked>
-                                            <label class="form-check-label" for="payment_received_enabled">
-                                                <strong>Enable Notification</strong>
-                                            </label>
+
+                                    <!-- Payment Received Template -->
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h5>✅ Payment Received Notification</h5>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="payment_received_enabled" checked>
+                                                <label class="form-check-label" for="payment_received_enabled">
+                                                    <strong>Enable Notification</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="variable-list">
+                                            <strong>Available Variables:</strong>
+                                            <span class="variable-item">{customer_name}</span>
+                                            <span class="variable-item">{invoice_number}</span>
+                                            <span class="variable-item">{amount}</span>
+                                            <span class="variable-item">{payment_method}</span>
+                                            <span class="variable-item">{payment_date}</span>
+                                            <span class="variable-item">{reference_number}</span>
+                                        </div>
+                                        <textarea class="form-control" id="payment_received_template" rows="8"
+                                            placeholder="Enter template message..."></textarea>
+                                        <div class="mt-2">
+                                            <button class="btn btn-warning btn-sm"
+                                                onclick="testTemplate('payment_received')">
+                                                <i class="bi bi-send"></i> Test Template
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="variable-list">
-                                        <strong>Available Variables:</strong>
-                                        <span class="variable-item">{customer_name}</span>
-                                        <span class="variable-item">{invoice_number}</span>
-                                        <span class="variable-item">{amount}</span>
-                                        <span class="variable-item">{payment_method}</span>
-                                        <span class="variable-item">{payment_date}</span>
-                                        <span class="variable-item">{reference_number}</span>
-                                    </div>
-                                    <textarea class="form-control" id="payment_received_template" rows="8" placeholder="Enter template message..."></textarea>
-                                    <div class="mt-2">
-                                        <button class="btn btn-warning btn-sm" onclick="testTemplate('payment_received')">
-                                            <i class="bi bi-send"></i> Test Template
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Service Disruption Template -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h5>🚨 Service Disruption Notification</h5>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="service_disruption_enabled" checked>
-                                            <label class="form-check-label" for="service_disruption_enabled">
-                                                <strong>Enable Notification</strong>
-                                            </label>
+
+                                    <!-- Service Disruption Template -->
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h5>🚨 Service Disruption Notification</h5>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="service_disruption_enabled" checked>
+                                                <label class="form-check-label" for="service_disruption_enabled">
+                                                    <strong>Enable Notification</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="variable-list">
+                                            <strong>Available Variables:</strong>
+                                            <span class="variable-item">{disruption_type}</span>
+                                            <span class="variable-item">{affected_area}</span>
+                                            <span class="variable-item">{estimated_resolution}</span>
+                                            <span class="variable-item">{support_phone}</span>
+                                        </div>
+                                        <textarea class="form-control" id="service_disruption_template" rows="8"
+                                            placeholder="Enter template message..."></textarea>
+                                        <div class="mt-2">
+                                            <button class="btn btn-warning btn-sm"
+                                                onclick="testTemplate('service_disruption')">
+                                                <i class="bi bi-send"></i> Test Template
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="variable-list">
-                                        <strong>Available Variables:</strong>
-                                        <span class="variable-item">{disruption_type}</span>
-                                        <span class="variable-item">{affected_area}</span>
-                                        <span class="variable-item">{estimated_resolution}</span>
-                                        <span class="variable-item">{support_phone}</span>
-                                    </div>
-                                    <textarea class="form-control" id="service_disruption_template" rows="8" placeholder="Enter template message..."></textarea>
-                                    <div class="mt-2">
-                                        <button class="btn btn-warning btn-sm" onclick="testTemplate('service_disruption')">
-                                            <i class="bi bi-send"></i> Test Template
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Service Announcement Template -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h5>📢 Service Announcement</h5>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="service_announcement_enabled" checked>
-                                            <label class="form-check-label" for="service_announcement_enabled">
-                                                <strong>Enable Notification</strong>
-                                            </label>
+
+                                    <!-- Service Announcement Template -->
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h5>📢 Service Announcement</h5>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="service_announcement_enabled" checked>
+                                                <label class="form-check-label" for="service_announcement_enabled">
+                                                    <strong>Enable Notification</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="variable-list">
+                                            <strong>Available Variables:</strong>
+                                            <span class="variable-item">{announcement_content}</span>
+                                        </div>
+                                        <textarea class="form-control" id="service_announcement_template" rows="8"
+                                            placeholder="Enter template message..."></textarea>
+                                        <div class="mt-2">
+                                            <button class="btn btn-warning btn-sm"
+                                                onclick="testTemplate('service_announcement')">
+                                                <i class="bi bi-send"></i> Test Template
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="variable-list">
-                                        <strong>Available Variables:</strong>
-                                        <span class="variable-item">{announcement_content}</span>
-                                    </div>
-                                    <textarea class="form-control" id="service_announcement_template" rows="8" placeholder="Enter template message..."></textarea>
-                                    <div class="mt-2">
-                                        <button class="btn btn-warning btn-sm" onclick="testTemplate('service_announcement')">
-                                            <i class="bi bi-send"></i> Test Template
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Service Suspension Template -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h5>⏸️ Service Suspension Notification</h5>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="service_suspension_enabled" checked>
-                                            <label class="form-check-label" for="service_suspension_enabled">
-                                                <strong>Enable Notification</strong>
-                                            </label>
+
+                                    <!-- Service Suspension Template -->
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h5>⏸️ Service Suspension Notification</h5>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="service_suspension_enabled" checked>
+                                                <label class="form-check-label" for="service_suspension_enabled">
+                                                    <strong>Enable Notification</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="variable-list">
+                                            <strong>Available Variables:</strong>
+                                            <span class="variable-item">{customer_name}</span>
+                                            <span class="variable-item">{username}</span>
+                                            <span class="variable-item">{package_name}</span>
+                                            <span class="variable-item">{due_date}</span>
+                                            <span class="variable-item">{amount}</span>
+                                            <span class="variable-item">{days_overdue}</span>
+                                        </div>
+                                        <textarea class="form-control" id="service_suspension_template" rows="8"
+                                            placeholder="Enter template message..."></textarea>
+                                        <div class="mt-2">
+                                            <button class="btn btn-warning btn-sm"
+                                                onclick="testTemplate('service_suspension')">
+                                                <i class="bi bi-send"></i> Test Template
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="variable-list">
-                                        <strong>Available Variables:</strong>
-                                        <span class="variable-item">{customer_name}</span>
-                                        <span class="variable-item">{username}</span>
-                                        <span class="variable-item">{package_name}</span>
-                                        <span class="variable-item">{due_date}</span>
-                                        <span class="variable-item">{amount}</span>
-                                        <span class="variable-item">{days_overdue}</span>
-                                    </div>
-                                    <textarea class="form-control" id="service_suspension_template" rows="8" placeholder="Enter template message..."></textarea>
-                                    <div class="mt-2">
-                                        <button class="btn btn-warning btn-sm" onclick="testTemplate('service_suspension')">
-                                            <i class="bi bi-send"></i> Test Template
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Service Restoration Template -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h5>✅ Service Restoration Notification</h5>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="service_restoration_enabled" checked>
-                                            <label class="form-check-label" for="service_restoration_enabled">
-                                                <strong>Enable Notification</strong>
-                                            </label>
+
+                                    <!-- Service Restoration Template -->
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h5>✅ Service Restoration Notification</h5>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="service_restoration_enabled" checked>
+                                                <label class="form-check-label" for="service_restoration_enabled">
+                                                    <strong>Enable Notification</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="variable-list">
+                                            <strong>Available Variables:</strong>
+                                            <span class="variable-item">{customer_name}</span>
+                                            <span class="variable-item">{username}</span>
+                                            <span class="variable-item">{package_name}</span>
+                                            <span class="variable-item">{payment_date}</span>
+                                            <span class="variable-item">{amount}</span>
+                                            <span class="variable-item">{payment_method}</span>
+                                        </div>
+                                        <textarea class="form-control" id="service_restoration_template" rows="8"
+                                            placeholder="Enter template message..."></textarea>
+                                        <div class="mt-2">
+                                            <button class="btn btn-warning btn-sm"
+                                                onclick="testTemplate('service_restoration')">
+                                                <i class="bi bi-send"></i> Test Template
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="variable-list">
-                                        <strong>Available Variables:</strong>
-                                        <span class="variable-item">{customer_name}</span>
-                                        <span class="variable-item">{username}</span>
-                                        <span class="variable-item">{package_name}</span>
-                                        <span class="variable-item">{payment_date}</span>
-                                        <span class="variable-item">{amount}</span>
-                                        <span class="variable-item">{payment_method}</span>
-                                    </div>
-                                    <textarea class="form-control" id="service_restoration_template" rows="8" placeholder="Enter template message..."></textarea>
-                                    <div class="mt-2">
-                                        <button class="btn btn-warning btn-sm" onclick="testTemplate('service_restoration')">
-                                            <i class="bi bi-send"></i> Test Template
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Welcome Message Template -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h5>👋 Welcome Message</h5>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="welcome_message_enabled" checked>
-                                            <label class="form-check-label" for="welcome_message_enabled">
-                                                <strong>Enable Notification</strong>
-                                            </label>
+
+                                    <!-- Welcome Message Template -->
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h5>👋 Welcome Message</h5>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="welcome_message_enabled" checked>
+                                                <label class="form-check-label" for="welcome_message_enabled">
+                                                    <strong>Enable Notification</strong>
+                                                </label>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="variable-list">
-                                        <strong>Available Variables:</strong>
-                                        <span class="variable-item">{customer_name}</span>
-                                        <span class="variable-item">{username}</span>
-                                        <span class="variable-item">{package_name}</span>
-                                        <span class="variable-item">{package_speed}</span>
-                                        <span class="variable-item">{wifi_password}</span>
-                                        <span class="variable-item">{support_phone}</span>
-                                    </div>
-                                    <textarea class="form-control" id="welcome_message_template" rows="8" placeholder="Enter template message..."></textarea>
-                                    <div class="mt-2">
-                                        <button class="btn btn-warning btn-sm" onclick="testTemplate('welcome_message')">
-                                            <i class="bi bi-send"></i> Test Template
-                                        </button>
+                                        <div class="variable-list">
+                                            <strong>Available Variables:</strong>
+                                            <span class="variable-item">{customer_name}</span>
+                                            <span class="variable-item">{username}</span>
+                                            <span class="variable-item">{package_name}</span>
+                                            <span class="variable-item">{package_speed}</span>
+                                            <span class="variable-item">{wifi_password}</span>
+                                            <span class="variable-item">{support_phone}</span>
+                                        </div>
+                                        <textarea class="form-control" id="welcome_message_template" rows="8"
+                                            placeholder="Enter template message..."></textarea>
+                                        <div class="mt-2">
+                                            <button class="btn btn-warning btn-sm"
+                                                onclick="testTemplate('welcome_message')">
+                                                <i class="bi bi-send"></i> Test Template
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Test Notification Section -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="template-card">
-                            <h4><i class="bi bi-send"></i> Test Notifications</h4>
-                            <div class="test-section">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Phone Number</label>
-                                        <input type="text" class="form-control" id="testPhoneNumber" placeholder="6281234567890">
+
+                    <!-- Test Notification Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="template-card">
+                                <h4><i class="bi bi-send"></i> Test Notifications</h4>
+                                <div class="test-section">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Phone Number</label>
+                                            <input type="text" class="form-control" id="testPhoneNumber"
+                                                placeholder="6281234567890">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Template Type</label>
+                                            <select class="form-select" id="testTemplateType">
+                                                <option value="invoice_created">Invoice Created</option>
+                                                <option value="due_date_reminder">Due Date Reminder</option>
+                                                <option value="payment_received">Payment Received</option>
+                                                <option value="service_disruption">Service Disruption</option>
+                                                <option value="service_announcement">Service Announcement</option>
+                                                <option value="service_suspension">Service Suspension</option>
+                                                <option value="service_restoration">Service Restoration</option>
+                                                <option value="welcome_message">Welcome Message</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Template Type</label>
-                                        <select class="form-select" id="testTemplateType">
-                                            <option value="invoice_created">Invoice Created</option>
-                                            <option value="due_date_reminder">Due Date Reminder</option>
-                                            <option value="payment_received">Payment Received</option>
-                                            <option value="service_disruption">Service Disruption</option>
-                                            <option value="service_announcement">Service Announcement</option>
-                                            <option value="service_suspension">Service Suspension</option>
-                                            <option value="service_restoration">Service Restoration</option>
-                                            <option value="welcome_message">Welcome Message</option>
-                                        </select>
+                                    <div class="mt-3">
+                                        <button class="btn btn-success" onclick="sendTestNotification()">
+                                            <i class="bi bi-send"></i> Send Test Notification
+                                        </button>
                                     </div>
-                                </div>
-                                <div class="mt-3">
-                                    <button class="btn btn-success" onclick="sendTestNotification()">
-                                        <i class="bi bi-send"></i> Send Test Notification
-                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Broadcast Section -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="template-card">
-                            <h4><i class="bi bi-broadcast"></i> Send Broadcast Message</h4>
-                            <div class="test-section">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Message Type</label>
-                                        <select class="form-select" id="broadcastType">
-                                            <option value="service_disruption">Service Disruption</option>
-                                            <option value="service_announcement">Service Announcement</option>
-                                        </select>
+
+                    <!-- Broadcast Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="template-card">
+                                <h4><i class="bi bi-broadcast"></i> Send Broadcast Message</h4>
+                                <div class="test-section">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Message Type</label>
+                                            <select class="form-select" id="broadcastType">
+                                                <option value="service_disruption">Service Disruption</option>
+                                                <option value="service_announcement">Service Announcement</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Disruption Type (if applicable)</label>
+                                            <input type="text" class="form-control" id="disruptionType"
+                                                placeholder="Gangguan Jaringan">
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Disruption Type (if applicable)</label>
-                                        <input type="text" class="form-control" id="disruptionType" placeholder="Gangguan Jaringan">
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Affected Area</label>
+                                            <input type="text" class="form-control" id="affectedArea"
+                                                placeholder="Seluruh Area">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Estimated Resolution</label>
+                                            <input type="text" class="form-control" id="estimatedResolution"
+                                                placeholder="2 jam">
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="row mt-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Affected Area</label>
-                                        <input type="text" class="form-control" id="affectedArea" placeholder="Seluruh Area">
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <label class="form-label">Message Content</label>
+                                            <textarea class="form-control" id="broadcastMessage" rows="4"
+                                                placeholder="Enter your message..."></textarea>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Estimated Resolution</label>
-                                        <input type="text" class="form-control" id="estimatedResolution" placeholder="2 jam">
+                                    <div class="mt-3">
+                                        <button class="btn btn-danger" onclick="sendBroadcast()">
+                                            <i class="bi bi-broadcast"></i> Send Broadcast
+                                        </button>
                                     </div>
-                                </div>
-                                <div class="row mt-3">
-                                    <div class="col-12">
-                                        <label class="form-label">Message Content</label>
-                                        <textarea class="form-control" id="broadcastMessage" rows="4" placeholder="Enter your message..."></textarea>
-                                    </div>
-                                </div>
-                                <div class="mt-3">
-                                    <button class="btn btn-danger" onclick="sendBroadcast()">
-                                        <i class="bi bi-broadcast"></i> Send Broadcast
-                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
         </div>
     </div>
 
     <script>
-    let templates = {};
+        let templates = {};
+        let allGroups = [];
+        let selectedGroups = [];
 
-    // Load templates on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        loadTemplates();
-        loadStatus();
-        loadRateLimitSettings();
-        loadWAGroups();
-        loadProviderSettings();
+        // Load templates on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            loadTemplates();
+            loadStatus();
+            loadRateLimitSettings();
+            loadWAGroups();
+            loadProviderSettings();
+
+            // Handle provider selection change
+            const providerSelect = document.getElementById('whatsappProvider');
+            if (providerSelect) {
+                providerSelect.addEventListener('change', function () {
+                    handleProviderChange(this.value);
+                });
+            }
+
+            // Handle provider form submission
+            const providerForm = document.getElementById('providerForm');
+            if (providerForm) {
+                providerForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    await saveProviderSettings();
+                });
+            }
+
+            // Auto-save on toggle change: Rate Limit enabled
+            const rateToggle = document.getElementById('enableRateLimit');
+            if (rateToggle) {
+                rateToggle.addEventListener('change', async function () {
+                    try {
+                        await saveRateLimitSettings();
+                        // success handled inside saveRateLimitSettings via showAlert
+                    } catch (e) { }
+                });
+            }
+
+            // Auto-save on toggle change: WhatsApp Groups enabled
+            const groupToggle = document.getElementById('waGroupsEnabled');
+            if (groupToggle) {
+                groupToggle.addEventListener('change', async function () {
+                    try {
+                        await saveWAGroups();
+                        // success handled inside saveWAGroups via showAlert
+                    } catch (e) { }
+                });
+            }
+
+            // Handle WA Groups form submission
+            const waGroupsForm = document.getElementById('waGroupsForm');
+            if (waGroupsForm) {
+                waGroupsForm.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    await saveWAGroups();
+                });
+            }
+
+            // Auto-save on toggle change: Dual Mode enabled
+            const dualModeToggle = document.getElementById('dualModeEnabled');
+            if (dualModeToggle) {
+                dualModeToggle.addEventListener('change', async function () {
+                    try {
+                        await saveProviderSettings();
+                        // success handled inside saveProviderSettings via showAlert
+                    } catch (e) { }
+                });
+            }
+        });
+
+        // Load WhatsApp Groups settings
+        async function loadWAGroups() {
+            try {
+                const response = await fetch('/admin/settings/data');
+                const data = await response.json();
+
+                if (data) {
+                    const waGroupsEnabled = data.whatsapp_groups_enabled === true;
+                    const waGroupsToggle = document.getElementById('waGroupsEnabled');
+                    if (waGroupsToggle) {
+                        waGroupsToggle.checked = waGroupsEnabled;
+                        handleWAGroupsChange(waGroupsEnabled);
+                    }
+
+                    // Load selected technician groups
+                    const techGroups = data.whatsapp_technician_groups || [];
+                    if (techGroups.length > 0) {
+                        selectedGroups = techGroups;
+                        updateSelectedGroupsDisplay();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading WA groups settings:', error);
+            }
+        }
+
+        // Handle WA Groups toggle change
+        function handleWAGroupsChange(enabled) {
+            const waGroupsConfig = document.getElementById('waGroupsConfig');
+            if (waGroupsConfig) {
+                waGroupsConfig.style.display = enabled ? 'block' : 'none';
+            }
+        }
+
+        // Load WhatsApp groups from backend
+        async function loadWhatsAppGroups() {
+            try {
+                const loading = document.getElementById('groupsLoading');
+                const groupsList = document.getElementById('groupsList');
+
+                if (loading) loading.style.display = 'inline';
+
+                const response = await fetch('/admin/billing/whatsapp-settings/groups');
+                const data = await response.json();
+
+                if (data.success && data.groups) {
+                    allGroups = data.groups;
+                    renderGroupsList(data.groups);
+                } else {
+                    groupsList.innerHTML = `<div class="alert alert-warning">${data.message || 'Gagal memuat daftar group'}</div>`;
+                }
+
+                if (loading) loading.style.display = 'none';
+            } catch (error) {
+                console.error('Error loading WhatsApp groups:', error);
+                const groupsList = document.getElementById('groupsList');
+                groupsList.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Render groups list with checkboxes
+        function renderGroupsList(groups) {
+            const groupsList = document.getElementById('groupsList');
+
+            if (!groups || groups.length === 0) {
+                groupsList.innerHTML = '<div class="text-muted">Tidak ada group WhatsApp ditemukan</div>';
+                return;
+            }
+
+            let html = '<div class="list-group">';
+            groups.forEach(group => {
+                const isSelected = selectedGroups.includes(group.id);
+                html += `
+                <div class="list-group-item list-group-item-action">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="group_${group.id}"
+                               value="${group.id}" ${isSelected ? 'checked' : ''}
+                               onchange="toggleGroupSelection('${group.id}')">
+                        <label class="form-check-label" for="group_${group.id}">
+                            <strong>${group.name}</strong>
+                            <br>
+                            <small class="text-muted">
+                                <i class="bi bi-people"></i> ${group.participants} anggota
+                            </small>
+                        </label>
+                    </div>
+                </div>
+            `;
+            });
+            html += '</div>';
+
+            groupsList.innerHTML = html;
+        }
+
+        // Toggle group selection
+        function toggleGroupSelection(groupId) {
+            const index = selectedGroups.indexOf(groupId);
+            if (index > -1) {
+                selectedGroups.splice(index, 1);
+            } else {
+                selectedGroups.push(groupId);
+            }
+            updateSelectedGroupsDisplay();
+        }
+
+        // Update selected groups display
+        function updateSelectedGroupsDisplay() {
+            const selectedGroupsDiv = document.getElementById('selectedGroups');
+
+            if (selectedGroups.length === 0) {
+                selectedGroupsDiv.innerHTML = '<span class="text-muted">Belum ada group yang dipilih</span>';
+                return;
+            }
+
+            let html = '<div class="d-flex flex-wrap gap-2">';
+            selectedGroups.forEach(groupId => {
+                const group = allGroups.find(g => g.id === groupId);
+                if (group) {
+                    html += `
+                    <span class="badge bg-primary">
+                        ${group.name}
+                        <button type="button" class="btn-close btn-close-white ms-1" onclick="toggleGroupSelection('${groupId}')"></button>
+                    </span>
+                `;
+                }
+            });
+            html += '</div>';
+
+            selectedGroupsDiv.innerHTML = html;
+        }
+
+        // Save WA Groups settings
+        async function saveWAGroups() {
+            try {
+                const formData = new FormData(document.getElementById('waGroupsForm'));
+                const settings = {};
+
+                formData.forEach((value, key) => {
+                    settings[key] = value;
+                });
+
+                // Add selected technician groups
+                settings.whatsapp_technician_groups = selectedGroups;
+
+                const response = await fetch('/admin/settings/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Pengaturan WhatsApp Groups berhasil disimpan!', 'success');
+                } else {
+                    showAlert('Error: ' + (data.message || 'Gagal menyimpan pengaturan'), 'danger');
+                }
+            } catch (error) {
+                console.error('Error saving WA groups settings:', error);
+                showAlert('Error: Gagal menyimpan pengaturan WhatsApp Groups', 'danger');
+            }
+        }
+
+        // Load provider settings
+        async function loadProviderSettings() {
+            try {
+                const response = await fetch('/admin/settings/data');
+                const data = await response.json();
+
+                if (data) {
+                    const provider = data.whatsapp_provider || 'baileys';
+                    const dualMode = data.whatsapp_dual_mode === true;
+
+                    const providerSelect = document.getElementById('whatsappProvider');
+                    if (providerSelect) {
+                        providerSelect.value = provider;
+                        handleProviderChange(provider);
+                    }
+
+                    // Load dual mode setting
+                    const dualModeToggle = document.getElementById('dualModeEnabled');
+                    if (dualModeToggle) {
+                        dualModeToggle.checked = dualMode;
+                        handleDualModeChange(dualMode);
+                    }
+
+                    // Load Meta API settings if available
+                    if (data.whatsapp_meta_api_key) {
+                        document.getElementById('metaApiKey').value = data.whatsapp_meta_api_key;
+                    }
+                    if (data.whatsapp_phone_number_id) {
+                        document.getElementById('phoneNumberId').value = data.whatsapp_phone_number_id;
+                    }
+                    if (data.whatsapp_webhook_url) {
+                        document.getElementById('webhookUrl').value = data.whatsapp_webhook_url;
+                    }
+                    if (data.whatsapp_verify_token) {
+                        document.getElementById('verifyToken').value = data.whatsapp_verify_token;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading provider settings:', error);
+            }
+        }
 
         // Handle provider selection change
-        const providerSelect = document.getElementById('whatsappProvider');
-        if (providerSelect) {
-            providerSelect.addEventListener('change', function() {
-                handleProviderChange(this.value);
-            });
-        }
+        function handleProviderChange(provider) {
+            const metaApiConfig = document.getElementById('metaApiConfig');
+            const providerStatus = document.getElementById('providerStatus');
 
-        // Handle provider form submission
-        const providerForm = document.getElementById('providerForm');
-        if (providerForm) {
-            providerForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await saveProviderSettings();
-            });
-        }
-
-        // Auto-save on toggle change: Rate Limit enabled
-        const rateToggle = document.getElementById('enableRateLimit');
-        if (rateToggle) {
-            rateToggle.addEventListener('change', async function() {
-                try {
-                    await saveRateLimitSettings();
-                    // success handled inside saveRateLimitSettings via showAlert
-                } catch (e) {}
-            });
-        }
-
-        // Auto-save on toggle change: WhatsApp Groups enabled
-        const groupToggle = document.getElementById('waGroupsEnabled');
-        if (groupToggle) {
-            groupToggle.addEventListener('change', async function() {
-                try {
-                    await saveWAGroups();
-                    // success handled inside saveWAGroups via showAlert
-                } catch (e) {}
-            });
-        }
-
-        // Auto-save on toggle change: Dual Mode enabled
-        const dualModeToggle = document.getElementById('dualModeEnabled');
-        if (dualModeToggle) {
-            dualModeToggle.addEventListener('change', async function() {
-                try {
-                    await saveProviderSettings();
-                    // success handled inside saveProviderSettings via showAlert
-                } catch (e) {}
-            });
-        }
-    });
-
-    // Load provider settings
-    async function loadProviderSettings() {
-        try {
-            const response = await fetch('/admin/settings/data');
-            const data = await response.json();
-
-            if (data) {
-                const provider = data.whatsapp_provider || 'baileys';
-                const dualMode = data.whatsapp_dual_mode === true;
-
-                const providerSelect = document.getElementById('whatsappProvider');
-                if (providerSelect) {
-                    providerSelect.value = provider;
-                    handleProviderChange(provider);
-                }
-
-                // Load dual mode setting
-                const dualModeToggle = document.getElementById('dualModeEnabled');
-                if (dualModeToggle) {
-                    dualModeToggle.checked = dualMode;
-                    handleDualModeChange(dualMode);
-                }
-
-                // Load Meta API settings if available
-                if (data.whatsapp_meta_api_key) {
-                    document.getElementById('metaApiKey').value = data.whatsapp_meta_api_key;
-                }
-                if (data.whatsapp_phone_number_id) {
-                    document.getElementById('phoneNumberId').value = data.whatsapp_phone_number_id;
-                }
-                if (data.whatsapp_webhook_url) {
-                    document.getElementById('webhookUrl').value = data.whatsapp_webhook_url;
-                }
-                if (data.whatsapp_verify_token) {
-                    document.getElementById('verifyToken').value = data.whatsapp_verify_token;
-                }
-            }
-        } catch (error) {
-            console.error('Error loading provider settings:', error);
-        }
-    }
-
-    // Handle provider selection change
-    function handleProviderChange(provider) {
-        const metaApiConfig = document.getElementById('metaApiConfig');
-        const providerStatus = document.getElementById('providerStatus');
-
-        if (provider === 'meta_api') {
-            metaApiConfig.style.display = 'block';
-            providerStatus.innerHTML = '<i class="bi bi-check-circle"></i> Provider Aktif: Meta API';
-            providerStatus.className = 'alert alert-success';
-        } else {
-            metaApiConfig.style.display = 'none';
-            providerStatus.innerHTML = '<i class="bi bi-check-circle"></i> Provider Aktif: Baileys';
-            providerStatus.className = 'alert alert-info';
-        }
-    }
-
-    // Handle dual mode toggle
-    function handleDualModeChange(enabled) {
-        const dualModeInfo = document.getElementById('dualModeInfo');
-        const metaApiConfig = document.getElementById('metaApiConfig');
-
-        if (enabled) {
-            dualModeInfo.style.display = 'block';
-            // Show Meta API config when dual mode is enabled
-            metaApiConfig.style.display = 'block';
-        } else {
-            dualModeInfo.style.display = 'none';
-            // Hide Meta API config if provider is not meta_api
-            const provider = document.getElementById('whatsappProvider').value;
-            if (provider !== 'meta_api') {
-                metaApiConfig.style.display = 'none';
-            }
-        }
-    }
-
-    // Save provider settings
-    async function saveProviderSettings() {
-        try {
-            const formData = new FormData(document.getElementById('providerForm'));
-            const settings = {};
-            
-            formData.forEach((value, key) => {
-                settings[key] = value;
-            });
-
-            const response = await fetch('/admin/settings/save', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(settings)
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                showAlert('Pengaturan provider berhasil disimpan! Restart aplikasi untuk menerapkan perubahan.', 'success');
+            if (provider === 'meta_api') {
+                metaApiConfig.style.display = 'block';
+                providerStatus.innerHTML = '<i class="bi bi-check-circle"></i> Provider Aktif: Meta API';
+                providerStatus.className = 'alert alert-success';
             } else {
-                showAlert('Error: ' + (data.message || 'Gagal menyimpan pengaturan'), 'danger');
+                metaApiConfig.style.display = 'none';
+                providerStatus.innerHTML = '<i class="bi bi-check-circle"></i> Provider Aktif: Baileys';
+                providerStatus.className = 'alert alert-info';
             }
-        } catch (error) {
-            console.error('Error saving provider settings:', error);
-            showAlert('Error: Gagal menyimpan pengaturan provider', 'danger');
         }
-    }
 
-    // Load templates from server
-    async function loadTemplates() {
-        try {
-            const response = await fetch('/admin/billing/whatsapp-settings/templates');
-            const data = await response.json();
-            
-            if (data.success) {
-                templates = data.templates;
-                
-                // Populate form fields
+        // Handle dual mode toggle
+        function handleDualModeChange(enabled) {
+            const dualModeInfo = document.getElementById('dualModeInfo');
+            const metaApiConfig = document.getElementById('metaApiConfig');
+
+            if (enabled) {
+                dualModeInfo.style.display = 'block';
+                // Show Meta API config when dual mode is enabled
+                metaApiConfig.style.display = 'block';
+            } else {
+                dualModeInfo.style.display = 'none';
+                // Hide Meta API config if provider is not meta_api
+                const provider = document.getElementById('whatsappProvider').value;
+                if (provider !== 'meta_api') {
+                    metaApiConfig.style.display = 'none';
+                }
+            }
+        }
+
+        // Save provider settings
+        async function saveProviderSettings() {
+            try {
+                const formData = new FormData(document.getElementById('providerForm'));
+                const settings = {};
+
+                formData.forEach((value, key) => {
+                    settings[key] = value;
+                });
+
+                const response = await fetch('/admin/settings/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Pengaturan provider berhasil disimpan! Restart aplikasi untuk menerapkan perubahan.', 'success');
+                } else {
+                    showAlert('Error: ' + (data.message || 'Gagal menyimpan pengaturan'), 'danger');
+                }
+            } catch (error) {
+                console.error('Error saving provider settings:', error);
+                showAlert('Error: Gagal menyimpan pengaturan provider', 'danger');
+            }
+        }
+
+        // Load templates from server
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/admin/billing/whatsapp-settings/templates');
+                const data = await response.json();
+
+                if (data.success) {
+                    templates = data.templates;
+
+                    // Populate form fields
+                    Object.keys(templates).forEach(key => {
+                        const textarea = document.getElementById(`${key}_template`);
+                        const toggle = document.getElementById(`${key}_enabled`);
+
+                        if (textarea) {
+                            textarea.value = templates[key].template || '';
+                        }
+
+                        if (toggle) {
+                            toggle.checked = templates[key].enabled !== false; // Default to true if not specified
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading templates:', error);
+                showAlert('Error loading templates', 'danger');
+            }
+        }
+
+        // Load status information
+        async function loadStatus() {
+            try {
+                const response = await fetch('/admin/billing/whatsapp-settings/status');
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('whatsappStatus').textContent = data.whatsappStatus;
+                    document.getElementById('activeCustomers').textContent = data.activeCustomers;
+                    document.getElementById('pendingInvoices').textContent = data.pendingInvoices;
+                    document.getElementById('nextReminder').textContent = data.nextReminder;
+                }
+            } catch (error) {
+                console.error('Error loading status:', error);
+            }
+        }
+
+        // Save all templates
+        async function saveAllTemplates() {
+            try {
+                // Collect all template data
+                const templateData = {};
                 Object.keys(templates).forEach(key => {
                     const textarea = document.getElementById(`${key}_template`);
                     const toggle = document.getElementById(`${key}_enabled`);
-                    
+
                     if (textarea) {
-                        textarea.value = templates[key].template || '';
-                    }
-                    
-                    if (toggle) {
-                        toggle.checked = templates[key].enabled !== false; // Default to true if not specified
+                        templateData[key] = {
+                            title: templates[key].title,
+                            template: textarea.value,
+                            enabled: toggle ? toggle.checked : true
+                        };
                     }
                 });
-            }
-        } catch (error) {
-            console.error('Error loading templates:', error);
-            showAlert('Error loading templates', 'danger');
-        }
-    }
 
-    // Load status information
-    async function loadStatus() {
-        try {
-            const response = await fetch('/admin/billing/whatsapp-settings/status');
-            const data = await response.json();
-            
-            if (data.success) {
-                document.getElementById('whatsappStatus').textContent = data.whatsappStatus;
-                document.getElementById('activeCustomers').textContent = data.activeCustomers;
-                document.getElementById('pendingInvoices').textContent = data.pendingInvoices;
-                document.getElementById('nextReminder').textContent = data.nextReminder;
-            }
-        } catch (error) {
-            console.error('Error loading status:', error);
-        }
-    }
+                const response = await fetch('/admin/billing/whatsapp-settings/templates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(templateData)
+                });
 
-    // Save all templates
-    async function saveAllTemplates() {
-        try {
-            // Collect all template data
-            const templateData = {};
-            Object.keys(templates).forEach(key => {
-                const textarea = document.getElementById(`${key}_template`);
-                const toggle = document.getElementById(`${key}_enabled`);
-                
-                if (textarea) {
-                    templateData[key] = {
-                        title: templates[key].title,
-                        template: textarea.value,
-                        enabled: toggle ? toggle.checked : true
-                    };
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Templates saved successfully!', 'success');
+                } else {
+                    showAlert('Error saving templates: ' + data.message, 'danger');
                 }
-            });
-            
-            const response = await fetch('/admin/billing/whatsapp-settings/templates', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(templateData)
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                showAlert('Templates saved successfully!', 'success');
-            } else {
-                showAlert('Error saving templates: ' + data.message, 'danger');
+            } catch (error) {
+                console.error('Error saving templates:', error);
+                showAlert('Error saving templates', 'danger');
             }
-        } catch (error) {
-            console.error('Error saving templates:', error);
-            showAlert('Error saving templates', 'danger');
         }
-    }
 
-    // Test template
-    async function testTemplate(templateKey) {
-        const phoneNumber = prompt('Enter phone number for test (6281234567890):');
-        if (!phoneNumber) return;
-        
-        try {
-            const response = await fetch('/admin/billing/whatsapp-settings/test', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    phoneNumber: phoneNumber,
-                    templateKey: templateKey
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                showAlert('Test notification sent successfully!', 'success');
-            } else {
-                showAlert('Error sending test notification: ' + data.message, 'danger');
+        // Test template
+        async function testTemplate(templateKey) {
+            const phoneNumber = prompt('Enter phone number for test (6281234567890):');
+            if (!phoneNumber) return;
+
+            try {
+                const response = await fetch('/admin/billing/whatsapp-settings/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: phoneNumber,
+                        templateKey: templateKey
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Test notification sent successfully!', 'success');
+                } else {
+                    showAlert('Error sending test notification: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error sending test notification:', error);
+                showAlert('Error sending test notification', 'danger');
             }
-        } catch (error) {
-            console.error('Error sending test notification:', error);
-            showAlert('Error sending test notification', 'danger');
         }
-    }
 
-    // Send test notification
-    async function sendTestNotification() {
-        const phoneNumber = document.getElementById('testPhoneNumber').value;
-        const templateType = document.getElementById('testTemplateType').value;
-        
-        if (!phoneNumber) {
-            showAlert('Please enter a phone number', 'danger');
-            return;
-        }
-        
-        try {
-            const response = await fetch('/admin/billing/whatsapp-settings/test', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    phoneNumber: phoneNumber,
-                    templateKey: templateType
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                showAlert('Test notification sent successfully!', 'success');
-            } else {
-                showAlert('Error sending test notification: ' + data.message, 'danger');
+        // Send test notification
+        async function sendTestNotification() {
+            const phoneNumber = document.getElementById('testPhoneNumber').value;
+            const templateType = document.getElementById('testTemplateType').value;
+
+            if (!phoneNumber) {
+                showAlert('Please enter a phone number', 'danger');
+                return;
             }
-        } catch (error) {
-            console.error('Error sending test notification:', error);
-            showAlert('Error sending test notification', 'danger');
-        }
-    }
 
-    // Send broadcast message
-    async function sendBroadcast() {
-        const broadcastType = document.getElementById('broadcastType').value;
-        const message = document.getElementById('broadcastMessage').value;
-        
-        if (!message) {
-            showAlert('Please enter a message', 'danger');
-            return;
-        }
-        
-        const broadcastData = {
-            type: broadcastType,
-            message: message
-        };
-        
-        if (broadcastType === 'service_disruption') {
-            broadcastData.disruptionType = document.getElementById('disruptionType').value;
-            broadcastData.affectedArea = document.getElementById('affectedArea').value;
-            broadcastData.estimatedResolution = document.getElementById('estimatedResolution').value;
-        }
-        
-        if (!confirm('Are you sure you want to send this broadcast to all active customers?')) {
-            return;
-        }
-        
-        try {
-            const response = await fetch('/admin/billing/whatsapp-settings/broadcast', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(broadcastData)
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                const summary = `Broadcast sukses!\n` +
-                    `Pelanggan: ${data.customer_sent || 0} sukses / ${data.customer_failed || 0} gagal\n` +
-                    `Group: ${data.group_sent || 0} sukses / ${data.group_failed || 0} gagal`;
-                showAlert(summary, 'success');
-            } else {
-                showAlert('Error sending broadcast: ' + data.message, 'danger');
+            try {
+                const response = await fetch('/admin/billing/whatsapp-settings/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: phoneNumber,
+                        templateKey: templateType
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Test notification sent successfully!', 'success');
+                } else {
+                    showAlert('Error sending test notification: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error sending test notification:', error);
+                showAlert('Error sending test notification', 'danger');
             }
-        } catch (error) {
-            console.error('Error sending broadcast:', error);
-            showAlert('Error sending broadcast', 'danger');
         }
-    }
 
-    // Show alert function (using global function from footer)
-    function showAlert(message, type) {
-        // Use global showAlert function from footer
-        if (typeof window.showAlert === 'function') {
-            window.showAlert(message, type);
-        } else {
-            // Fallback if global function not available
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-            alertDiv.innerHTML = `
+        // Send broadcast message
+        async function sendBroadcast() {
+            const broadcastType = document.getElementById('broadcastType').value;
+            const message = document.getElementById('broadcastMessage').value;
+
+            if (!message) {
+                showAlert('Please enter a message', 'danger');
+                return;
+            }
+
+            const broadcastData = {
+                type: broadcastType,
+                message: message
+            };
+
+            if (broadcastType === 'service_disruption') {
+                broadcastData.disruptionType = document.getElementById('disruptionType').value;
+                broadcastData.affectedArea = document.getElementById('affectedArea').value;
+                broadcastData.estimatedResolution = document.getElementById('estimatedResolution').value;
+            }
+
+            if (!confirm('Are you sure you want to send this broadcast to all active customers?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/billing/whatsapp-settings/broadcast', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(broadcastData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const summary = `Broadcast sukses!\n` +
+                        `Pelanggan: ${data.customer_sent || 0} sukses / ${data.customer_failed || 0} gagal\n` +
+                        `Group: ${data.group_sent || 0} sukses / ${data.group_failed || 0} gagal`;
+                    showAlert(summary, 'success');
+                } else {
+                    showAlert('Error sending broadcast: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error sending broadcast:', error);
+                showAlert('Error sending broadcast', 'danger');
+            }
+        }
+
+        // Show alert function (using global function from footer)
+        function showAlert(message, type) {
+            // Use global showAlert function from footer
+            if (typeof window.showAlert === 'function') {
+                window.showAlert(message, type);
+            } else {
+                // Fallback if global function not available
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+                alertDiv.innerHTML = `
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
-            
-            document.querySelector('.main-content').insertBefore(alertDiv, document.querySelector('.main-content').firstChild);
-            
-            // Auto dismiss after 5 seconds
-            setTimeout(() => {
-                if (alertDiv.parentNode) {
-                    alertDiv.remove();
-                }
-            }, 5000);
+
+                document.querySelector('.main-content').insertBefore(alertDiv, document.querySelector('.main-content').firstChild);
+
+                // Auto dismiss after 5 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }
         }
-    }
-    
-    // Function to update template status display
-    function updateTemplateStatus() {
-        const templateKeys = [
-            'invoice_created', 'due_date_reminder', 'payment_received', 
-            'service_disruption', 'service_announcement', 'service_suspension',
-            'service_restoration', 'welcome_message'
-        ];
-        
-        templateKeys.forEach(key => {
-            const toggle = document.getElementById(`${key}_enabled`);
-            const textarea = document.getElementById(`${key}_template`);
-            
-            if (toggle && textarea) {
-                // Update textarea style based on toggle state
-                if (toggle.checked) {
-                    textarea.classList.remove('template-disabled');
-                    textarea.classList.add('template-enabled');
-                    textarea.disabled = false;
+
+        // Function to update template status display
+        function updateTemplateStatus() {
+            const templateKeys = [
+                'invoice_created', 'due_date_reminder', 'payment_received',
+                'service_disruption', 'service_announcement', 'service_suspension',
+                'service_restoration', 'welcome_message'
+            ];
+
+            templateKeys.forEach(key => {
+                const toggle = document.getElementById(`${key}_enabled`);
+                const textarea = document.getElementById(`${key}_template`);
+
+                if (toggle && textarea) {
+                    // Update textarea style based on toggle state
+                    if (toggle.checked) {
+                        textarea.classList.remove('template-disabled');
+                        textarea.classList.add('template-enabled');
+                        textarea.disabled = false;
+                    } else {
+                        textarea.classList.remove('template-enabled');
+                        textarea.classList.add('template-disabled');
+                        textarea.disabled = true;
+                    }
+                }
+            });
+        }
+
+        // Function to enable all templates
+        function enableAllTemplates() {
+            const toggles = document.querySelectorAll('input[type="checkbox"][id$="_enabled"]');
+            toggles.forEach(toggle => {
+                toggle.checked = true;
+            });
+            updateTemplateStatus();
+            showAlert('All templates enabled!', 'success');
+        }
+
+        // Function to disable all templates
+        function disableAllTemplates() {
+            const toggles = document.querySelectorAll('input[type="checkbox"][id$="_enabled"]');
+            toggles.forEach(toggle => {
+                toggle.checked = false;
+            });
+            updateTemplateStatus();
+            showAlert('All templates disabled!', 'warning');
+        }
+
+        // Add event listeners for toggles
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggles = document.querySelectorAll('input[type="checkbox"][id$="_enabled"]');
+            toggles.forEach(toggle => {
+                toggle.addEventListener('change', updateTemplateStatus);
+            });
+
+            // Initial status update
+            updateTemplateStatus();
+        });
+
+        // Load rate limit settings
+        async function loadRateLimitSettings() {
+            try {
+                const response = await fetch('/admin/billing/whatsapp-settings/rate-limit');
+                const data = await response.json();
+
+                if (data.success) {
+                    const settings = data.settings;
+                    document.getElementById('maxMessagesPerBatch').value = settings.maxMessagesPerBatch || 10;
+                    document.getElementById('delayBetweenBatches').value = settings.delayBetweenBatches || 30;
+                    document.getElementById('delayBetweenMessages').value = settings.delayBetweenMessages || 2;
+                    document.getElementById('maxRetries').value = settings.maxRetries || 2;
+                    document.getElementById('dailyMessageLimit').value = settings.dailyMessageLimit || 0;
+                    document.getElementById('enableRateLimit').checked = settings.enabled !== false;
+                }
+            } catch (error) {
+                console.error('Error loading rate limit settings:', error);
+                showAlert('Error loading rate limit settings', 'danger');
+            }
+        }
+
+        // Save rate limit settings
+        async function saveRateLimitSettings() {
+            try {
+                const settings = {
+                    maxMessagesPerBatch: parseInt(document.getElementById('maxMessagesPerBatch').value) || 10,
+                    delayBetweenBatches: parseInt(document.getElementById('delayBetweenBatches').value) || 30,
+                    delayBetweenMessages: parseInt(document.getElementById('delayBetweenMessages').value) || 2,
+                    maxRetries: parseInt(document.getElementById('maxRetries').value) || 2,
+                    dailyMessageLimit: parseInt(document.getElementById('dailyMessageLimit').value) || 0,
+                    enabled: document.getElementById('enableRateLimit').checked
+                };
+
+                // Validate settings
+                if (settings.maxMessagesPerBatch < 1 || settings.maxMessagesPerBatch > 100) {
+                    showAlert('Maksimal pesan per batch harus antara 1-100', 'danger');
+                    return;
+                }
+
+                if (settings.delayBetweenBatches < 1 || settings.delayBetweenBatches > 300) {
+                    showAlert('Jeda antar batch harus antara 1-300 detik', 'danger');
+                    return;
+                }
+
+                if (settings.delayBetweenMessages < 0 || settings.delayBetweenMessages > 10) {
+                    showAlert('Jeda antar pesan harus antara 0-10 detik', 'danger');
+                    return;
+                }
+
+                if (settings.maxRetries < 0 || settings.maxRetries > 5) {
+                    showAlert('Maksimal retry harus antara 0-5', 'danger');
+                    return;
+                }
+
+                if (settings.dailyMessageLimit < 0 || settings.dailyMessageLimit > 1000) {
+                    showAlert('Batas harian harus antara 0-1000', 'danger');
+                    return;
+                }
+
+                const response = await fetch('/admin/billing/whatsapp-settings/rate-limit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Pengaturan rate limiting berhasil disimpan!', 'success');
                 } else {
-                    textarea.classList.remove('template-enabled');
-                    textarea.classList.add('template-disabled');
-                    textarea.disabled = true;
+                    showAlert('Error menyimpan pengaturan: ' + data.message, 'danger');
                 }
+            } catch (error) {
+                console.error('Error saving rate limit settings:', error);
+                showAlert('Error menyimpan pengaturan rate limiting', 'danger');
             }
-        });
-    }
-    
-    // Function to enable all templates
-    function enableAllTemplates() {
-        const toggles = document.querySelectorAll('input[type="checkbox"][id$="_enabled"]');
-        toggles.forEach(toggle => {
-            toggle.checked = true;
-        });
-        updateTemplateStatus();
-        showAlert('All templates enabled!', 'success');
-    }
-    
-    // Function to disable all templates
-    function disableAllTemplates() {
-        const toggles = document.querySelectorAll('input[type="checkbox"][id$="_enabled"]');
-        toggles.forEach(toggle => {
-            toggle.checked = false;
-        });
-        updateTemplateStatus();
-        showAlert('All templates disabled!', 'warning');
-    }
-    
-    // Add event listeners for toggles
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggles = document.querySelectorAll('input[type="checkbox"][id$="_enabled"]');
-        toggles.forEach(toggle => {
-            toggle.addEventListener('change', updateTemplateStatus);
-        });
-        
-        // Initial status update
-        updateTemplateStatus();
-    });
-    
-    // Load rate limit settings
-    async function loadRateLimitSettings() {
-        try {
-            const response = await fetch('/admin/billing/whatsapp-settings/rate-limit');
-            const data = await response.json();
-            
-            if (data.success) {
-                const settings = data.settings;
-                document.getElementById('maxMessagesPerBatch').value = settings.maxMessagesPerBatch || 10;
-                document.getElementById('delayBetweenBatches').value = settings.delayBetweenBatches || 30;
-                document.getElementById('delayBetweenMessages').value = settings.delayBetweenMessages || 2;
-                document.getElementById('maxRetries').value = settings.maxRetries || 2;
-                document.getElementById('dailyMessageLimit').value = settings.dailyMessageLimit || 0;
-                document.getElementById('enableRateLimit').checked = settings.enabled !== false;
-            }
-        } catch (error) {
-            console.error('Error loading rate limit settings:', error);
-            showAlert('Error loading rate limit settings', 'danger');
         }
-    }
-    
-    // Save rate limit settings
-    async function saveRateLimitSettings() {
-        try {
-            const settings = {
-                maxMessagesPerBatch: parseInt(document.getElementById('maxMessagesPerBatch').value) || 10,
-                delayBetweenBatches: parseInt(document.getElementById('delayBetweenBatches').value) || 30,
-                delayBetweenMessages: parseInt(document.getElementById('delayBetweenMessages').value) || 2,
-                maxRetries: parseInt(document.getElementById('maxRetries').value) || 2,
-                dailyMessageLimit: parseInt(document.getElementById('dailyMessageLimit').value) || 0,
-                enabled: document.getElementById('enableRateLimit').checked
-            };
-            
-            // Validate settings
-            if (settings.maxMessagesPerBatch < 1 || settings.maxMessagesPerBatch > 100) {
-                showAlert('Maksimal pesan per batch harus antara 1-100', 'danger');
-                return;
-            }
-            
-            if (settings.delayBetweenBatches < 1 || settings.delayBetweenBatches > 300) {
-                showAlert('Jeda antar batch harus antara 1-300 detik', 'danger');
-                return;
-            }
-            
-            if (settings.delayBetweenMessages < 0 || settings.delayBetweenMessages > 10) {
-                showAlert('Jeda antar pesan harus antara 0-10 detik', 'danger');
-                return;
-            }
-            
-            if (settings.maxRetries < 0 || settings.maxRetries > 5) {
-                showAlert('Maksimal retry harus antara 0-5', 'danger');
-                return;
-            }
-            
-            if (settings.dailyMessageLimit < 0 || settings.dailyMessageLimit > 1000) {
-                showAlert('Batas harian harus antara 0-1000', 'danger');
-                return;
-            }
-            
-            const response = await fetch('/admin/billing/whatsapp-settings/rate-limit', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(settings)
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                showAlert('Pengaturan rate limiting berhasil disimpan!', 'success');
-            } else {
-                showAlert('Error menyimpan pengaturan: ' + data.message, 'danger');
-            }
-        } catch (error) {
-            console.error('Error saving rate limit settings:', error);
-            showAlert('Error menyimpan pengaturan rate limiting', 'danger');
-        }
-    }
-    
-    // Reset rate limit settings to default
-    function resetRateLimitSettings() {
-        if (confirm('Apakah Anda yakin ingin mereset pengaturan ke default?')) {
-            document.getElementById('maxMessagesPerBatch').value = 10;
-            document.getElementById('delayBetweenBatches').value = 30;
-            document.getElementById('delayBetweenMessages').value = 2;
-            document.getElementById('maxRetries').value = 2;
-            document.getElementById('dailyMessageLimit').value = 0;
-            document.getElementById('enableRateLimit').checked = true;
-            showAlert('Pengaturan telah direset ke default', 'info');
-        }
-    }
 
-    // Load WhatsApp groups
-    async function loadWAGroups() {
-        try {
-            const response = await fetch('/admin/billing/whatsapp-settings/groups');
-            const data = await response.json();
-            if (data.success) {
-                document.getElementById('waGroupsEnabled').checked = data.groups.enabled !== false;
-                const ids = (data.groups.ids || []).join('\n');
-                document.getElementById('waGroupIds').value = ids;
+        // Reset rate limit settings to default
+        function resetRateLimitSettings() {
+            if (confirm('Apakah Anda yakin ingin mereset pengaturan ke default?')) {
+                document.getElementById('maxMessagesPerBatch').value = 10;
+                document.getElementById('delayBetweenBatches').value = 30;
+                document.getElementById('delayBetweenMessages').value = 2;
+                document.getElementById('maxRetries').value = 2;
+                document.getElementById('dailyMessageLimit').value = 0;
+                document.getElementById('enableRateLimit').checked = true;
+                showAlert('Pengaturan telah direset ke default', 'info');
             }
-        } catch (error) {
-            console.error('Error loading WhatsApp groups:', error);
-            showAlert('Error loading WhatsApp groups', 'danger');
         }
-    }
 
-    // Save WhatsApp groups
-    async function saveWAGroups() {
-        try {
-            const enabled = document.getElementById('waGroupsEnabled').checked;
-            const idsRaw = document.getElementById('waGroupIds').value || '';
-            const ids = idsRaw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-
-            const response = await fetch('/admin/billing/whatsapp-settings/groups', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ enabled, ids })
-            });
-            const data = await response.json();
-            if (data.success) showAlert('Pengaturan group WhatsApp disimpan!', 'success');
-            else showAlert('Gagal menyimpan group: ' + data.message, 'danger');
-        } catch (error) {
-            console.error('Error saving WhatsApp groups:', error);
-            showAlert('Error menyimpan group WhatsApp', 'danger');
+        // Load WhatsApp groups
+        async function loadWAGroups() {
+            try {
+                const response = await fetch('/admin/billing/whatsapp-settings/groups');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('waGroupsEnabled').checked = data.groups.enabled !== false;
+                    const ids = (data.groups.ids || []).join('\n');
+                    document.getElementById('waGroupIds').value = ids;
+                }
+            } catch (error) {
+                console.error('Error loading WhatsApp groups:', error);
+                showAlert('Error loading WhatsApp groups', 'danger');
+            }
         }
-    }
 
-    function resetWAGroupsToDefault() {
-        document.getElementById('waGroupsEnabled').checked = true;
-        document.getElementById('waGroupIds').value = '';
-    }
+        // Save WhatsApp groups
+        async function saveWAGroups() {
+            try {
+                const enabled = document.getElementById('waGroupsEnabled').checked;
+                const idsRaw = document.getElementById('waGroupIds').value || '';
+                const ids = idsRaw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+
+                const response = await fetch('/admin/billing/whatsapp-settings/groups', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled, ids })
+                });
+                const data = await response.json();
+                if (data.success) showAlert('Pengaturan group WhatsApp disimpan!', 'success');
+                else showAlert('Gagal menyimpan group: ' + data.message, 'danger');
+            } catch (error) {
+                console.error('Error saving WhatsApp groups:', error);
+                showAlert('Error menyimpan group WhatsApp', 'danger');
+            }
+        }
+
+        function resetWAGroupsToDefault() {
+            document.getElementById('waGroupsEnabled').checked = true;
+            document.getElementById('waGroupIds').value = '';
+        }
     </script>
+
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'payments' }) %>
 </body>
-</html> 
+
+</html>

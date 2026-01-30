@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
+    <link href="/css/mobile-sidebar.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
     <style>
         .toast {
             position: fixed;
@@ -17,24 +20,24 @@
             z-index: 9999;
             min-width: 300px;
         }
-        
+
         .suspension-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
         }
-        
+
         .stats-card {
             border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             transition: transform 0.3s ease;
         }
-        
+
         .stats-card:hover {
             transform: translateY(-5px);
         }
-        
+
         .btn-suspend {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
             border: none;
@@ -42,7 +45,7 @@
             color: white;
             transition: all 0.3s ease;
         }
-        
+
         .btn-restore {
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             border: none;
@@ -50,7 +53,7 @@
             color: white;
             transition: all 0.3s ease;
         }
-        
+
         .btn-check {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -60,217 +63,233 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <h3 class="mb-4">Pengaturan</h3>
+                <!-- Main content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <h3 class="mb-4">Pengaturan</h3>
 
-                <!-- Tab Navigation -->
-                <ul class="nav nav-tabs mb-4">
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'payment-settings' ? 'active' : '' %>" href="/admin/billing/payment-settings">
-                            <i class="bi bi-cog"></i> Pengaturan Pembayaran
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'whatsapp-settings' ? 'active' : '' %>" href="/admin/billing/whatsapp-settings">
-                            <i class="bi bi-chat-dots"></i> Pengaturan WhatsApp
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'service-suspension' ? 'active' : '' %>" href="/admin/billing/service-suspension">
-                            <i class="bi bi-pause-circle"></i> Pengaturan ISOLIR
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'mapping-new' ? 'active' : '' %>" href="/admin/billing/mapping-new">
-                            <i class="bi bi-map"></i> Network Mapping
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'genieacs' ? 'active' : '' %>" href="/admin/genieacs">
-                            <i class="bi bi-wifi"></i> GenieACS
-                        </a>
-                    </li>
-                </ul>
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs mb-4">
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'payment-settings' ? 'active' : '' %>"
+                                href="/admin/billing/payment-settings">
+                                <i class="bi bi-cog"></i> Pengaturan Pembayaran
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'whatsapp-settings' ? 'active' : '' %>"
+                                href="/admin/billing/whatsapp-settings">
+                                <i class="bi bi-chat-dots"></i> Pengaturan WhatsApp
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'service-suspension' ? 'active' : '' %>"
+                                href="/admin/billing/service-suspension">
+                                <i class="bi bi-pause-circle"></i> Pengaturan ISOLIR
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'mapping-new' ? 'active' : '' %>"
+                                href="/admin/billing/mapping-new">
+                                <i class="bi bi-map"></i> Network Mapping
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'genieacs' ? 'active' : '' %>"
+                                href="/admin/genieacs">
+                                <i class="bi bi-wifi"></i> GenieACS
+                            </a>
+                        </li>
+                    </ul>
 
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-pause-circle"></i> Service Suspension
-                    </h1>
-                </div>
-
-                <!-- Service Suspension Overview -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="suspension-card p-4">
-                            <h4><i class="bx bx-shield-x me-2"></i>Kelola Service Suspension</h4>
-                            <p class="mb-0">Sistem otomatis untuk menonaktifkan layanan pelanggan yang telat bayar menggunakan profile isolir Mikrotik dan mengaktifkan kembali setelah pembayaran.</p>
-                        </div>
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="bx bx-pause-circle"></i> Service Suspension
+                        </h1>
                     </div>
-                </div>
 
-                <!-- Statistics Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card stats-card">
-                            <div class="card-body text-center">
-                                <i class="bx bx-user-check text-primary" style="font-size: 2rem;"></i>
-                                <h3 class="text-primary" id="activeCustomers">-</h3>
-                                <p class="text-muted mb-0">Pelanggan Aktif</p>
+                    <!-- Service Suspension Overview -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="suspension-card p-4">
+                                <h4><i class="bx bx-shield-x me-2"></i>Kelola Service Suspension</h4>
+                                <p class="mb-0">Sistem otomatis untuk menonaktifkan layanan pelanggan yang telat bayar
+                                    menggunakan profile isolir Mikrotik dan mengaktifkan kembali setelah pembayaran.</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card stats-card">
-                            <div class="card-body text-center">
-                                <i class="bx bx-pause-circle text-danger" style="font-size: 2rem;"></i>
-                                <h3 class="text-danger" id="suspendedCustomers">-</h3>
-                                <p class="text-muted mb-0">Pelanggan Suspended</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card stats-card">
-                            <div class="card-body text-center">
-                                <i class="bx bx-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
-                                <h3 class="text-warning" id="overdueInvoices">-</h3>
-                                <p class="text-muted mb-0">Tagihan Overdue</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card stats-card">
-                            <div class="card-body text-center">
-                                <i class="bx bx-time text-info" style="font-size: 2rem;"></i>
-                                <h3 class="text-info" id="currentGracePeriod"><%= appSettings.suspension_grace_period_days || '3' %></h3>
-                                <p class="text-muted mb-0">Grace Period (Hari)</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Isolir Profile Setting -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <strong>Pilih Profile Isolir (Mikrotik)</strong>
-                                <div>
-                                    <button class="btn btn-sm btn-outline-secondary me-2" id="reloadIsolirProfilesBtn">
-                                        <i class="bx bx-refresh me-1"></i>Reload
-                                    </button>
-                                    <button class="btn btn-sm btn-primary" id="saveIsolirProfileBtn">
+                    <!-- Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card stats-card">
+                                <div class="card-body text-center">
+                                    <i class="bx bx-user-check text-primary" style="font-size: 2rem;"></i>
+                                    <h3 class="text-primary" id="activeCustomers">-</h3>
+                                    <p class="text-muted mb-0">Pelanggan Aktif</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card">
+                                <div class="card-body text-center">
+                                    <i class="bx bx-pause-circle text-danger" style="font-size: 2rem;"></i>
+                                    <h3 class="text-danger" id="suspendedCustomers">-</h3>
+                                    <p class="text-muted mb-0">Pelanggan Suspended</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card">
+                                <div class="card-body text-center">
+                                    <i class="bx bx-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                                    <h3 class="text-warning" id="overdueInvoices">-</h3>
+                                    <p class="text-muted mb-0">Tagihan Overdue</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stats-card">
+                                <div class="card-body text-center">
+                                    <i class="bx bx-time text-info" style="font-size: 2rem;"></i>
+                                    <h3 class="text-info" id="currentGracePeriod">
+                                        <%= appSettings.suspension_grace_period_days || '3' %>
+                                    </h3>
+                                    <p class="text-muted mb-0">Grace Period (Hari)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Isolir Profile Setting -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <strong>Pilih Profile Isolir (Mikrotik)</strong>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-secondary me-2"
+                                            id="reloadIsolirProfilesBtn">
+                                            <i class="bx bx-refresh me-1"></i>Reload
+                                        </button>
+                                        <button class="btn btn-sm btn-primary" id="saveIsolirProfileBtn">
+                                            <i class="bx bx-save me-1"></i>Simpan
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <label for="isolirProfileSelect" class="form-label">Profile Isolir</label>
+                                    <select id="isolirProfileSelect" class="form-select">
+                                        <option value="default">Loading...</option>
+                                    </select>
+                                    <small class="text-muted">Dipakai saat Suspend. Profil dari Mikrotik dengan
+                                        highlight pada profil aktif dari settings.json</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <strong>Pengaturan Grace Period</strong>
+                                    <button class="btn btn-sm btn-success" id="saveGracePeriodBtn">
                                         <i class="bx bx-save me-1"></i>Simpan
                                     </button>
                                 </div>
-                            </div>
-                            <div class="card-body">
-                                <label for="isolirProfileSelect" class="form-label">Profile Isolir</label>
-                                <select id="isolirProfileSelect" class="form-select">
-                                    <option value="default">Loading...</option>
-                                </select>
-                                <small class="text-muted">Dipakai saat Suspend. Profil dari Mikrotik dengan highlight pada profil aktif dari settings.json</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <strong>Pengaturan Grace Period</strong>
-                                <button class="btn btn-sm btn-success" id="saveGracePeriodBtn">
-                                    <i class="bx bx-save me-1"></i>Simpan
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <label for="gracePeriodInput" class="form-label">Grace Period (Hari)</label>
-                                <input type="number" id="gracePeriodInput" class="form-control" min="1" max="30" placeholder="Masukkan jumlah hari">
-                                <small class="text-muted">Jumlah hari setelah tagihan overdue sebelum customer di-suspend otomatis. Current: <span id="currentGracePeriod"><%= appSettings.suspension_grace_period_days || '3' %></span> hari</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="bx bx-search text-warning" style="font-size: 3rem;"></i>
-                                <h5>Cek Pelanggan Overdue</h5>
-                                <p class="text-muted">Periksa dan suspend pelanggan yang telat bayar</p>
-                                <button class="btn btn-check w-100" id="checkOverdueBtn">
-                                    <i class="bx bx-search me-2"></i>Cek & Suspend Overdue
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="bx bx-check-circle text-success" style="font-size: 3rem;"></i>
-                                <h5>Restore Pelanggan Bayar</h5>
-                                <p class="text-muted">Aktifkan kembali pelanggan yang sudah bayar</p>
-                                <button class="btn btn-restore w-100" id="checkPaidBtn">
-                                    <i class="bx bx-check me-2"></i>Cek & Restore Paid
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <i class="bx bx-refresh text-primary" style="font-size: 3rem;"></i>
-                                <h5>Refresh Statistics</h5>
-                                <p class="text-muted">Perbarui statistik terbaru</p>
-                                <button class="btn btn-check w-100" id="refreshStatsBtn">
-                                    <i class="bx bx-refresh me-2"></i>Refresh Stats
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Suspended Customers Table -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0"><i class="bx bx-pause-circle me-2"></i>Pelanggan Suspended</h5>
-                                <button class="btn btn-sm btn-outline-primary" id="refreshTableBtn">
-                                    <i class="bx bx-refresh me-1"></i>Refresh
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover" id="suspendedTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Username</th>
-                                                <th>Nama</th>
-                                                <th>Phone</th>
-                                                <th>Paket</th>
-                                                <th>Status</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td colspan="6" class="text-center">Loading...</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                <div class="card-body">
+                                    <label for="gracePeriodInput" class="form-label">Grace Period (Hari)</label>
+                                    <input type="number" id="gracePeriodInput" class="form-control" min="1" max="30"
+                                        placeholder="Masukkan jumlah hari">
+                                    <small class="text-muted">Jumlah hari setelah tagihan overdue sebelum customer
+                                        di-suspend otomatis. Current: <span id="currentGracePeriod">
+                                            <%= appSettings.suspension_grace_period_days || '3' %>
+                                        </span> hari</small>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+
+                    <!-- Action Buttons -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="bx bx-search text-warning" style="font-size: 3rem;"></i>
+                                    <h5>Cek Pelanggan Overdue</h5>
+                                    <p class="text-muted">Periksa dan suspend pelanggan yang telat bayar</p>
+                                    <button class="btn btn-check w-100" id="checkOverdueBtn">
+                                        <i class="bx bx-search me-2"></i>Cek & Suspend Overdue
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="bx bx-check-circle text-success" style="font-size: 3rem;"></i>
+                                    <h5>Restore Pelanggan Bayar</h5>
+                                    <p class="text-muted">Aktifkan kembali pelanggan yang sudah bayar</p>
+                                    <button class="btn btn-restore w-100" id="checkPaidBtn">
+                                        <i class="bx bx-check me-2"></i>Cek & Restore Paid
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <i class="bx bx-refresh text-primary" style="font-size: 3rem;"></i>
+                                    <h5>Refresh Statistics</h5>
+                                    <p class="text-muted">Perbarui statistik terbaru</p>
+                                    <button class="btn btn-check w-100" id="refreshStatsBtn">
+                                        <i class="bx bx-refresh me-2"></i>Refresh Stats
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suspended Customers Table -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="bx bx-pause-circle me-2"></i>Pelanggan Suspended</h5>
+                                    <button class="btn btn-sm btn-outline-primary" id="refreshTableBtn">
+                                        <i class="bx bx-refresh me-1"></i>Refresh
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover" id="suspendedTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Username</th>
+                                                    <th>Nama</th>
+                                                    <th>Phone</th>
+                                                    <th>Paket</th>
+                                                    <th>Status</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td colspan="6" class="text-center">Loading...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
         </div>
     </div>
 
@@ -279,7 +298,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    
+
     <script>
         // Toast function
         function showToast(type, title, message) {
@@ -312,14 +331,14 @@
 
         // Load statistics
         function loadStats() {
-            $.get('/admin/billing/api/stats', function(response) {
+            $.get('/admin/billing/api/stats', function (response) {
                 const stats = response.data || response;
                 $('#activeCustomers').text(stats.active_customers || 0);
             }).fail(() => {
                 $('#activeCustomers').text('Error');
             });
 
-            $.get('/admin/billing/api/customers', function(response) {
+            $.get('/admin/billing/api/customers', function (response) {
                 const customers = response.customers || response;
                 const suspended = customers.filter(c => c.status === 'suspended').length;
                 $('#suspendedCustomers').text(suspended);
@@ -327,7 +346,7 @@
                 $('#suspendedCustomers').text('Error');
             });
 
-            $.get('/admin/billing/api/overdue', function(overdue) {
+            $.get('/admin/billing/api/overdue', function (overdue) {
                 $('#overdueInvoices').text(overdue.length);
             }).fail(() => {
                 $('#overdueInvoices').text('Error');
@@ -336,7 +355,7 @@
 
         // Load suspended customers table
         function loadSuspendedCustomers() {
-            $.get('/admin/billing/api/customers', function(response) {
+            $.get('/admin/billing/api/customers', function (response) {
                 const customers = response.customers || response;
                 const suspended = customers.filter(c => c.status === 'suspended');
                 const tbody = $('#suspendedTable tbody');
@@ -370,11 +389,11 @@
         }
 
         // Check overdue customers
-        $('#checkOverdueBtn').click(function() {
+        $('#checkOverdueBtn').click(function () {
             const btn = $(this);
             btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-2"></i>Checking...');
 
-            $.post('/admin/billing/service-suspension/check-overdue', function(response) {
+            $.post('/admin/billing/service-suspension/check-overdue', function (response) {
                 if (response.success) {
                     const message = `Checked: ${response.checked || 0}, Suspended: ${response.suspended || 0}, Errors: ${response.errors || 0}`;
                     showToast('success', 'Check Overdue Complete', message);
@@ -383,20 +402,20 @@
                 } else {
                     showToast('error', 'Error', response.message || 'Unknown error occurred');
                 }
-            }).fail(function(xhr) {
+            }).fail(function (xhr) {
                 const response = xhr.responseJSON || {};
                 showToast('error', 'Error', response.message || 'Request failed');
-            }).always(function() {
+            }).always(function () {
                 btn.prop('disabled', false).html('<i class="bx bx-search me-2"></i>Cek & Suspend Overdue');
             });
         });
 
         // Check paid customers
-        $('#checkPaidBtn').click(function() {
+        $('#checkPaidBtn').click(function () {
             const btn = $(this);
             btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-2"></i>Checking...');
 
-            $.post('/admin/billing/service-suspension/check-paid', function(response) {
+            $.post('/admin/billing/service-suspension/check-paid', function (response) {
                 if (response.success) {
                     const message = `Checked: ${response.checked || 0}, Restored: ${response.restored || 0}, Errors: ${response.errors || 0}`;
                     showToast('success', 'Check Paid Complete', message);
@@ -405,16 +424,16 @@
                 } else {
                     showToast('error', 'Error', response.message || 'Unknown error occurred');
                 }
-            }).fail(function(xhr) {
+            }).fail(function (xhr) {
                 const response = xhr.responseJSON || {};
                 showToast('error', 'Error', response.message || 'Request failed');
-            }).always(function() {
+            }).always(function () {
                 btn.prop('disabled', false).html('<i class="bx bx-check me-2"></i>Cek & Restore Paid');
             });
         });
 
         // Refresh stats
-        $('#refreshStatsBtn').click(function() {
+        $('#refreshStatsBtn').click(function () {
             const btn = $(this);
             btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-2"></i>Loading...');
 
@@ -428,7 +447,7 @@
         });
 
         // Refresh table
-        $('#refreshTableBtn').click(function() {
+        $('#refreshTableBtn').click(function () {
             loadSuspendedCustomers();
             showToast('info', 'Refreshed', 'Table updated');
         });
@@ -448,7 +467,7 @@
             // Show loading state
             showToast('info', 'Processing', `Sedang mengaktifkan layanan ${username}...`);
 
-            $.post(`/admin/billing/service-suspension/restore/${username}`, { reason }, function(response) {
+            $.post(`/admin/billing/service-suspension/restore/${username}`, { reason }, function (response) {
                 if (response.success) {
                     const r = (response.reason || reason || '').trim();
                     const msg = r ? `Layanan ${username} diaktifkan. Alasan: ${r}` : `Layanan ${username} berhasil diaktifkan`;
@@ -458,14 +477,14 @@
                 } else {
                     showToast('error', 'Error', response.message || 'Gagal mengaktifkan layanan');
                 }
-            }).fail(function(xhr) {
+            }).fail(function (xhr) {
                 const response = xhr.responseJSON || {};
                 showToast('error', 'Error', response.message || 'Request failed');
             });
         }
 
         // Initialize
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Load isolir profiles and current setting
             loadIsolirProfiles();
             loadCurrentIsolirProfile();
@@ -584,11 +603,11 @@
                         isolirSelectReady = true;
                     }
                 })
-                .catch(() => {});
+                .catch(() => { });
         }
 
         // Save isolir profile
-        $('#saveIsolirProfileBtn').click(function(){
+        $('#saveIsolirProfileBtn').click(function () {
             const sel = document.getElementById('isolirProfileSelect');
             if (!sel) return;
             const value = sel.value || 'isolir';
@@ -628,7 +647,7 @@
 
         // Autosave saat pilihan profil berubah
         let isolirSelectReady = false;
-        $(document).on('change', '#isolirProfileSelect', function(){
+        $(document).on('change', '#isolirProfileSelect', function () {
             if (!isolirSelectReady) return; // hindari trigger saat inisialisasi
             const value = this.value || 'isolir';
             fetch('/admin/billing/service-suspension/isolir-profile', {
@@ -662,7 +681,7 @@
         });
 
         // Reload profiles button
-        $('#reloadIsolirProfilesBtn').click(function(){
+        $('#reloadIsolirProfilesBtn').click(function () {
             // Ambil nilai terkini dari settings.json lalu reload profiles dengan pilihan itu
             fetch('/admin/billing/service-suspension/isolir-profile')
                 .then(r => r.json())
@@ -711,7 +730,7 @@
         }
 
         // Save grace period
-        $('#saveGracePeriodBtn').click(function(){
+        $('#saveGracePeriodBtn').click(function () {
             const input = document.getElementById('gracePeriodInput');
             const value = input.value.trim();
 
@@ -741,5 +760,9 @@
             });
         });
     </script>
+
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'payments' }) %>
 </body>
+
 </html>

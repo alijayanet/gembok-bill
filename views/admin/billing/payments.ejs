@@ -1,176 +1,216 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
+    <title>
+        <%= title %>
+    </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
+    <link href="/css/mobile-sidebar.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
 </head>
+
 <body>
-<% 
-  var filters = (typeof filters !== 'undefined') ? filters : { from: '', to: '', collector_id: '', status: '', q: '' };
-  var payments = (typeof payments !== 'undefined') ? payments : [];
-  var collectors = (typeof collectors !== 'undefined') ? collectors : [];
-%>
-<div class="container-fluid">
-    <div class="row">
-        <%- include('../../partials/billing-sidebar') %>
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content py-4">
-    <h3 class="mb-3">Pembayaran & Keuangan</h3>
+    <% var filters=(typeof filters !=='undefined' ) ? filters : { from: '' , to: '' , collector_id: '' , status: '' ,
+        q: '' }; var payments=(typeof payments !=='undefined' ) ? payments : []; var collectors=(typeof collectors
+        !=='undefined' ) ? collectors : []; %>
+        <div class="container-fluid">
+            <div class="row">
+                <%- include('../../partials/billing-sidebar') %>
+                    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                        <h3 class="mb-4">Pembayaran & Keuangan</h3>
 
-    <!-- Tab Navigation -->
-    <ul class="nav nav-tabs mb-4">
-        <li class="nav-item">
-            <a class="nav-link <%= typeof page !== 'undefined' && page === 'payments' ? 'active' : '' %>" href="/admin/billing/payments">
-                <i class="bi bi-credit-card"></i> Transaksi Kolektor
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <%= typeof page !== 'undefined' && page === 'all-payments' ? 'active' : '' %>" href="/admin/billing/all-payments">
-                <i class="bi bi-list-ul"></i> Riwayat Pembayaran
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <%= typeof page !== 'undefined' && page === 'financial-report' ? 'active' : '' %>" href="/admin/billing/financial-report">
-                <i class="bi bi-line-chart"></i> Laporan Keuangan
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <%= typeof page !== 'undefined' && page === 'reports' ? 'active' : '' %>" href="/admin/billing/reports">
-                <i class="bi bi-analytics"></i> Laporan Analisis
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <%= typeof page !== 'undefined' && page === 'expenses' ? 'active' : '' %>" href="/admin/billing/expenses">
-                <i class="bi bi-money-withdraw"></i> Manajemen Pengeluaran
-            </a>
-        </li>
-    </ul>
+                        <!-- Tab Navigation -->
+                        <ul class="nav nav-tabs mb-4">
+                            <li class="nav-item">
+                                <a class="nav-link <%= typeof page !== 'undefined' && page === 'payments' ? 'active' : '' %>"
+                                    href="/admin/billing/payments">
+                                    <i class="bi bi-credit-card"></i> Transaksi Kolektor
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link <%= typeof page !== 'undefined' && page === 'all-payments' ? 'active' : '' %>"
+                                    href="/admin/billing/all-payments">
+                                    <i class="bi bi-list-ul"></i> Riwayat Pembayaran
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link <%= typeof page !== 'undefined' && page === 'financial-report' ? 'active' : '' %>"
+                                    href="/admin/billing/financial-report">
+                                    <i class="bi bi-line-chart"></i> Laporan Keuangan
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link <%= typeof page !== 'undefined' && page === 'reports' ? 'active' : '' %>"
+                                    href="/admin/billing/reports">
+                                    <i class="bi bi-analytics"></i> Laporan Analisis
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link <%= typeof page !== 'undefined' && page === 'expenses' ? 'active' : '' %>"
+                                    href="/admin/billing/expenses">
+                                    <i class="bi bi-money-withdraw"></i> Manajemen Pengeluaran
+                                </a>
+                            </li>
+                        </ul>
 
-    <form class="row g-2 align-items-end mb-3">
-        <div class="col-auto">
-            <label class="form-label">Dari</label>
-            <input type="date" class="form-control" name="from" value="<%= filters.from %>">
+                        <form class="row g-2 align-items-end mb-3">
+                            <div class="col-auto">
+                                <label class="form-label">Dari</label>
+                                <input type="date" class="form-control" name="from" value="<%= filters.from %>">
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label">Sampai</label>
+                                <input type="date" class="form-control" name="to" value="<%= filters.to %>">
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label">Kolektor</label>
+                                <select class="form-select" name="collector_id">
+                                    <option value="">Semua</option>
+                                    <% (collectors||[]).forEach(function(col){ %>
+                                        <option value="<%= col.id %>"
+                                            <%=String(filters.collector_id)===String(col.id)?'selected':'' %>><%=
+                                                col.name %>
+                                        </option>
+                                        <% }) %>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" name="status">
+                                    <option value="">Semua</option>
+                                    <option value="completed" <%=filters.status==='completed' ?'selected':'' %>
+                                        >Completed</option>
+                                    <option value="received" <%=filters.status==='received' ?'selected':'' %>>Remitted
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label">Cari</label>
+                                <input type="text" class="form-control" name="q" value="<%= filters.q %>"
+                                    placeholder="Nama/No/Notes">
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-primary">Terapkan</button>
+                                <button class="btn btn-outline-secondary" type="button" id="exportPayments">Export
+                                    CSV</button>
+                            </div>
+                        </form>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Kolektor</th>
+                                        <th>Pelanggan</th>
+                                        <th>Amount</th>
+                                        <th>Komisi</th>
+                                        <th>Metode</th>
+                                        <th>Status</th>
+                                        <th>Remittance</th>
+                                        <th>Catatan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% (payments||[]).forEach(function(p){ %>
+                                        <tr>
+                                            <td>
+                                                <%= p.collected_at %>
+                                            </td>
+                                            <td>
+                                                <%= p.collector_name %>
+                                            </td>
+                                            <td>
+                                                <%= p.customer_name %> <small class="text-muted d-block">
+                                                        <%= p.customer_phone || '' %>
+                                                    </small>
+                                            </td>
+                                            <td>Rp <%= Number(p.payment_amount||p.amount||0).toLocaleString('id-ID') %>
+                                            </td>
+                                            <td>Rp <%= Number(p.commission_amount||0).toLocaleString('id-ID') %>
+                                            </td>
+                                            <td>
+                                                <%= p.payment_method %>
+                                            </td>
+                                            <td><span
+                                                    class="badge bg-<%= p.status==='completed'?'success':'secondary' %>">
+                                                    <%= p.status || 'completed' %>
+                                                </span></td>
+                                            <td><span
+                                                    class="badge bg-<%= (p.remittance_status==='received' || !p.collector_id)?'primary':'warning' %>">
+                                                    <%= (p.remittance_status && p.collector_id) ? p.remittance_status :
+                                                        (!p.collector_id ? 'N/A (Admin)' : 'pending' ) %>
+                                                </span></td>
+                                            <td>
+                                                <%= p.notes || '' %>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+            </div>
         </div>
-        <div class="col-auto">
-            <label class="form-label">Sampai</label>
-            <input type="date" class="form-control" name="to" value="<%= filters.to %>">
-        </div>
-        <div class="col-auto">
-            <label class="form-label">Kolektor</label>
-            <select class="form-select" name="collector_id">
-                <option value="">Semua</option>
-                <% (collectors||[]).forEach(function(col){ %>
-                    <option value="<%= col.id %>" <%= String(filters.collector_id)===String(col.id)?'selected':'' %>><%= col.name %></option>
-                <% }) %>
-            </select>
-        </div>
-        <div class="col-auto">
-            <label class="form-label">Status</label>
-            <select class="form-select" name="status">
-                <option value="">Semua</option>
-                <option value="completed" <%= filters.status==='completed'?'selected':'' %>>Completed</option>
-                <option value="received" <%= filters.status==='received'?'selected':'' %>>Remitted</option>
-            </select>
-        </div>
-        <div class="col-auto">
-            <label class="form-label">Cari</label>
-            <input type="text" class="form-control" name="q" value="<%= filters.q %>" placeholder="Nama/No/Notes">
-        </div>
-        <div class="col-auto">
-            <button class="btn btn-primary">Terapkan</button>
-            <button class="btn btn-outline-secondary" type="button" id="exportPayments">Export CSV</button>
-        </div>
-    </form>
 
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-            <tr>
-                <th>Tanggal</th>
-                <th>Kolektor</th>
-                <th>Pelanggan</th>
-                <th>Amount</th>
-                <th>Komisi</th>
-                <th>Metode</th>
-                <th>Status</th>
-                <th>Remittance</th>
-                <th>Catatan</th>
-            </tr>
-            </thead>
-            <tbody>
-            <% (payments||[]).forEach(function(p){ %>
-                <tr>
-                    <td><%= p.collected_at %></td>
-                    <td><%= p.collector_name %></td>
-                    <td><%= p.customer_name %> <small class="text-muted d-block"><%= p.customer_phone || '' %></small></td>
-                    <td>Rp <%= Number(p.payment_amount||p.amount||0).toLocaleString('id-ID') %></td>
-                    <td>Rp <%= Number(p.commission_amount||0).toLocaleString('id-ID') %></td>
-                    <td><%= p.payment_method %></td>
-                    <td><span class="badge bg-<%= p.status==='completed'?'success':'secondary' %>"><%= p.status || 'completed' %></span></td>
-                    <td><span class="badge bg-<%= (p.remittance_status==='received' || !p.collector_id)?'primary':'warning' %>"><%= (p.remittance_status && p.collector_id) ? p.remittance_status : (!p.collector_id ? 'N/A (Admin)' : 'pending') %></span></td>
-                    <td><%= p.notes || '' %></td>
-                </tr>
-            <% }) %>
-            </tbody>
-        </table>
-    </div>
-    </div>
-</div>
+        <!-- Hidden element to store payments data for export -->
+        <script id="paymentsData" type="application/json"><%= JSON.stringify(payments || []) %></script>
 
-    <!-- Hidden element to store payments data for export -->
-    <script id="paymentsData" type="application/json"><%= JSON.stringify(payments || []) %></script>
+        <script>
+            // Export payments to CSV
+            document.getElementById('exportPayments').addEventListener('click', function () {
+                const headers = ['Date', 'Collector', 'Customer', 'Phone', 'Amount', 'Commission', 'Method', 'Status', 'Remittance', 'Notes'];
+                const paymentsDataElement = document.getElementById('paymentsData');
+                if (!paymentsDataElement || !paymentsDataElement.textContent) {
+                    alert('Tidak ada data untuk di-export');
+                    return;
+                }
+                const paymentsData = JSON.parse(paymentsDataElement.textContent);
+                const rows = paymentsData.map(p => [
+                    p.payment_date,
+                    p.collector_name,
+                    p.customer_name,
+                    p.customer_phone || '',
+                    p.payment_amount || p.amount || 0,
+                    p.commission_amount || 0,
+                    p.payment_method,
+                    p.status,
+                    p.remittance_status || 'pending',
+                    String(p.notes || '').replace(/\n/g, ' ')
+                ]);
+                const csv = [headers].concat(rows).map(r => r.map(x => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'payments.csv'; a.click();
+                URL.revokeObjectURL(url);
+            });
 
-<script>
-        // Export payments to CSV
-        document.getElementById('exportPayments').addEventListener('click', function(){
-            const headers = ['Date','Collector','Customer','Phone','Amount','Commission','Method','Status','Remittance','Notes'];
-            const paymentsDataElement = document.getElementById('paymentsData');
-            if (!paymentsDataElement || !paymentsDataElement.textContent) {
-                alert('Tidak ada data untuk di-export');
-                return;
-            }
-            const paymentsData = JSON.parse(paymentsDataElement.textContent);
-            const rows = paymentsData.map(p=>[
-                p.payment_date,
-                p.collector_name,
-                p.customer_name,
-                p.customer_phone||'',
-                p.payment_amount||p.amount||0,
-                p.commission_amount||0,
-                p.payment_method,
-                p.status,
-                p.remittance_status||'pending',
-                String(p.notes||'').replace(/\n/g,' ')
-            ]);
-            const csv = [headers].concat(rows).map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
-            const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'payments.csv'; a.click();
-            URL.revokeObjectURL(url);
-        });
+            // Show technician navigation if accessed by technician
+            document.addEventListener('DOMContentLoaded', function () {
+                // Check if this is technician view
+                const isTechnicianView = window.location.pathname.includes('/technician/') ||
+                    document.body.classList.contains('technician-view');
 
-        // Show technician navigation if accessed by technician
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if this is technician view
-            const isTechnicianView = window.location.pathname.includes('/technician/') ||
-                                   document.body.classList.contains('technician-view');
+                if (isTechnicianView) {
+                    // Hide admin nav and show technician nav
+                    const adminNav = document.querySelector('.admin-mobile-bottom-nav');
+                    const technicianNav = document.getElementById('technicianNav');
 
-            if (isTechnicianView) {
-                // Hide admin nav and show technician nav
-                const adminNav = document.querySelector('.bottom-nav');
-                const technicianNav = document.getElementById('technicianNav');
+                    if (adminNav) adminNav.style.display = 'none';
+                    if (technicianNav) technicianNav.style.display = 'block';
+                }
+            });
+        </script>
 
-                if (adminNav) adminNav.style.display = 'none';
-                if (technicianNav) technicianNav.style.display = 'block';
-            }
-        });
-    </script>
-
-    <!-- Mobile Bottom Navbar -->
-    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'payments' }) %>
+        <!-- Mobile Bottom Navbar -->
+        <%- include('../../partials/admin-mobile-navbar', { currentPage: 'payments' }) %>
 </body>
+
 </html>

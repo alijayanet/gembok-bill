@@ -1,215 +1,255 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Pengeluaran - Admin Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
+    <link href="/css/mobile-sidebar.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
     <style>
-        .text-purple { color: #6f42c1 !important; }
-        .border-purple { border-left: 4px solid #6f42c1 !important; }
-        .main-content { background-color: #f8f9fa; min-height: 100vh; }
+        .text-purple {
+            color: #6f42c1 !important;
+        }
+
+        .border-purple {
+            border-left: 4px solid #6f42c1 !important;
+        }
+
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <%- include('../../partials/billing-sidebar') %>
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <h3 class="mb-4">Pembayaran & Keuangan</h3>
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <h3 class="mb-4">Pembayaran & Keuangan</h3>
 
-                <!-- Tab Navigation -->
-                <ul class="nav nav-tabs mb-4">
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'payments' ? 'active' : '' %>" href="/admin/billing/payments">
-                            <i class="bi bi-credit-card"></i> Transaksi Kolektor
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'all-payments' ? 'active' : '' %>" href="/admin/billing/all-payments">
-                            <i class="bi bi-list-ul"></i> Riwayat Pembayaran
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'financial-report' ? 'active' : '' %>" href="/admin/billing/financial-report">
-                            <i class="bi bi-line-chart"></i> Laporan Keuangan
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'reports' ? 'active' : '' %>" href="/admin/billing/reports">
-                            <i class="bi bi-analytics"></i> Laporan Analisis
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'expenses' ? 'active' : '' %>" href="/admin/billing/expenses">
-                            <i class="bi bi-money-withdraw"></i> Manajemen Pengeluaran
-                        </a>
-                    </li>
-                </ul>
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs mb-4">
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'payments' ? 'active' : '' %>"
+                                href="/admin/billing/payments">
+                                <i class="bi bi-credit-card"></i> Transaksi Kolektor
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'all-payments' ? 'active' : '' %>"
+                                href="/admin/billing/all-payments">
+                                <i class="bi bi-list-ul"></i> Riwayat Pembayaran
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'financial-report' ? 'active' : '' %>"
+                                href="/admin/billing/financial-report">
+                                <i class="bi bi-line-chart"></i> Laporan Keuangan
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'reports' ? 'active' : '' %>"
+                                href="/admin/billing/reports">
+                                <i class="bi bi-analytics"></i> Laporan Analisis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'expenses' ? 'active' : '' %>"
+                                href="/admin/billing/expenses">
+                                <i class="bi bi-money-withdraw"></i> Manajemen Pengeluaran
+                            </a>
+                        </li>
+                    </ul>
 
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2"><i class="bx bx-money-withdraw"></i> Manajemen Pengeluaran</h1>
-                    <div>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
-                            <i class="bx bx-plus"></i> Tambah Pengeluaran
-                        </button>
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2"><i class="bx bx-money-withdraw"></i> Manajemen Pengeluaran</h1>
+                        <div>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+                                <i class="bx bx-plus"></i> Tambah Pengeluaran
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Filter Section -->
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <form method="GET" class="row g-3 align-items-end">
-                            <div class="col-md-3">
-                                <label class="form-label">Tanggal Mulai</label>
-                                <input type="date" class="form-control" name="start_date" value="<%= startDate %>">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Tanggal Selesai</label>
-                                <input type="date" class="form-control" name="end_date" value="<%= endDate %>">
-                            </div>
-                            <div class="col-md-3">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bx bx-search"></i> Filter
-                                </button>
-                                <a href="/admin/billing/expenses" class="btn btn-outline-secondary ms-2">
-                                    <i class="bx bx-refresh"></i> Reset
-                                </a>
-                                <button type="button" class="btn btn-outline-success ms-2" onclick="exportToCSV()">
-                                    <i class="bx bx-download"></i> Export CSV
-                                </button>
-                            </div>
-                        </form>
+                    <!-- Filter Section -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <form method="GET" class="row g-3 align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label">Tanggal Mulai</label>
+                                    <input type="date" class="form-control" name="start_date" value="<%= startDate %>">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Tanggal Selesai</label>
+                                    <input type="date" class="form-control" name="end_date" value="<%= endDate %>">
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bx bx-search"></i> Filter
+                                    </button>
+                                    <a href="/admin/billing/expenses" class="btn btn-outline-secondary ms-2">
+                                        <i class="bx bx-refresh"></i> Reset
+                                    </a>
+                                    <button type="button" class="btn btn-outline-success ms-2" onclick="exportToCSV()">
+                                        <i class="bx bx-download"></i> Export CSV
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Summary Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card border-danger">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <div class="me-3">
-                                        <i class="bx bx-trending-down text-danger" style="font-size: 2rem;"></i>
-                                    </div>
-                                    <div>
-                                        <div class="h4 text-danger">
-                                            Rp <%= (expenses && expenses.length > 0) ? expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0).toLocaleString('id-ID') : '0' %>
+                    <!-- Summary Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-danger">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="bx bx-trending-down text-danger" style="font-size: 2rem;"></i>
                                         </div>
-                                        <div class="text-muted">Total Pengeluaran</div>
-                                        <small class="text-muted"><%= (expenses && expenses.length > 0) ? expenses.length : 0 %> transaksi</small>
+                                        <div>
+                                            <div class="h4 text-danger">
+                                                Rp <%= (expenses && expenses.length> 0) ? expenses.reduce((sum, exp) =>
+                                                    sum + (exp.amount || 0), 0).toLocaleString('id-ID') : '0' %>
+                                            </div>
+                                            <div class="text-muted">Total Pengeluaran</div>
+                                            <small class="text-muted">
+                                                <%= (expenses && expenses.length> 0) ? expenses.length : 0 %> transaksi
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="bx bx-category text-warning" style="font-size: 2rem;"></i>
+                                        </div>
+                                        <div>
+                                            <div class="h4 text-warning">
+                                                <%= (expenses && expenses.length> 0) ? [...new Set(expenses.map(exp =>
+                                                    exp.category))].length : 0 %>
+                                            </div>
+                                            <div class="text-muted">Kategori Aktif</div>
+                                            <small class="text-muted">Berbagai jenis pengeluaran</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-info">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="bx bx-calendar text-info" style="font-size: 2rem;"></i>
+                                        </div>
+                                        <div>
+                                            <div class="h4 text-info">
+                                                <%= (expenses && expenses.length> 0) ? Math.round(expenses.reduce((sum,
+                                                    exp) => sum + (exp.amount || 0), 0) / expenses.length) : 0 %>
+                                            </div>
+                                            <div class="text-muted">Rata-rata per Transaksi</div>
+                                            <small class="text-muted">Dalam Rupiah</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-purple">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="bx bx-user-check text-purple" style="font-size: 2rem;"></i>
+                                        </div>
+                                        <div>
+                                            <div class="h4 text-purple" id="commissionTotal">
+                                                Rp 0
+                                            </div>
+                                            <div class="text-muted">Komisi Kolektor</div>
+                                            <small class="text-muted">Biaya operasional</small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card border-warning">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <div class="me-3">
-                                        <i class="bx bx-category text-warning" style="font-size: 2rem;"></i>
-                                    </div>
-                                    <div>
-                                        <div class="h4 text-warning">
-                                            <%= (expenses && expenses.length > 0) ? [...new Set(expenses.map(exp => exp.category))].length : 0 %>
-                                        </div>
-                                        <div class="text-muted">Kategori Aktif</div>
-                                        <small class="text-muted">Berbagai jenis pengeluaran</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-info">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <div class="me-3">
-                                        <i class="bx bx-calendar text-info" style="font-size: 2rem;"></i>
-                                    </div>
-                                    <div>
-                                        <div class="h4 text-info">
-                                            <%= (expenses && expenses.length > 0) ? Math.round(expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0) / expenses.length) : 0 %>
-                                        </div>
-                                        <div class="text-muted">Rata-rata per Transaksi</div>
-                                        <small class="text-muted">Dalam Rupiah</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-purple">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <div class="me-3">
-                                        <i class="bx bx-user-check text-purple" style="font-size: 2rem;"></i>
-                                    </div>
-                                    <div>
-                                        <div class="h4 text-purple" id="commissionTotal">
-                                            Rp 0
-                                        </div>
-                                        <div class="text-muted">Komisi Kolektor</div>
-                                        <small class="text-muted">Biaya operasional</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Expenses Table -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Daftar Pengeluaran</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Tanggal</th>
-                                        <th>Deskripsi</th>
-                                        <th>Kategori</th>
-                                        <th>Jumlah</th>
-                                        <th>Metode Pembayaran</th>
-                                        <th>Catatan</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% if (expenses && expenses.length > 0) { %>
-                                        <% expenses.forEach(function(expense) { %>
-                                            <tr data-id="<%= expense.id %>">
-                                                <td><%= new Date(expense.expense_date).toLocaleDateString('id-ID') %></td>
-                                                <td><%= expense.description %></td>
-                                                <td><span class="badge bg-info"><%= expense.category %></span></td>
-                                                <td class="text-danger">Rp <%= (expense.amount || 0).toLocaleString('id-ID') %></td>
-                                                <td><%= expense.payment_method || '-' %></td>
-                                                <td><%= expense.notes || '-' %></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-warning" onclick="editExpense('<%= expense.id %>')">Edit</button>
-                                                    <button class="btn btn-sm btn-danger" onclick="deleteExpense('<%= expense.id %>')">Hapus</button>
-                                                </td>
-                                            </tr>
-                                        <% }); %>
-                                    <% } else { %>
+                    <!-- Expenses Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Daftar Pengeluaran</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
                                         <tr>
-                                            <td colspan="7" class="text-center text-muted">
-                                                Tidak ada data pengeluaran
-                                            </td>
+                                            <th>Tanggal</th>
+                                            <th>Deskripsi</th>
+                                            <th>Kategori</th>
+                                            <th>Jumlah</th>
+                                            <th>Metode Pembayaran</th>
+                                            <th>Catatan</th>
+                                            <th>Aksi</th>
                                         </tr>
-                                    <% } %>
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        <% if (expenses && expenses.length> 0) { %>
+                                            <% expenses.forEach(function(expense) { %>
+                                                <tr data-id="<%= expense.id %>">
+                                                    <td>
+                                                        <%= new Date(expense.expense_date).toLocaleDateString('id-ID')
+                                                            %>
+                                                    </td>
+                                                    <td>
+                                                        <%= expense.description %>
+                                                    </td>
+                                                    <td><span class="badge bg-info">
+                                                            <%= expense.category %>
+                                                        </span></td>
+                                                    <td class="text-danger">Rp <%= (expense.amount ||
+                                                            0).toLocaleString('id-ID') %>
+                                                    </td>
+                                                    <td>
+                                                        <%= expense.payment_method || '-' %>
+                                                    </td>
+                                                    <td>
+                                                        <%= expense.notes || '-' %>
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-warning"
+                                                            onclick="editExpense('<%= expense.id %>')">Edit</button>
+                                                        <button class="btn btn-sm btn-danger"
+                                                            onclick="deleteExpense('<%= expense.id %>')">Hapus</button>
+                                                    </td>
+                                                </tr>
+                                                <% }); %>
+                                                    <% } else { %>
+                                                        <tr>
+                                                            <td colspan="7" class="text-center text-muted">
+                                                                Tidak ada data pengeluaran
+                                                            </td>
+                                                        </tr>
+                                                        <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
         </div>
     </div>
 
@@ -291,7 +331,8 @@
                         </div>
                         <div class="mb-3">
                             <label for="edit_amount" class="form-label">Jumlah *</label>
-                            <input type="number" class="form-control" id="edit_amount" name="amount" step="0.01" required>
+                            <input type="number" class="form-control" id="edit_amount" name="amount" step="0.01"
+                                required>
                         </div>
                         <div class="mb-3">
                             <label for="edit_category" class="form-label">Kategori *</label>
@@ -343,18 +384,18 @@
             try {
                 const startDate = document.querySelector('input[name="start_date"]').value;
                 const endDate = document.querySelector('input[name="end_date"]').value;
-                
+
                 let url = '/admin/billing/api/commission-stats';
                 if (startDate && endDate) {
                     url += `?start_date=${startDate}&end_date=${endDate}`;
                 }
-                
+
                 const response = await fetch(url);
                 const result = await response.json();
-                
+
                 if (result.success) {
                     const commissionTotal = result.data.totalCommissionExpenses || 0;
-                    document.getElementById('commissionTotal').textContent = 
+                    document.getElementById('commissionTotal').textContent =
                         'Rp ' + commissionTotal.toLocaleString('id-ID');
                 }
             } catch (error) {
@@ -375,9 +416,9 @@
 
             const expenses = JSON.parse(expensesDataElement.textContent);
             const csvHeaders = ['Tanggal', 'Deskripsi', 'Kategori', 'Jumlah', 'Metode Pembayaran', 'Catatan'];
-            
+
             const csvRows = [csvHeaders.join(',')];
-            
+
             expenses.forEach(expense => {
                 const row = [
                     `"${new Date(expense.expense_date).toLocaleDateString('id-ID')}"`,
@@ -389,7 +430,7 @@
                 ];
                 csvRows.push(row.join(','));
             });
-            
+
             const csvContent = csvRows.join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
@@ -401,18 +442,18 @@
         }
 
         // Add expense form submission
-        document.getElementById('addExpenseForm').addEventListener('submit', async function(e) {
+        document.getElementById('addExpenseForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const formData = new FormData(this);
             const data = Object.fromEntries(formData.entries());
-            
+
             try {
                 const response = await fetch('/admin/billing/api/expenses', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     alert(result.message);
@@ -431,7 +472,7 @@
         function editExpense(id) {
             const row = document.querySelector(`tr[data-id="${id}"]`);
             const cells = row.cells;
-            
+
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_description').value = cells[1].textContent;
             document.getElementById('edit_amount').value = cells[3].textContent.replace('Rp ', '').replace(/\./g, '');
@@ -439,25 +480,25 @@
             document.getElementById('edit_expense_date').value = cells[0].textContent.split('/').reverse().join('-');
             document.getElementById('edit_payment_method').value = cells[4].textContent === '-' ? '' : cells[4].textContent;
             document.getElementById('edit_notes').value = cells[5].textContent === '-' ? '' : cells[5].textContent;
-            
+
             new bootstrap.Modal(document.getElementById('editExpenseModal')).show();
         }
 
         // Edit expense form submission
-        document.getElementById('editExpenseForm').addEventListener('submit', async function(e) {
+        document.getElementById('editExpenseForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const formData = new FormData(this);
             const data = Object.fromEntries(formData.entries());
             const id = data.id;
             delete data.id;
-            
+
             try {
                 const response = await fetch(`/admin/billing/api/expenses/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     alert(result.message);
@@ -474,12 +515,12 @@
         // Delete expense
         async function deleteExpense(id) {
             if (!confirm('Apakah Anda yakin ingin menghapus pengeluaran ini?')) return;
-            
+
             try {
                 const response = await fetch(`/admin/billing/api/expenses/${id}`, {
                     method: 'DELETE'
                 });
-                
+
                 const result = await response.json();
                 if (result.success) {
                     alert(result.message);
@@ -492,5 +533,9 @@
             }
         }
     </script>
+
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'payments' }) %>
 </body>
+
 </html>

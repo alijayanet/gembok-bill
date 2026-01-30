@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> - <%= appSettings.companyHeader %></title>
+    <title>
+        <%= title %> - <%= appSettings.companyHeader %>
+    </title>
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#0B1437">
     <link rel="apple-touch-icon" href="/img/icons/icon-192.png">
@@ -13,6 +16,8 @@
     <link rel="stylesheet" href="/css/admin-mobile-billing.css">
     <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
+    <link href="/css/mobile-sidebar.css" rel="stylesheet">
+    <link href="/css/responsive-admin.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #4361ee;
@@ -27,7 +32,7 @@
             --btn-border-radius: 50px;
             --transition-speed: 0.3s;
         }
-        
+
         body {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -36,7 +41,7 @@
             line-height: 1.6;
             padding-bottom: 80px;
         }
-        
+
         .mobile-header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
@@ -45,23 +50,23 @@
             border-radius: 0 0 20px 20px;
             box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
         }
-        
+
         .report-card {
             background: white;
             border-radius: 20px;
             padding: 1.5rem;
             margin-bottom: 1rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
-        
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
-        
+
         .stat-card {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
@@ -70,40 +75,40 @@
             text-align: center;
             box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
         }
-        
+
         .stat-card.success {
             background: linear-gradient(135deg, #28a745, #20c997);
         }
-        
+
         .stat-card.warning {
             background: linear-gradient(135deg, #ffc107, #ff8c00);
         }
-        
+
         .stat-card.info {
             background: linear-gradient(135deg, #17a2b8, #138496);
         }
-        
+
         .stat-icon {
             font-size: 2rem;
             margin-bottom: 0.5rem;
             opacity: 0.9;
         }
-        
+
         .stat-value {
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 0.25rem;
         }
-        
+
         .stat-label {
             font-size: 0.9rem;
             opacity: 0.9;
         }
-        
+
         .report-section {
             margin-bottom: 2rem;
         }
-        
+
         .report-section h5 {
             color: var(--primary-color);
             margin-bottom: 1rem;
@@ -112,36 +117,36 @@
             align-items: center;
             gap: 0.5rem;
         }
-        
+
         .report-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 1rem 0;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
-        
+
         .report-item:last-child {
             border-bottom: none;
         }
-        
+
         .report-label {
             font-weight: 500;
             color: var(--dark-color);
         }
-        
+
         .report-value {
             color: #6c757d;
             font-size: 0.9rem;
         }
-        
+
         .action-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
             margin-top: 1.5rem;
         }
-        
+
         .action-btn {
             padding: 0.75rem 1rem;
             border: none;
@@ -155,40 +160,40 @@
             justify-content: center;
             gap: 0.5rem;
         }
-        
+
         .btn-export {
             background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
         }
-        
+
         .btn-export:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
             color: white;
         }
-        
+
         .btn-refresh {
             background: linear-gradient(135deg, #17a2b8, #138496);
             color: white;
         }
-        
+
         .btn-refresh:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(23, 162, 184, 0.4);
             color: white;
         }
-        
+
         .btn-back {
             background: linear-gradient(135deg, #6c757d, #495057);
             color: white;
         }
-        
+
         .btn-back:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
             color: white;
         }
-        
+
         .chart-placeholder {
             height: 200px;
             background: linear-gradient(135deg, #f8f9fa, #e9ecef);
@@ -201,33 +206,33 @@
             text-align: center;
             margin: 1rem 0;
         }
-        
+
         .chart-placeholder i {
             font-size: 3rem;
             margin-bottom: 1rem;
             opacity: 0.5;
         }
-        
+
         @media (max-width: 768px) {
             .mobile-header {
                 padding: 1rem;
                 margin-bottom: 1rem;
             }
-            
+
             .report-card {
                 padding: 1rem;
                 margin-bottom: 1rem;
             }
-            
+
             .stats-grid {
                 grid-template-columns: 1fr;
                 gap: 0.75rem;
             }
-            
+
             .stat-card {
                 padding: 1rem;
             }
-            
+
             .action-buttons {
                 grid-template-columns: 1fr;
                 gap: 0.75rem;
@@ -235,212 +240,233 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <%- include('../../partials/billing-sidebar') %>
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content py-4">
-    <!-- Mobile Header (hidden on desktop) -->
-    <div class="mobile-header d-md-none">
-        <div class="d-flex align-items-center justify-content-between">
-            <div>
-                <h4 class="mb-1">Laporan Billing</h4>
-                <p class="mb-0 opacity-75">Statistik dan analisis billing</p>
-            </div>
-            <div class="text-end">
-                <a href="/admin/billing/dashboard" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-arrow-left me-1"></i>Kembali
-                </a>
-            </div>
-        </div>
-    </div>
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content py-4">
+                    <!-- Mobile Header (hidden on desktop) -->
+                    <div class="mobile-header d-md-none">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h4 class="mb-1">Laporan Billing</h4>
+                                <p class="mb-0 opacity-75">Statistik dan analisis billing</p>
+                            </div>
+                            <div class="text-end">
+                                <a href="/admin/billing/dashboard" class="btn btn-outline-light btn-sm">
+                                    <i class="bi bi-arrow-left me-1"></i>Kembali
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
-    <!-- Tab Navigation -->
-    <h3 class="mb-4">Laporan</h3>
-    <ul class="nav nav-tabs mb-4">
-        <li class="nav-item">
-            <a class="nav-link <%= typeof page !== 'undefined' && page === 'reports' ? 'active' : '' %>" href="/admin/billing/reports">
-                <i class="bi bi-analytics"></i> Laporan Analisis
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <%= typeof page !== 'undefined' && page === 'financial-report' ? 'active' : '' %>" href="/admin/billing/financial-report">
-                <i class="bi bi-line-chart"></i> Laporan Keuangan
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link <%= typeof page !== 'undefined' && page === 'collector-reports' ? 'active' : '' %>" href="/admin/billing/collector-reports">
-                <i class="bi bi-bar-chart"></i> Laporan Kolektor
-            </a>
-        </li>
-    </ul>
+                    <!-- Tab Navigation -->
+                    <h3 class="mb-4">Laporan</h3>
+                    <ul class="nav nav-tabs mb-4">
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'reports' ? 'active' : '' %>"
+                                href="/admin/billing/reports">
+                                <i class="bi bi-analytics"></i> Laporan Analisis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'financial-report' ? 'active' : '' %>"
+                                href="/admin/billing/financial-report">
+                                <i class="bi bi-line-chart"></i> Laporan Keuangan
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'collector-reports' ? 'active' : '' %>"
+                                href="/admin/billing/collector-reports">
+                                <i class="bi bi-bar-chart"></i> Laporan Kolektor
+                            </a>
+                        </li>
+                    </ul>
 
-    <!-- Main Content -->
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="d-none d-md-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2"><i class="bx bx-analytics"></i> Reports</h1>
-                </div>
-                <!-- Statistics Cards -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="bi bi-people"></i>
-                        </div>
-                        <div class="stat-value"><%= stats.totalCustomers %></div>
-                        <div class="stat-label">Total Pelanggan</div>
-                    </div>
-                    <div class="stat-card success">
-                        <div class="stat-icon">
-                            <i class="bi bi-receipt"></i>
-                        </div>
-                        <div class="stat-value"><%= stats.totalInvoices %></div>
-                        <div class="stat-label">Total Tagihan</div>
-                    </div>
-                    <div class="stat-card warning">
-                        <div class="stat-icon">
-                            <i class="bi bi-currency-dollar"></i>
-                        </div>
-                        <div class="stat-value">Rp <%= stats.totalRevenue.toLocaleString('id-ID') %></div>
-                        <div class="stat-label">Total Pendapatan</div>
-                    </div>
-                    <div class="stat-card info">
-                        <div class="stat-icon">
-                            <i class="bi bi-clock"></i>
-                        </div>
-                        <div class="stat-value"><%= stats.pendingPayments %></div>
-                        <div class="stat-label">Pembayaran Pending</div>
-                    </div>
-                </div>
+                    <!-- Main Content -->
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12">
+                                <div
+                                    class="d-none d-md-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                                    <h1 class="h2"><i class="bx bx-analytics"></i> Reports</h1>
+                                </div>
+                                <!-- Statistics Cards -->
+                                <div class="stats-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-people"></i>
+                                        </div>
+                                        <div class="stat-value">
+                                            <%= stats.totalCustomers %>
+                                        </div>
+                                        <div class="stat-label">Total Pelanggan</div>
+                                    </div>
+                                    <div class="stat-card success">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-receipt"></i>
+                                        </div>
+                                        <div class="stat-value">
+                                            <%= stats.totalInvoices %>
+                                        </div>
+                                        <div class="stat-label">Total Tagihan</div>
+                                    </div>
+                                    <div class="stat-card warning">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-currency-dollar"></i>
+                                        </div>
+                                        <div class="stat-value">Rp <%= stats.totalRevenue.toLocaleString('id-ID') %>
+                                        </div>
+                                        <div class="stat-label">Total Pendapatan</div>
+                                    </div>
+                                    <div class="stat-card info">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-clock"></i>
+                                        </div>
+                                        <div class="stat-value">
+                                            <%= stats.pendingPayments %>
+                                        </div>
+                                        <div class="stat-label">Pembayaran Pending</div>
+                                    </div>
+                                </div>
 
-                <!-- Revenue Report -->
-                <div class="report-card">
-                    <div class="report-section">
-                        <h5><i class="bi bi-graph-up"></i>Laporan Pendapatan</h5>
-                        <div class="chart-placeholder">
-                            <i class="bi bi-bar-chart"></i>
-                            <h6>Grafik Pendapatan</h6>
-                            <p>Fitur grafik akan segera hadir untuk menampilkan tren pendapatan</p>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Pendapatan Hari Ini</span>
-                            <span class="report-value" id="rev-today">Rp 0</span>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Pendapatan Minggu Ini</span>
-                            <span class="report-value" id="rev-week">Rp 0</span>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Pendapatan Bulan Ini</span>
-                            <span class="report-value" id="rev-month">Rp <%= stats.totalRevenue.toLocaleString('id-ID') %></span>
+                                <!-- Revenue Report -->
+                                <div class="report-card">
+                                    <div class="report-section">
+                                        <h5><i class="bi bi-graph-up"></i>Laporan Pendapatan</h5>
+                                        <div class="chart-placeholder">
+                                            <i class="bi bi-bar-chart"></i>
+                                            <h6>Grafik Pendapatan</h6>
+                                            <p>Fitur grafik akan segera hadir untuk menampilkan tren pendapatan</p>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Pendapatan Hari Ini</span>
+                                            <span class="report-value" id="rev-today">Rp 0</span>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Pendapatan Minggu Ini</span>
+                                            <span class="report-value" id="rev-week">Rp 0</span>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Pendapatan Bulan Ini</span>
+                                            <span class="report-value" id="rev-month">Rp <%=
+                                                    stats.totalRevenue.toLocaleString('id-ID') %></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Customer Report -->
+                                <div class="report-card">
+                                    <div class="report-section">
+                                        <h5><i class="bi bi-people"></i>Laporan Pelanggan</h5>
+                                        <div class="report-item">
+                                            <span class="report-label">Pelanggan Aktif</span>
+                                            <span class="report-value">
+                                                <%= stats.totalCustomers %>
+                                            </span>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Pelanggan Baru (Bulan Ini)</span>
+                                            <span class="report-value">0</span>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Pelanggan Non-Aktif</span>
+                                            <span class="report-value">0</span>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Tingkat Retensi</span>
+                                            <span class="report-value">100%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Invoice Report -->
+                                <div class="report-card">
+                                    <div class="report-section">
+                                        <h5><i class="bi bi-receipt"></i>Laporan Tagihan</h5>
+                                        <div class="report-item">
+                                            <span class="report-label">Tagihan Dibuat (Bulan Ini)</span>
+                                            <span class="report-value">
+                                                <%= stats.totalInvoices %>
+                                            </span>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Tagihan Lunas</span>
+                                            <span class="report-value">0</span>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Tagihan Belum Lunas</span>
+                                            <span class="report-value">
+                                                <%= stats.totalInvoices %>
+                                            </span>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Tingkat Pembayaran</span>
+                                            <span class="report-value">0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Payment Report -->
+                                <div class="report-card">
+                                    <div class="report-section">
+                                        <h5><i class="bi bi-credit-card"></i>Laporan Pembayaran</h5>
+                                        <div class="report-item">
+                                            <span class="report-label">Pembayaran Berhasil</span>
+                                            <span class="report-value">0</span>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Pembayaran Pending</span>
+                                            <span class="report-value">
+                                                <%= stats.pendingPayments %>
+                                            </span>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Pembayaran Gagal</span>
+                                            <span class="report-value">0</span>
+                                        </div>
+                                        <div class="report-item">
+                                            <span class="report-label">Rata-rata Waktu Pembayaran</span>
+                                            <span class="report-value">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="action-buttons">
+                                    <button class="action-btn btn-export" onclick="exportReport()">
+                                        <i class="bi bi-download me-1"></i>Export
+                                    </button>
+                                    <button class="action-btn btn-refresh" onclick="refreshReport()">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Customer Report -->
-                <div class="report-card">
-                    <div class="report-section">
-                        <h5><i class="bi bi-people"></i>Laporan Pelanggan</h5>
-                        <div class="report-item">
-                            <span class="report-label">Pelanggan Aktif</span>
-                            <span class="report-value"><%= stats.totalCustomers %></span>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Pelanggan Baru (Bulan Ini)</span>
-                            <span class="report-value">0</span>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Pelanggan Non-Aktif</span>
-                            <span class="report-value">0</span>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Tingkat Retensi</span>
-                            <span class="report-value">100%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Invoice Report -->
-                <div class="report-card">
-                    <div class="report-section">
-                        <h5><i class="bi bi-receipt"></i>Laporan Tagihan</h5>
-                        <div class="report-item">
-                            <span class="report-label">Tagihan Dibuat (Bulan Ini)</span>
-                            <span class="report-value"><%= stats.totalInvoices %></span>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Tagihan Lunas</span>
-                            <span class="report-value">0</span>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Tagihan Belum Lunas</span>
-                            <span class="report-value"><%= stats.totalInvoices %></span>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Tingkat Pembayaran</span>
-                            <span class="report-value">0%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Payment Report -->
-                <div class="report-card">
-                    <div class="report-section">
-                        <h5><i class="bi bi-credit-card"></i>Laporan Pembayaran</h5>
-                        <div class="report-item">
-                            <span class="report-label">Pembayaran Berhasil</span>
-                            <span class="report-value">0</span>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Pembayaran Pending</span>
-                            <span class="report-value"><%= stats.pendingPayments %></span>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Pembayaran Gagal</span>
-                            <span class="report-value">0</span>
-                        </div>
-                        <div class="report-item">
-                            <span class="report-label">Rata-rata Waktu Pembayaran</span>
-                            <span class="report-value">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="action-buttons">
-                    <button class="action-btn btn-export" onclick="exportReport()">
-                        <i class="bi bi-download me-1"></i>Export
-                    </button>
-                    <button class="action-btn btn-refresh" onclick="refreshReport()">
-                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-            </main>
+                </main>
         </div>
     </div>
 
     <script>
-    // Fetch revenue summary from API and populate report values
-    (function(){
-        fetch('/admin/billing/api/revenue/summary')
-            .then(r=>r.json())
-            .then(res=>{
-                if(res && res.success && res.data){
-                    const d = res.data;
-                    const fmt = n => 'Rp ' + Number(n||0).toLocaleString('id-ID');
-                    const elToday = document.getElementById('rev-today');
-                    const elWeek = document.getElementById('rev-week');
-                    const elMonth = document.getElementById('rev-month');
-                    if(elToday) elToday.textContent = fmt(d.todayRevenue);
-                    if(elWeek) elWeek.textContent = fmt(d.weekRevenue);
-                    if(elMonth && !document.getElementById('totalRevenue')?.textContent) elMonth.textContent = fmt(d.monthRevenue);
-                }
-            }).catch(()=>{});
-    })();
+        // Fetch revenue summary from API and populate report values
+        (function () {
+            fetch('/admin/billing/api/revenue/summary')
+                .then(r => r.json())
+                .then(res => {
+                    if (res && res.success && res.data) {
+                        const d = res.data;
+                        const fmt = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+                        const elToday = document.getElementById('rev-today');
+                        const elWeek = document.getElementById('rev-week');
+                        const elMonth = document.getElementById('rev-month');
+                        if (elToday) elToday.textContent = fmt(d.todayRevenue);
+                        if (elWeek) elWeek.textContent = fmt(d.weekRevenue);
+                        if (elMonth && !document.getElementById('totalRevenue')?.textContent) elMonth.textContent = fmt(d.monthRevenue);
+                    }
+                }).catch(() => { });
+        })();
     </script>
     <!-- Bottom Navigation removed for consistency with admin layout -->
 
@@ -453,13 +479,13 @@
             if (navigator.vibrate) {
                 navigator.vibrate(50);
             }
-            
+
             // Show loading state
             const btn = event.target;
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Exporting...';
             btn.disabled = true;
-            
+
             // Simulate API call
             setTimeout(() => {
                 alert('Laporan berhasil diekspor!');
@@ -467,37 +493,41 @@
                 btn.disabled = false;
             }, 2000);
         }
-        
+
         function refreshReport() {
             // Add haptic feedback
             if (navigator.vibrate) {
                 navigator.vibrate(50);
             }
-            
+
             // Show loading state
             const btn = event.target;
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Refreshing...';
             btn.disabled = true;
-            
+
             // Simulate API call
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
         }
-        
+
         // Add touch feedback for action buttons
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.action-btn').forEach(btn => {
-                btn.addEventListener('touchstart', function() {
+                btn.addEventListener('touchstart', function () {
                     this.style.transform = 'scale(0.95)';
                 });
-                
-                btn.addEventListener('touchend', function() {
+
+                btn.addEventListener('touchend', function () {
                     this.style.transform = 'scale(1)';
                 });
             });
         });
     </script>
+
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'payments' }) %>
 </body>
+
 </html>

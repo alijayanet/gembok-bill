@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,122 +21,147 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <h3 class="mb-4">Pelanggan & Paket</h3>
+                <!-- Main content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <h3 class="mb-4">Pelanggan & Paket</h3>
 
-                <!-- Tab Navigation -->
-                <ul class="nav nav-tabs mb-4">
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'customers' ? 'active' : '' %>" href="/admin/billing/customers">
-                            <i class="bi bi-people"></i> Pelanggan
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'packages' ? 'active' : '' %>" href="/admin/billing/packages">
-                            <i class="bi bi-box"></i> Paket
-                        </a>
-                    </li>
-                </ul>
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs mb-4">
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'customers' ? 'active' : '' %>"
+                                href="/admin/billing/customers">
+                                <i class="bi bi-people"></i> Pelanggan
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'packages' ? 'active' : '' %>"
+                                href="/admin/billing/packages">
+                                <i class="bi bi-box"></i> Paket
+                            </a>
+                        </li>
+                    </ul>
 
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-package"></i> Kelola Paket Internet
-                    </h1>
-                    <div>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPackageModal">
-                            <i class="bx bx-plus"></i> Tambah Paket
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Packages Table -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bx bx-list-ul"></i> Daftar Paket
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="packagesTable" class="table table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Nama Paket</th>
-                                        <th>Kecepatan</th>
-                                        <th>Harga (Sebelum PPN)</th>
-                                        <th>PPN</th>
-                                        <th>Harga (Setelah PPN)</th>
-                                        <th>PPPoE Profile</th>
-                                        <th>Deskripsi</th>
-                                        <th>Status</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% if (packages && packages.length > 0) { %>
-                                        <% packages.forEach(function(package) { %>
-                                            <tr>
-                                                <td>
-                                                    <span class="text-body fw-bold"><%= package.name %></span>
-                                                    <% if (package.image_filename) { %>
-                                                        <br><img src="/img/packages/<%= package.image_filename %>" alt="<%= package.name %>" style="width: 50px; height: 50px; object-fit: cover; margin-top: 5px; border-radius: 5px;">
-                                                    <% } %>
-                                                </td>
-                                                <td><%= package.speed %></td>
-                                                <td>Rp <%= parseFloat(package.price).toLocaleString('id-ID') %></td>
-                                                <td>
-                                                    <% if (package.tax_rate === 0) { %>
-                                                        <span class="badge bg-secondary">0% (Tidak Ada PPN)</span>
-                                                    <% } else if (package.tax_rate) { %>
-                                                        <span class="badge bg-warning"><%= package.tax_rate.toFixed(2) %>%</span>
-                                                    <% } else { %>
-                                                        <span class="badge bg-warning">11.00%</span>
-                                                    <% } %>
-                                                </td>
-                                                <td class="text-success fw-bold">
-                                                    <% if (package.tax_rate === 0) { %>
-                                                        Rp <%= parseFloat(package.price).toLocaleString('id-ID') %>
-                                                        <small class="text-muted d-block">(Harga sama, tidak ada PPN)</small>
-                                                    <% } else if (package.tax_rate) { %>
-                                                        Rp <%= ((parseFloat(package.price) * (1 + package.tax_rate / 100)).toFixed(0)).toLocaleString('id-ID') %>
-                                                    <% } else { %>
-                                                        Rp <%= ((parseFloat(package.price) * 1.11).toFixed(0)).toLocaleString('id-ID') %>
-                                                    <% } %>
-                                                </td>
-                                                <td><span class="badge bg-info"><%= package.pppoe_profile || 'default' %></span></td>
-                                                <td><%= package.description || '-' %></td>
-                                                <td>
-                                                    <span class="badge bg-success">Aktif</span>
-                                                </td>
-                                                <td>
-                                                    <div class="btn-group" role="group">
-                                                        <button class="btn btn-sm btn-primary" onclick="editPackage('<%= package.id %>')">
-                                                            <i class="bx bx-edit"></i>
-                                                        </button>
-                                                        <button class="btn btn-sm btn-info" onclick="viewPackage('<%= package.id %>')">
-                                                            <i class="bx bx-show"></i>
-                                                        </button>
-                                                        <button class="btn btn-sm btn-danger" onclick="deletePackage('<%= package.id %>')">
-                                                            <i class="bx bx-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        <% }); %>
-                                    <% } %>
-                                </tbody>
-                            </table>
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="bx bx-package"></i> Kelola Paket Internet
+                        </h1>
+                        <div>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPackageModal">
+                                <i class="bx bx-plus"></i> Tambah Paket
+                            </button>
                         </div>
                     </div>
-                </div>
-            </main>
+
+                    <!-- Packages Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bx bx-list-ul"></i> Daftar Paket
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table id="packagesTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Paket</th>
+                                            <th>Kecepatan</th>
+                                            <th>Harga (Sebelum PPN)</th>
+                                            <th>PPN</th>
+                                            <th>Harga (Setelah PPN)</th>
+                                            <th>PPPoE Profile</th>
+                                            <th>Deskripsi</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% if (packages && packages.length> 0) { %>
+                                            <% packages.forEach(function(package) { %>
+                                                <tr>
+                                                    <td>
+                                                        <span class="text-body fw-bold">
+                                                            <%= package.name %>
+                                                        </span>
+                                                        <% if (package.image_filename) { %>
+                                                            <br><img src="/img/packages/<%= package.image_filename %>"
+                                                                alt="<%= package.name %>"
+                                                                style="width: 50px; height: 50px; object-fit: cover; margin-top: 5px; border-radius: 5px;">
+                                                            <% } %>
+                                                    </td>
+                                                    <td>
+                                                        <%= package.speed %>
+                                                    </td>
+                                                    <td>Rp <%= parseFloat(package.price).toLocaleString('id-ID') %>
+                                                    </td>
+                                                    <td>
+                                                        <% if (package.tax_rate===0) { %>
+                                                            <span class="badge bg-secondary">0% (Tidak Ada PPN)</span>
+                                                            <% } else if (package.tax_rate) { %>
+                                                                <span class="badge bg-warning">
+                                                                    <%= package.tax_rate.toFixed(2) %>%
+                                                                </span>
+                                                                <% } else { %>
+                                                                    <span class="badge bg-warning">11.00%</span>
+                                                                    <% } %>
+                                                    </td>
+                                                    <td class="text-success fw-bold">
+                                                        <% if (package.tax_rate===0) { %>
+                                                            Rp <%= parseFloat(package.price).toLocaleString('id-ID') %>
+                                                                <small class="text-muted d-block">(Harga sama, tidak ada
+                                                                    PPN)</small>
+                                                                <% } else if (package.tax_rate) { %>
+                                                                    Rp <%= ((parseFloat(package.price) * (1 +
+                                                                        package.tax_rate /
+                                                                        100)).toFixed(0)).toLocaleString('id-ID') %>
+                                                                        <% } else { %>
+                                                                            Rp <%= ((parseFloat(package.price) *
+                                                                                1.11).toFixed(0)).toLocaleString('id-ID')
+                                                                                %>
+                                                                                <% } %>
+                                                    </td>
+                                                    <td><span class="badge bg-info">
+                                                            <%= package.pppoe_profile || 'default' %>
+                                                        </span></td>
+                                                    <td>
+                                                        <%= package.description || '-' %>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-success">Aktif</span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group" role="group">
+                                                            <button class="btn btn-sm btn-primary"
+                                                                onclick="editPackage('<%= package.id %>')">
+                                                                <i class="bx bx-edit"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-info"
+                                                                onclick="viewPackage('<%= package.id %>')">
+                                                                <i class="bx bx-show"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-danger"
+                                                                onclick="deletePackage('<%= package.id %>')">
+                                                                <i class="bx bx-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <% }); %>
+                                                    <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </main>
         </div>
     </div>
 
@@ -155,7 +181,8 @@
                         </div>
                         <div class="mb-3">
                             <label for="speed" class="form-label">Kecepatan</label>
-                            <input type="text" class="form-control" id="speed" name="speed" placeholder="Contoh: 10 Mbps" required>
+                            <input type="text" class="form-control" id="speed" name="speed"
+                                placeholder="Contoh: 10 Mbps" required>
                         </div>
                         <div class="mb-3">
                             <label for="price" class="form-label">Harga (Sebelum PPN)</label>
@@ -167,13 +194,16 @@
                                 <label class="form-check-label" for="enable_tax">
                                     Aktifkan PPN
                                 </label>
-                                <small class="form-text text-muted d-block">Centang untuk mengaktifkan PPN, kosongkan untuk tidak ada PPN</small>
+                                <small class="form-text text-muted d-block">Centang untuk mengaktifkan PPN, kosongkan
+                                    untuk tidak ada PPN</small>
                             </div>
                         </div>
                         <div class="mb-3" id="tax_rate_group">
                             <label for="tax_rate" class="form-label">PPN (%)</label>
-                            <input type="number" class="form-control" id="tax_rate" name="tax_rate" step="0.01" min="0" max="100" value="0">
-                            <small class="form-text text-muted">Persentase PPN yang akan ditambahkan ke harga paket.</small>
+                            <input type="number" class="form-control" id="tax_rate" name="tax_rate" step="0.01" min="0"
+                                max="100" value="0">
+                            <small class="form-text text-muted">Persentase PPN yang akan ditambahkan ke harga
+                                paket.</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Harga Setelah PPN</label>
@@ -192,14 +222,18 @@
                                 <select class="form-select" id="pppoe_profile" name="pppoe_profile">
                                     <option value="default">default</option>
                                 </select>
-                                <button class="btn btn-outline-secondary" type="button" id="reloadProfilesAdd">Reload</button>
+                                <button class="btn btn-outline-secondary" type="button"
+                                    id="reloadProfilesAdd">Reload</button>
                             </div>
-                            <small class="form-text text-muted">Pilih profile PPPoE dari Mikrotik. Klik Reload bila daftar belum muncul.</small>
+                            <small class="form-text text-muted">Pilih profile PPPoE dari Mikrotik. Klik Reload bila
+                                daftar belum muncul.</small>
                         </div>
                         <div class="mb-3">
                             <label for="package_image" class="form-label">Gambar Paket (Opsional)</label>
-                            <input type="file" class="form-control" id="package_image" name="package_image" accept="image/png, image/jpeg, image/jpg">
-                            <small class="form-text text-muted">Format yang didukung: PNG, JPG, JPEG. Maksimal 2MB.</small>
+                            <input type="file" class="form-control" id="package_image" name="package_image"
+                                accept="image/png, image/jpeg, image/jpg">
+                            <small class="form-text text-muted">Format yang didukung: PNG, JPG, JPEG. Maksimal
+                                2MB.</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -240,13 +274,16 @@
                                 <label class="form-check-label" for="edit_enable_tax">
                                     Aktifkan PPN
                                 </label>
-                                <small class="form-text text-muted d-block">Centang untuk mengaktifkan PPN, kosongkan untuk tidak ada PPN</small>
+                                <small class="form-text text-muted d-block">Centang untuk mengaktifkan PPN, kosongkan
+                                    untuk tidak ada PPN</small>
                             </div>
                         </div>
                         <div class="mb-3" id="edit_tax_rate_group">
                             <label for="edit_tax_rate" class="form-label">PPN (%)</label>
-                            <input type="number" class="form-control" id="edit_tax_rate" name="tax_rate" step="0.01" min="0" max="100">
-                            <small class="form-text text-muted">Persentase PPN yang akan ditambahkan ke harga paket.</small>
+                            <input type="number" class="form-control" id="edit_tax_rate" name="tax_rate" step="0.01"
+                                min="0" max="100">
+                            <small class="form-text text-muted">Persentase PPN yang akan ditambahkan ke harga
+                                paket.</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Harga Setelah PPN</label>
@@ -265,14 +302,18 @@
                                 <select class="form-select" id="edit_pppoe_profile" name="pppoe_profile">
                                     <option value="default">default</option>
                                 </select>
-                                <button class="btn btn-outline-secondary" type="button" id="reloadProfilesEdit">Reload</button>
+                                <button class="btn btn-outline-secondary" type="button"
+                                    id="reloadProfilesEdit">Reload</button>
                             </div>
-                            <small class="form-text text-muted">Pilih profile PPPoE dari Mikrotik. Klik Reload bila daftar belum muncul.</small>
+                            <small class="form-text text-muted">Pilih profile PPPoE dari Mikrotik. Klik Reload bila
+                                daftar belum muncul.</small>
                         </div>
                         <div class="mb-3">
                             <label for="edit_package_image" class="form-label">Gambar Paket (Opsional)</label>
-                            <input type="file" class="form-control" id="edit_package_image" name="package_image" accept="image/png, image/jpeg, image/jpg">
-                            <small class="form-text text-muted">Format yang didukung: PNG, JPG, JPEG. Maksimal 2MB.</small>
+                            <input type="file" class="form-control" id="edit_package_image" name="package_image"
+                                accept="image/png, image/jpeg, image/jpg">
+                            <small class="form-text text-muted">Format yang didukung: PNG, JPG, JPEG. Maksimal
+                                2MB.</small>
                             <div id="current_image_preview" class="mt-2"></div>
                         </div>
                     </div>
@@ -308,7 +349,7 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#packagesTable').DataTable({
                 language: {
                     url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/id.json',
@@ -333,7 +374,7 @@
             });
 
             // Load profiles into Add form on open
-            $('#addPackageModal').on('shown.bs.modal', function(){
+            $('#addPackageModal').on('shown.bs.modal', function () {
                 console.log('🔍 Modal opened - resetting form...');
                 loadPPPoEProfiles('#pppoe_profile');
                 // Reset form and hide tax group
@@ -345,7 +386,7 @@
                 // Ensure price with tax shows base price
                 const price = parseFloat($('#price').val()) || 0;
                 $('#price_with_tax').val(price.toLocaleString('id-ID'));
-                
+
                 console.log('   - Form reset completed');
                 console.log('   - Checkbox checked:', $('#enable_tax').is(':checked'));
                 console.log('   - Tax rate value:', $('#tax_rate').val());
@@ -354,43 +395,43 @@
             // Preload on page ready for Add form
             loadPPPoEProfiles('#pppoe_profile');
             // Manual reload buttons
-            $('#reloadProfilesAdd').on('click', function(){ loadPPPoEProfiles('#pppoe_profile'); });
-            $('#reloadProfilesEdit').on('click', function(){ loadPPPoEProfiles('#edit_pppoe_profile'); });
+            $('#reloadProfilesAdd').on('click', function () { loadPPPoEProfiles('#pppoe_profile'); });
+            $('#reloadProfilesEdit').on('click', function () { loadPPPoEProfiles('#edit_pppoe_profile'); });
 
-                    // Initialize PPN calculation
-        initializePPNCalculation();
-        
-        // Set default tax rate from settings if available
-        setDefaultTaxRate();
-        
-        // Hide tax rate group by default (checkbox unchecked)
-        $('#tax_rate_group').hide();
-        $('#tax_rate_group input').prop('disabled', true);
-        
-        // Hide edit tax rate group by default (checkbox unchecked)
-        $('#edit_tax_rate_group').hide();
-        $('#edit_tax_rate_group input').prop('disabled', true);
+            // Initialize PPN calculation
+            initializePPNCalculation();
+
+            // Set default tax rate from settings if available
+            setDefaultTaxRate();
+
+            // Hide tax rate group by default (checkbox unchecked)
+            $('#tax_rate_group').hide();
+            $('#tax_rate_group input').prop('disabled', true);
+
+            // Hide edit tax rate group by default (checkbox unchecked)
+            $('#edit_tax_rate_group').hide();
+            $('#edit_tax_rate_group input').prop('disabled', true);
         });
 
         // PPN Calculation Functions
         function initializePPNCalculation() {
             // Add Package Modal PPN calculation
-            $('#price, #tax_rate').on('input', function() {
+            $('#price, #tax_rate').on('input', function () {
                 calculatePriceWithTax('price', 'tax_rate', 'price_with_tax');
             });
 
             // Edit Package Modal PPN calculation
-            $('#edit_price, #edit_tax_rate').on('input', function() {
+            $('#edit_price, #edit_tax_rate').on('input', function () {
                 calculatePriceWithTax('edit_price', 'edit_tax_rate', 'edit_price_with_tax');
             });
-            
+
             // Checkbox PPN event handlers
-            $('#enable_tax').on('change', function() {
+            $('#enable_tax').on('change', function () {
                 toggleTaxRateGroup('tax_rate_group', this.checked);
                 calculatePriceWithTax('price', 'tax_rate', 'price_with_tax');
             });
-            
-            $('#edit_enable_tax').on('change', function() {
+
+            $('#edit_enable_tax').on('change', function () {
                 toggleTaxRateGroup('edit_tax_rate_group', this.checked);
                 calculatePriceWithTax('edit_price', 'edit_tax_rate', 'edit_price_with_tax');
             });
@@ -399,7 +440,7 @@
         function toggleTaxRateGroup(groupId, enabled) {
             const group = $('#' + groupId);
             const inputs = group.find('input, select');
-            
+
             if (enabled) {
                 group.show();
                 inputs.prop('disabled', false);
@@ -418,14 +459,14 @@
         function calculatePriceWithTax(priceId, taxId, resultId) {
             const price = parseFloat($('#' + priceId).val()) || 0;
             let taxRate = 0;
-            
+
             // Check if tax is enabled
             if (priceId === 'price') {
                 taxRate = $('#enable_tax').is(':checked') ? (parseFloat($('#' + taxId).val()) || 0) : 0;
             } else {
                 taxRate = $('#edit_enable_tax').is(':checked') ? (parseFloat($('#' + taxId).val()) || 0) : 0;
             }
-            
+
             // Jika PPN = 0 atau tidak diaktifkan, harga tidak berubah
             if (taxRate === 0) {
                 $('#' + resultId).val(Math.round(price).toLocaleString('id-ID'));
@@ -446,7 +487,7 @@
             // Set tax rate to 0 by default (no PPN unless explicitly enabled)
             $('#tax_rate').val(0);
             $('#edit_tax_rate').val(0);
-            
+
             // Don't trigger calculation since checkbox is unchecked by default
             console.log('Tax rate set to 0% by default (no PPN)');
         }
@@ -494,12 +535,12 @@
         }
 
         // Add Package Form
-        $('#addPackageForm').on('submit', function(e) {
+        $('#addPackageForm').on('submit', function (e) {
             e.preventDefault();
-            
+
             // Get form data
             const formData = new FormData();
-            
+
             // Add text fields
             formData.append('name', $('#name').val().trim());
             formData.append('speed', $('#speed').val().trim());
@@ -507,62 +548,62 @@
             formData.append('tax_rate', $('#enable_tax').is(':checked') ? parseFloat($('#tax_rate').val()) : 0);
             formData.append('description', $('#description').val().trim());
             formData.append('pppoe_profile', $('#pppoe_profile').val().trim() || 'default');
-            
+
             // Add image file if selected
             const imageFile = $('#package_image')[0].files[0];
             if (imageFile) {
                 formData.append('package_image', imageFile);
             }
-            
+
             // Debug logging
             console.log('🔍 Form submission debug:');
             console.log('   - Checkbox checked:', $('#enable_tax').is(':checked'));
             console.log('   - Tax rate input value:', $('#tax_rate').val());
             console.log('   - Tax rate input disabled:', $('#tax_rate').prop('disabled'));
             console.log('   - Calculated tax_rate:', formData.get('tax_rate'));
-            
+
             // Validate required fields
             if (!formData.get('name') || !formData.get('speed') || !formData.get('price') || formData.get('price') <= 0) {
                 showAlert('danger', 'Nama, kecepatan, dan harga harus diisi dengan benar');
                 return;
             }
-            
+
             // Validate tax rate if enabled
             if ($('#enable_tax').is(':checked') && (parseFloat(formData.get('tax_rate')) < 0 || parseFloat(formData.get('tax_rate')) > 100)) {
                 showAlert('danger', 'PPN harus antara 0% dan 100%');
                 return;
             }
-            
+
             // Show loading state
             const submitBtn = $(this).find('button[type="submit"]');
             const originalText = submitBtn.text();
             submitBtn.prop('disabled', true).text('Memproses...');
-            
+
             fetch('/admin/billing/packages', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert('success', 'Paket berhasil ditambahkan');
-                    // Close modal with a small delay to ensure toast is shown
-                    setTimeout(() => {
-                        $('#addPackageModal').modal('hide');
-                        setTimeout(() => location.reload(), 500);
-                    }, 100);
-                } else {
-                    showAlert('danger', data.message || 'Gagal menambahkan paket');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert('danger', 'Terjadi kesalahan saat menambahkan paket');
-            })
-            .finally(() => {
-                // Restore button state
-                submitBtn.prop('disabled', false).text(originalText);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('success', 'Paket berhasil ditambahkan');
+                        // Close modal with a small delay to ensure toast is shown
+                        setTimeout(() => {
+                            $('#addPackageModal').modal('hide');
+                            setTimeout(() => location.reload(), 500);
+                        }, 100);
+                    } else {
+                        showAlert('danger', data.message || 'Gagal menambahkan paket');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'Terjadi kesalahan saat menambahkan paket');
+                })
+                .finally(() => {
+                    // Restore button state
+                    submitBtn.prop('disabled', false).text(originalText);
+                });
         });
 
         // Edit Package
@@ -576,7 +617,7 @@
                         $('#edit_name').val(package.name);
                         $('#edit_speed').val(package.speed);
                         $('#edit_price').val(package.price);
-                        
+
                         // Set tax rate and checkbox based on package data
                         const taxRate = package.tax_rate || 0;
                         if (taxRate > 0) {
@@ -590,12 +631,12 @@
                             $('#edit_tax_rate_group').hide();
                             $('#edit_tax_rate_group input').prop('disabled', true);
                         }
-                        
+
                         $('#edit_description').val(package.description || '');
-                        
+
                         // Calculate and display price with tax
                         calculatePriceWithTax('edit_price', 'edit_tax_rate', 'edit_price_with_tax');
-                        
+
                         // Show current image preview if exists
                         if (package.image_filename) {
                             const imagePreview = `<p><strong>Gambar Saat Ini:</strong></p>
@@ -605,7 +646,7 @@
                         } else {
                             $('#current_image_preview').html('<p class="text-muted">Tidak ada gambar saat ini</p>');
                         }
-                        
+
                         // Load profiles then set selection and show modal
                         const selected = package.pppoe_profile || 'default';
                         loadPPPoEProfiles('#edit_pppoe_profile', selected);
@@ -621,13 +662,13 @@
         }
 
         // Update Package Form
-        $('#editPackageForm').on('submit', function(e) {
+        $('#editPackageForm').on('submit', function (e) {
             e.preventDefault();
-            
+
             // Get form data
             const packageId = $('#edit_package_id').val();
             const formData = new FormData();
-            
+
             // Add text fields
             formData.append('name', $('#edit_name').val().trim());
             formData.append('speed', $('#edit_speed').val().trim());
@@ -635,55 +676,55 @@
             formData.append('tax_rate', $('#edit_enable_tax').is(':checked') ? parseFloat($('#edit_tax_rate').val()) : 0);
             formData.append('description', $('#edit_description').val().trim());
             formData.append('pppoe_profile', $('#edit_pppoe_profile').val().trim() || 'default');
-            
+
             // Add image file if selected
             const imageFile = $('#edit_package_image')[0].files[0];
             if (imageFile) {
                 formData.append('package_image', imageFile);
             }
-            
+
             // Validate required fields
             if (!formData.get('name') || !formData.get('speed') || !formData.get('price') || formData.get('price') <= 0) {
                 showAlert('danger', 'Nama, kecepatan, dan harga harus diisi dengan benar');
                 return;
             }
-            
+
             // Validate tax rate if enabled
             if ($('#edit_enable_tax').is(':checked') && (parseFloat(formData.get('tax_rate')) < 0 || parseFloat(formData.get('tax_rate')) > 100)) {
                 showAlert('danger', 'PPN harus antara 0% dan 100%');
                 return;
             }
-            
+
             // Show loading state
             const submitBtn = $(this).find('button[type="submit"]');
             const originalText = submitBtn.text();
             submitBtn.prop('disabled', true).text('Memproses...');
-            
+
             fetch(`/admin/billing/packages/${packageId}`, {
                 method: 'PUT',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert('success', 'Paket berhasil diupdate');
-                    // Close modal with a small delay to ensure toast is shown
-                    setTimeout(() => {
-                        $('#editPackageModal').modal('hide');
-                        setTimeout(() => location.reload(), 500);
-                    }, 100);
-                } else {
-                    showAlert('danger', data.message || 'Gagal mengupdate paket');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert('danger', 'Terjadi kesalahan saat mengupdate paket');
-            })
-            .finally(() => {
-                // Restore button state
-                submitBtn.prop('disabled', false).text(originalText);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('success', 'Paket berhasil diupdate');
+                        // Close modal with a small delay to ensure toast is shown
+                        setTimeout(() => {
+                            $('#editPackageModal').modal('hide');
+                            setTimeout(() => location.reload(), 500);
+                        }, 100);
+                    } else {
+                        showAlert('danger', data.message || 'Gagal mengupdate paket');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'Terjadi kesalahan saat mengupdate paket');
+                })
+                .finally(() => {
+                    // Restore button state
+                    submitBtn.prop('disabled', false).text(originalText);
+                });
         });
 
         // View Package
@@ -695,13 +736,13 @@
                         const package = data.package;
                         const taxRate = package.tax_rate || 11;
                         const isNoTax = taxRate === 0;
-                        
+
                         let imageHtml = '';
                         if (package.image_filename) {
                             imageHtml = `<p><strong>Gambar Paket:</strong></p>
                                          <img src="/img/packages/${package.image_filename}" alt="${package.name}" style="max-width: 200px; height: auto; border-radius: 5px;">`;
                         }
-                        
+
                         const detailsHtml = `
                             <div class="row">
                                 <div class="col-md-6">
@@ -709,16 +750,16 @@
                                     <p><strong>Kecepatan:</strong> ${package.speed}</p>
                                     <p><strong>Harga (Sebelum PPN):</strong> Rp ${parseFloat(package.price).toLocaleString('id-ID')}</p>
                                     <p><strong>PPN:</strong> 
-                                        ${isNoTax ? 
-                                            '<span class="badge bg-secondary">0% (Tidak Ada PPN)</span>' : 
-                                            '<span class="badge bg-warning">' + taxRate.toFixed(2) + '%</span>'
-                                        }
+                                        ${isNoTax ?
+                                '<span class="badge bg-secondary">0% (Tidak Ada PPN)</span>' :
+                                '<span class="badge bg-warning">' + taxRate.toFixed(2) + '%</span>'
+                            }
                                     </p>
                                     <p><strong>Harga (Setelah PPN):</strong> 
-                                        ${isNoTax ? 
-                                            'Rp ' + parseFloat(package.price).toLocaleString('id-ID') + ' <small class="text-muted">(Harga sama, tidak ada PPN)</small>' :
-                                            'Rp ' + ((parseFloat(package.price) * (1 + taxRate / 100)).toFixed(0)).toLocaleString('id-ID')
-                                        }
+                                        ${isNoTax ?
+                                'Rp ' + parseFloat(package.price).toLocaleString('id-ID') + ' <small class="text-muted">(Harga sama, tidak ada PPN)</small>' :
+                                'Rp ' + ((parseFloat(package.price) * (1 + taxRate / 100)).toFixed(0)).toLocaleString('id-ID')
+                            }
                                     </p>
                                     <p><strong>PPPoE Profile:</strong> ${package.pppoe_profile || 'default'}</p>
                                 </div>
@@ -729,7 +770,7 @@
                                 </div>
                             </div>
                         `;
-                        
+
                         $('#packageDetails').html(detailsHtml);
                         $('#viewPackageModal').modal('show');
                     } else {
@@ -748,19 +789,19 @@
                 fetch(`/admin/billing/packages/${packageId}`, {
                     method: 'DELETE'
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showAlert('success', 'Paket berhasil dihapus');
-                        setTimeout(() => location.reload(), 1000);
-                    } else {
-                        showAlert('danger', data.message || 'Gagal menghapus paket');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert('danger', 'Terjadi kesalahan');
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlert('success', 'Paket berhasil dihapus');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            showAlert('danger', data.message || 'Gagal menghapus paket');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showAlert('danger', 'Terjadi kesalahan');
+                    });
             }
         }
 
@@ -776,18 +817,18 @@
                     </div>
                 </div>
             `;
-            
+
             // Remove existing toasts
             document.querySelectorAll('.toast').forEach(toast => toast.remove());
-            
+
             // Add new toast
             document.body.insertAdjacentHTML('beforeend', toastHtml);
-            
+
             // Show toast
             const toastElement = document.querySelector('.toast');
             const toast = new bootstrap.Toast(toastElement);
             toast.show();
-            
+
             // Auto remove after 5 seconds
             setTimeout(() => {
                 if (toastElement && toastElement.parentNode) {
@@ -797,118 +838,17 @@
         }
 
         function showAlert(type, message) {
-            showToast(type === 'success' ? 'success' : type === 'danger' ? 'danger' : 'info', 
-                     type === 'success' ? 'Berhasil' : type === 'danger' ? 'Error' : 'Info', 
-                     message);
+            showToast(type === 'success' ? 'success' : type === 'danger' ? 'danger' : 'info',
+                type === 'success' ? 'Berhasil' : type === 'danger' ? 'Error' : 'Info',
+                message);
         }
     </script>
-    
+
     <!-- Currency Helper -->
     <%- include('../../partials/currency-helper') %>
 
-    <!-- Bottom Navigation for Mobile -->
-    <nav class="bottom-nav d-md-none" style="position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, rgba(11,20,55,0.96), rgba(15,28,79,0.96)); border-top: 1px solid rgba(255,255,255,0.08); height: 70px; display: grid; grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr; z-index: 1000; backdrop-filter: blur(10px); padding: 8px 0;">
-        <a class="nav-item" href="/admin/billing/mobile/customers" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-            <i class="bi bi-people" style="font-size: 1.2rem;"></i>
-            <span style="font-size: 0.7rem; font-weight: 500;">Pelanggan</span>
-        </a>
-        <a class="nav-item" href="/admin/billing/mobile/invoices" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-            <i class="bi bi-receipt" style="font-size: 1.2rem;"></i>
-            <span style="font-size: 0.7rem; font-weight: 500;">Tagihan</span>
-        </a>
-        <a class="nav-item home-button" href="/admin/billing/mobile" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; width: 56px; height: 56px; margin: -8px auto 0 auto; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transform: translateY(-4px); border: 2px solid rgba(255,255,255,0.2); position: relative; overflow: hidden;">
-            <i class="bi bi-house" style="font-size: 1.2rem;"></i>
-            <span style="font-size: 0.7rem; font-weight: 500;">Home</span>
-        </a>
-        <a class="nav-item" href="/admin/billing/mobile/payments" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-            <i class="bi bi-credit-card" style="font-size: 1.2rem;"></i>
-            <span style="font-size: 0.7rem; font-weight: 500;">Bayar</span>
-        </a>
-        <a class="nav-item" href="/admin/billing/mobile/map" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-            <i class="bi bi-geo-alt" style="font-size: 1.2rem;"></i>
-            <span style="font-size: 0.7rem; font-weight: 500;">Map</span>
-        </a>
-    </nav>
-
-    <style>
-        /* Bottom Navigation Styles */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(180deg, rgba(11,20,55,0.96), rgba(15,28,79,0.96));
-            border-top: 1px solid rgba(255,255,255,0.08);
-            height: 70px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            padding: 8px 0;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            color: white;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .nav-item:hover {
-            color: #667eea;
-            transform: translateY(-2px);
-        }
-
-        .nav-item.active {
-            color: #667eea;
-        }
-
-        /* Special styling for Home button (center button) */
-        .nav-item.home-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            width: 56px;
-            height: 56px;
-            margin: -8px auto 0 auto;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4), 0 0 0 0 rgba(102, 126, 234, 0.4);
-            transform: translateY(-4px);
-            border: 2px solid rgba(255,255,255,0.2);
-            position: relative;
-            overflow: hidden;
-            animation: float-home 3s ease-in-out infinite;
-        }
-
-        .nav-item.home-button:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6), 0 0 0 0 rgba(102, 126, 234, 0.6);
-        }
-
-        .nav-item.home-button:active {
-            transform: translateY(-2px);
-        }
-
-        @keyframes float-home {
-            0%, 100% { transform: translateY(-4px); }
-            50% { transform: translateY(-8px); }
-        }
-
-        /* Add padding to body for mobile */
-        body {
-            padding-bottom: 80px;
-        }
-
-        @media (min-width: 768px) {
-            .bottom-nav {
-                display: none;
-            }
-            body {
-                padding-bottom: 0;
-            }
-        }
-    </style>
+        <!-- Mobile Bottom Navbar -->
+        <%- include('../../partials/admin-mobile-navbar', { currentPage: 'customers' }) %>
 </body>
-</html> 
+
+</html>
