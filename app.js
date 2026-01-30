@@ -78,79 +78,12 @@ app.use(session({
     name: 'admin_session' // Custom session name
 }));
 
-// Route khusus untuk login mobile (harus sebelum semua route admin)
-app.get('/admin/login/mobile', (req, res) => {
-    try {
-        const { getSettingsWithCache } = require('./config/settingsManager');
-        const appSettings = getSettingsWithCache();
-
-        console.log('🔍 Rendering mobile login page...');
-        res.render('admin/mobile-login', {
-            error: null,
-            success: null,
-            appSettings: appSettings
-        });
-    } catch (error) {
-        console.error('❌ Error rendering mobile login:', error);
-        res.status(500).send('Error loading mobile login page');
-    }
-});
 
 // Test route untuk debugging
 app.get('/admin/test', (req, res) => {
     res.json({ message: 'Admin routes working!', timestamp: new Date().toISOString() });
 });
 
-// POST untuk login mobile
-app.post('/admin/login/mobile', async (req, res) => {
-    try {
-        const { username, password, remember } = req.body;
-        const { getSetting } = require('./config/settingsManager');
-
-        const credentials = {
-            username: getSetting('admin_username', 'admin'),
-            password: getSetting('admin_password', 'admin')
-        };
-
-        if (!username || !password) {
-            return res.render('admin/mobile-login', {
-                error: 'Username dan password harus diisi!',
-                success: null,
-                appSettings: { companyHeader: 'ISP Monitor' }
-            });
-        }
-
-        if (username === credentials.username && password === credentials.password) {
-            req.session.isAdmin = true;
-            req.session.adminUsername = username;
-
-            if (remember) {
-                req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
-            }
-
-            // Redirect to mobile dashboard
-            res.redirect('/admin/billing/mobile');
-        } else {
-            res.render('admin/mobile-login', {
-                error: 'Username atau password salah!',
-                success: null,
-                appSettings: { companyHeader: 'ISP Monitor' }
-            });
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        res.render('admin/mobile-login', {
-            error: 'Terjadi kesalahan saat login!',
-            success: null,
-            appSettings: { companyHeader: 'ISP Monitor' }
-        });
-    }
-});
-
-// Redirect untuk mobile login
-app.get('/admin/mobile', (req, res) => {
-    res.redirect('/admin/login/mobile');
-});
 
 // Gunakan route adminAuth untuk /admin
 app.use('/admin', adminAuthRouter);
