@@ -219,8 +219,8 @@
                                             <i class="bx bx-money" style="font-size: 2rem; color: #ffc107;"></i>
                                         </div>
                                         <div>
-                                            <div class="stat-value"
-                                                style="color: <%= (financialData.summary.netProfit || 0) >= 0 ? '#28a745' : '#dc3545' %>;">
+                                            <div
+                                                class="stat-value <%= (financialData.summary.netProfit || 0) >= 0 ? 'text-success' : 'text-danger' %>">
                                                 Rp <%= Number(financialData.summary.netProfit ||
                                                     0).toLocaleString('id-ID') %>
                                             </div>
@@ -292,7 +292,7 @@
                                                             </td>
                                                             <td>
                                                                 <strong
-                                                                    style="color: <%= transaction.type === 'income' ? '#28a745' : '#dc3545' %>;">
+                                                                    class="<%= transaction.type === 'income' ? 'text-success' : 'text-danger' %>">
                                                                     <%= transaction.type==='income' ? '+' : '-' %>Rp <%=
                                                                             Number(transaction.amount ||
                                                                             0).toLocaleString('id-ID') %>
