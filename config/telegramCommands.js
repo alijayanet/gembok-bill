@@ -153,6 +153,7 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
 
 *🌐 PPPoE:*
 • \`/pppoe list\` - List PPPoE users
+• \`/pppoe offline\` - List user offline
 • \`/pppoe status <username>\` - Cek status
 • \`/pppoe add <user> <pass> <profile>\` - Tambah user
 • \`/pppoe edit <user> <field> <value>\` - Edit user
@@ -248,6 +249,9 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
             ],
             [
                 Markup.button.callback('⚙️ MikroTik', 'menu_mikrotik'),
+                Markup.button.callback('🚫 PPPoE Offline', 'pppoe_offline')
+            ],
+            [
                 Markup.button.callback('🚪 Logout', 'menu_logout')
             ]
         ]);
@@ -338,6 +342,9 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
                 case 'pppoe_list':
                     await this.handlePPPoEList(ctx);
                     break;
+                case 'pppoe_offline':
+                    await this.handlePPPoEOffline(ctx);
+                    break;
                 case 'pppoe_status_info':
                     await ctx.reply('🔍 *Cek Status PPPoE*\n\nKetik perintah:\n`/pppoe status <username>`', { parse_mode: 'Markdown' });
                     break;
@@ -378,9 +385,10 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
         const keyboard = Markup.inlineKeyboard([
             [
                 Markup.button.callback('📋 List User', 'pppoe_list'),
-                Markup.button.callback('🔍 Cek Status', 'pppoe_status_info')
+                Markup.button.callback('🚫 User Offline', 'pppoe_offline')
             ],
             [
+                Markup.button.callback('🔍 Cek Status', 'pppoe_status_info'),
                 Markup.button.callback('➕ Tambah User', 'pppoe_add_info'),
                 Markup.button.callback('❌ Hapus User', 'pppoe_delete_info')
             ],
@@ -1439,7 +1447,7 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
             const unpaidAmount = unpaidInvoices.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
 
             const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                               'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
             const monthName = monthNames[month - 1];
 
             let message = `📊 *Laporan ${monthName} ${year}*\n\n`;
@@ -1468,6 +1476,7 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
             await ctx.reply(
                 '🌐 *Perintah PPPoE:*\n\n' +
                 '• `/pppoe list` - List PPPoE users\n' +
+                '• `/pppoe offline` - List user offline\n' +
                 '• `/pppoe status <username>` - Cek status\n' +
                 '• `/pppoe add <user> <pass> <profile>` - Tambah user\n' +
                 '• `/pppoe edit <user> <field> <value>` - Edit user\n' +
@@ -1486,6 +1495,9 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
             switch (subCommand) {
                 case 'list':
                     await this.handlePPPoEList(ctx);
+                    break;
+                case 'offline':
+                    await this.handlePPPoEOffline(ctx);
                     break;
                 case 'status':
                     if (args.length < 2) {
@@ -1537,7 +1549,7 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
                     await this.handlePPPoERestore(ctx, args[1]);
                     break;
                 default:
-                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: list, status, add, edit, delete, enable, disable, restore');
+                    await ctx.reply('❌ Sub-command tidak dikenal. Gunakan: list, offline, status, add, edit, delete, enable, disable, restore');
             }
         } catch (error) {
             console.error('PPPoE command error:', error);
@@ -1581,6 +1593,52 @@ Bot ini membantu Anda mengelola sistem ISP dengan mudah melalui Telegram.
             await ctx.replyWithMarkdown(message);
         } catch (error) {
             await ctx.reply('❌ Gagal mengambil data PPPoE: ' + error.message);
+        }
+    }
+
+    /**
+     * Handle pppoe offline
+     */
+    async handlePPPoEOffline(ctx) {
+        await ctx.reply('⏳ Memuat PPPoE users offline...');
+
+        try {
+            const users = await mikrotikManager.getOfflinePPPoEUsers();
+
+            if (!users || users.length === 0) {
+                await ctx.reply('ℹ️ Tidak ada PPPoE user yang offline.');
+                return;
+            }
+
+            let message = `🚫 *PPPoE Users Offline* (${users.length} total)\n\n`;
+            let messages = [];
+
+            users.forEach((user, index) => {
+                let line = `${index + 1}. ❌ ${user.name}\n`;
+                line += `   📊 Profile: ${user.profile || 'default'}\n`;
+                if (user.comment) {
+                    line += `   📝 Ket: ${user.comment}\n`;
+                }
+                line += '\n';
+
+                // Check if adding this line would exceed Telegram's limit (4096 chars)
+                if ((message.length + line.length) > 4000) {
+                    messages.push(message);
+                    message = `🚫 *PPPoE Users Offline (Lanjutan)*\n\n` + line;
+                } else {
+                    message += line;
+                }
+            });
+            messages.push(message);
+
+            // Send all messages
+            for (const msg of messages) {
+                await ctx.replyWithMarkdown(msg);
+            }
+
+
+        } catch (error) {
+            await ctx.reply('❌ Gagal mengambil data PPPoE offline: ' + error.message);
         }
     }
 
