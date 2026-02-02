@@ -1,22 +1,73 @@
 /* Admin Mobile Optimizations */
-/* Hide headers on mobile to save space and create cleaner UI */
+/* Responsive design for mobile admin panel */
+
+/* Modal scrolling fix - applies to all devices */
+.modal-dialog.modal-dialog-scrollable {
+    max-height: calc(100vh - 40px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin: 20px auto !important;
+}
+
+.modal-dialog.modal-dialog-scrollable .modal-content {
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: calc(100vh - 40px) !important;
+    overflow: hidden !important;
+}
+
+.modal-dialog.modal-dialog-scrollable form {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+}
+
+.modal-dialog.modal-dialog-scrollable .modal-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    min-height: 0 !important;
+    max-height: calc(100vh - 150px) !important;
+    padding: 20px !important;
+}
+
+.modal-dialog.modal-dialog-scrollable .modal-header {
+    flex-shrink: 0 !important;
+}
+
+.modal-dialog.modal-dialog-scrollable .modal-footer {
+    flex-shrink: 0 !important;
+}
 
 @media (max-width: 768px) {
-    /* Hide main page headers */
+    /* Make headers responsive instead of hiding */
     .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3.border-bottom {
-        display: none !important;
+        padding: 0.5rem 0 !important;
+        margin-bottom: 0.75rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3.border-bottom h1,
+    .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3.border-bottom .h2 {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.5rem !important;
     }
     
     /* Adjust main content padding */
     .main-content {
-        padding-top: 10px !important;
-        padding-bottom: 100px !important; /* Space for mobile navbar */
+        padding-top: 70px !important; /* Space for mobile top navbar */
+        padding-bottom: 90px !important; /* Space for mobile bottom navbar */
+        padding-left: 10px !important;
+        padding-right: 10px !important;
     }
     
     /* Optimize container margins */
     .container-fluid {
-        padding-left: 5px !important;
-        padding-right: 5px !important;
+        padding-left: 8px !important;
+        padding-right: 8px !important;
     }
     
     /* Hide desktop-only buttons and elements */
@@ -32,32 +83,36 @@
     
     /* Optimize card margins */
     .card {
-        margin-bottom: 10px !important;
+        margin-bottom: 12px !important;
+        border-radius: 8px !important;
     }
     
     /* Optimize table responsiveness */
     .table-responsive {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     /* Optimize button sizes */
     .btn {
-        font-size: 0.8rem;
-        padding: 0.375rem 0.75rem;
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
     }
     
     /* Optimize form controls */
     .form-control,
     .form-select {
         font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
     }
-    
-    /* Optimize modal sizes */
-    .modal-dialog {
-        margin: 10px;
-        max-width: calc(100% - 20px);
-    }
-    
+
     /* Optimize sidebar for mobile */
     .sidebar {
         transform: translateX(-100%);
@@ -67,31 +122,84 @@
     .sidebar.show {
         transform: translateX(0);
     }
+    
+    /* Ensure body doesn't scroll when sidebar is open */
+    body.sidebar-open {
+        overflow: hidden;
+    }
 }
 
 /* Additional mobile optimizations for specific admin pages */
 @media (max-width: 768px) {
-    /* Hide breadcrumbs on mobile */
+    /* Optimize breadcrumbs on mobile */
     .breadcrumb {
-        display: none !important;
-    }
-    
-    /* Optimize page titles */
-    .h1, .h2, .h3, .h4, .h5, .h6 {
-        font-size: 1.2rem;
+        font-size: 0.75rem;
+        padding: 0.5rem;
         margin-bottom: 0.5rem;
     }
     
-    /* Optimize spacing */
-    .pt-3, .pb-2, .mb-3 {
-        padding-top: 0.5rem !important;
-        padding-bottom: 0.5rem !important;
+    /* Optimize page titles */
+    h1, .h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    h2, .h2 {
+        font-size: 1.25rem !important;
         margin-bottom: 0.5rem !important;
+    }
+    
+    h3, .h3 {
+        font-size: 1.1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    h4, .h4, h5, .h5, h6, .h6 {
+        font-size: 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Optimize spacing */
+    .pt-3 {
+        padding-top: 0.75rem !important;
+    }
+    
+    .pb-2 {
+        padding-bottom: 0.5rem !important;
+    }
+    
+    .mb-3 {
+        margin-bottom: 0.75rem !important;
     }
     
     /* Optimize border bottom */
     .border-bottom {
         border-bottom: 1px solid #dee2e6 !important;
-        margin-bottom: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    /* Optimize row spacing */
+    .row {
+        margin-left: -5px !important;
+        margin-right: -5px !important;
+    }
+    
+    .row > * {
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+    }
+}
+
+/* Extra small devices optimization */
+@media (max-width: 575.98px) {
+    .main-content {
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+    }
+    
+    .container-fluid {
+        padding-left: 5px !important;
+        padding-right: 5px !important;
     }
 }

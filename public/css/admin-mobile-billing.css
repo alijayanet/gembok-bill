@@ -944,3 +944,35 @@
         color: #e2e8f0;
     }
 }
+
+/* Nav Tabs Styling */
+.nav-tabs {
+    border-bottom: 2px solid rgba(67, 97, 238, 0.2);
+    margin-bottom: 1.5rem;
+}
+
+.nav-tabs .nav-link {
+    color: var(--admin-dark);
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--admin-primary);
+    border-bottom-color: rgba(67, 97, 238, 0.3);
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--admin-primary);
+    background-color: transparent;
+    border-bottom-color: var(--admin-primary);
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link i {
+    margin-right: 0.5rem;
+}

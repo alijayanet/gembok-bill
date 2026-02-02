@@ -23,6 +23,46 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Modal scrolling fix - applies to all devices */
+.modal-dialog.modal-dialog-scrollable {
+    max-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+    margin: 20px auto;
+}
+
+.modal-dialog.modal-dialog-scrollable .modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 40px);
+    overflow: hidden;
+}
+
+.modal-dialog.modal-dialog-scrollable form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+.modal-dialog.modal-dialog-scrollable .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+    max-height: calc(100vh - 150px);
+    padding: 20px;
+}
+
+.modal-dialog.modal-dialog-scrollable .modal-header {
+    flex-shrink: 0;
+}
+
+.modal-dialog.modal-dialog-scrollable .modal-footer {
+    flex-shrink: 0;
+}
+
 /* ========================================
    RESPONSIVE GRID SYSTEM
    ======================================== */
@@ -181,24 +221,39 @@ body {
     .modal-dialog {
         margin: 10px;
         max-width: calc(100% - 20px);
+        max-height: calc(100vh - 20px);
+        display: flex;
+        flex-direction: column;
     }
-    
+
     .modal-content {
         border-radius: 12px;
+        max-height: calc(100vh - 20px);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
-    
+
     .modal-header {
         padding: 15px 20px;
         border-bottom: 1px solid #dee2e6;
+        flex-shrink: 0;
     }
-    
+
     .modal-body {
         padding: 20px;
+        flex: 1;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        min-height: 0 !important;
+        max-height: calc(100vh - 150px) !important;
     }
-    
+
     .modal-footer {
         padding: 15px 20px;
         border-top: 1px solid #dee2e6;
+        flex-shrink: 0;
     }
     
     /* Navigation */
