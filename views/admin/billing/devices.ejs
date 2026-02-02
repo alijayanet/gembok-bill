@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> - Gembok Bill</title>
+    <title>
+        <%= title %> - Gembok Bill
+    </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -13,142 +16,149 @@
         .device-card {
             transition: transform 0.2s;
         }
+
         .device-card:hover {
             transform: translateY(-2px);
         }
+
         .status-online {
             color: #28a745;
         }
+
         .status-offline {
             color: #dc3545;
         }
+
         .device-icon {
             font-size: 2rem;
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <%- include('../../partials/billing-sidebar') %>
-            
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-wifi"></i>
-                        Network Devices
-                    </h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group me-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshDevices()">
-                                <i class="bx bx-refresh"></i> Refresh
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Statistics Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card text-white bg-primary">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h5 class="card-title">Total Devices</h5>
-                                        <h2 id="totalDevices">-</h2>
-                                    </div>
-                                    <div class="align-self-center">
-                                        <i class="bx bx-devices device-icon"></i>
-                                    </div>
-                                </div>
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="bx bx-wifi"></i>
+                            Network Devices
+                        </h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    onclick="refreshDevices()">
+                                    <i class="bx bx-refresh"></i> Refresh
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card text-white bg-success">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h5 class="card-title">Online</h5>
-                                        <h2 id="onlineDevices">-</h2>
-                                    </div>
-                                    <div class="align-self-center">
-                                        <i class="bx bx-check-circle device-icon"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-white bg-danger">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h5 class="card-title">Offline</h5>
-                                        <h2 id="offlineDevices">-</h2>
-                                    </div>
-                                    <div class="align-self-center">
-                                        <i class="bx bx-x-circle device-icon"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-white bg-info">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h5 class="card-title">With Coordinates</h5>
-                                        <h2 id="devicesWithCoords">-</h2>
-                                    </div>
-                                    <div class="align-self-center">
-                                        <i class="bx bx-map device-icon"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Devices Table -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bx bx-list-ul"></i>
-                            Device List
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover" id="devicesTable">
-                                <thead>
-                                    <tr>
-                                        <th>Serial Number</th>
-                                        <th>Model</th>
-                                        <th>Status</th>
-                                        <th>SSID</th>
-                                        <th>Customer</th>
-                                        <th>Coordinates</th>
-                                        <th>Last Inform</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="devicesTableBody">
-                                    <tr>
-                                        <td colspan="8" class="text-center">
-                                            <div class="spinner-border text-primary" role="status">
-                                                <span class="visually-hidden">Loading...</span>
-                                            </div>
-                                            Loading devices...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    <!-- Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card text-white bg-primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 class="card-title">Total Devices</h5>
+                                            <h2 id="totalDevices">-</h2>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-devices device-icon"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-success">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 class="card-title">Online</h5>
+                                            <h2 id="onlineDevices">-</h2>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-check-circle device-icon"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-danger">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 class="card-title">Offline</h5>
+                                            <h2 id="offlineDevices">-</h2>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-x-circle device-icon"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-info">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 class="card-title">With Coordinates</h5>
+                                            <h2 id="devicesWithCoords">-</h2>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bx bx-map device-icon"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </main>
+
+                    <!-- Devices Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bx bx-list-ul"></i>
+                                Device List
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover" id="devicesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Serial Number</th>
+                                            <th>Model</th>
+                                            <th>Status</th>
+                                            <th>SSID</th>
+                                            <th>Customer</th>
+                                            <th>Coordinates</th>
+                                            <th>Last Inform</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="devicesTableBody">
+                                        <tr>
+                                            <td colspan="8" class="text-center">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                Loading devices...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </main>
         </div>
     </div>
 
@@ -157,7 +167,7 @@
         let devicesData = [];
 
         // Load devices on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadDevices();
         });
 
@@ -165,22 +175,22 @@
             try {
                 console.log('🔍 Loading devices...');
                 const response = await fetch('/admin/billing/api/devices');
-                
+
                 console.log('📡 Response status:', response.status);
                 console.log('📡 Response headers:', response.headers.get('content-type'));
-                
+
                 if (response.status === 401 || response.status === 403) {
                     showError('Authentication required. Please login first.');
                     return;
                 }
-                
+
                 if (response.status === 404) {
                     showError('API endpoint not found. Please check server configuration.');
                     return;
                 }
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     devicesData = data.devices || [];
                     updateStatistics();
@@ -212,7 +222,7 @@
 
         function renderDevicesTable() {
             const tbody = document.getElementById('devicesTableBody');
-            
+
             if (devicesData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
@@ -287,5 +297,8 @@
             `;
         }
     </script>
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'mapping' }) %>
 </body>
+
 </html>

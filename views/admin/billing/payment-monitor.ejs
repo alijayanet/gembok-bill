@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,103 +20,105 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
-            
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-monitor"></i> Payment Monitor
-                    </h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshData()">
-                            <i class="fas fa-sync-alt"></i> Refresh
-                        </button>
-                    </div>
-                </div>
 
-                <!-- Payment Gateway Status -->
-                <div class="row mb-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Payment Gateway Status</h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="gatewayStatus" class="row">
-                                    <!-- Gateway status will be loaded here -->
+                <!-- Main content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="bx bx-monitor"></i> Payment Monitor
+                        </h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshData()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Payment Gateway Status -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Payment Gateway Status</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="gatewayStatus" class="row">
+                                        <!-- Gateway status will be loaded here -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Failed Web Payments -->
-                <div class="row mb-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Failed Web Payments</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Invoice</th>
-                                                <th>Customer</th>
-                                                <th>Amount</th>
-                                                <th>Gateway</th>
-                                                <th>Status</th>
-                                                <th>Created</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="failedPaymentsTable">
-                                            <!-- Failed payments will be loaded here -->
-                                        </tbody>
-                                    </table>
+                    <!-- Failed Web Payments -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Failed Web Payments</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Invoice</th>
+                                                    <th>Customer</th>
+                                                    <th>Amount</th>
+                                                    <th>Gateway</th>
+                                                    <th>Status</th>
+                                                    <th>Created</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="failedPaymentsTable">
+                                                <!-- Failed payments will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Recent Payment Transactions -->
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Recent Payment Transactions</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Invoice</th>
-                                                <th>Customer</th>
-                                                <th>Amount</th>
-                                                <th>Method</th>
-                                                <th>Status</th>
-                                                <th>Date</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="transactionsTable">
-                                            <!-- Transactions will be loaded here -->
-                                        </tbody>
-                                    </table>
+                    <!-- Recent Payment Transactions -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Recent Payment Transactions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Invoice</th>
+                                                    <th>Customer</th>
+                                                    <th>Amount</th>
+                                                    <th>Method</th>
+                                                    <th>Status</th>
+                                                    <th>Date</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="transactionsTable">
+                                                <!-- Transactions will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
         </div>
     </div>
 
@@ -146,17 +149,20 @@
                         </div>
                         <div class="mb-3">
                             <label for="manualReference" class="form-label">Reference Number</label>
-                            <input type="text" class="form-control" id="manualReference" placeholder="Payment reference number">
+                            <input type="text" class="form-control" id="manualReference"
+                                placeholder="Payment reference number">
                         </div>
                         <div class="mb-3">
                             <label for="manualNotes" class="form-label">Notes</label>
-                            <textarea class="form-control" id="manualNotes" rows="3" placeholder="Additional notes"></textarea>
+                            <textarea class="form-control" id="manualNotes" rows="3"
+                                placeholder="Additional notes"></textarea>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="processManualPayment()">Process Payment</button>
+                    <button type="button" class="btn btn-primary" onclick="processManualPayment()">Process
+                        Payment</button>
                 </div>
             </div>
         </div>
@@ -164,10 +170,10 @@
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         // Load data when page loads
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadGatewayStatus();
             loadFailedPayments();
             loadTransactions();
@@ -178,7 +184,7 @@
             try {
                 const response = await fetch('/payment/gateway-status');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const statusHtml = data.gateways.map(gateway => `
                         <div class="col-md-4 mb-3">
@@ -197,7 +203,7 @@
                             </div>
                         </div>
                     `).join('');
-                    
+
                     document.getElementById('gatewayStatus').innerHTML = statusHtml;
                 }
             } catch (error) {
@@ -210,7 +216,7 @@
             try {
                 const response = await fetch('/payment/failed-payments');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const tableHtml = data.payments.map(payment => `
                         <tr>
@@ -227,7 +233,7 @@
                             </td>
                         </tr>
                     `).join('');
-                    
+
                     document.getElementById('failedPaymentsTable').innerHTML = tableHtml || '<tr><td colspan="7" class="text-center">No failed payments found</td></tr>';
                 }
             } catch (error) {
@@ -240,7 +246,7 @@
             try {
                 const response = await fetch('/payment/recent-transactions');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const tableHtml = data.transactions.map(transaction => `
                         <tr>
@@ -257,7 +263,7 @@
                             </td>
                         </tr>
                     `).join('');
-                    
+
                     document.getElementById('transactionsTable').innerHTML = tableHtml || '<tr><td colspan="7" class="text-center">No transactions found</td></tr>';
                 }
             } catch (error) {
@@ -270,7 +276,7 @@
             document.getElementById('manualInvoiceId').value = invoiceId;
             document.getElementById('manualReference').value = `MANUAL_${Date.now()}`;
             document.getElementById('manualNotes').value = '';
-            
+
             const modal = new bootstrap.Modal(document.getElementById('manualPaymentModal'));
             modal.show();
         }
@@ -281,7 +287,7 @@
             const paymentMethod = document.getElementById('manualPaymentMethod').value;
             const reference = document.getElementById('manualReference').value;
             const notes = document.getElementById('manualNotes').value;
-            
+
             try {
                 const response = await fetch('/payment/manual-process', {
                     method: 'POST',
@@ -295,17 +301,17 @@
                         notes: notes
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     // Show success message
                     showAlert('Payment processed successfully!', 'success');
-                    
+
                     // Close modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('manualPaymentModal'));
                     modal.hide();
-                    
+
                     // Refresh data
                     loadFailedPayments();
                     loadTransactions();
@@ -339,10 +345,10 @@
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
-            
+
             const container = document.querySelector('.container-fluid');
             container.insertBefore(alertDiv, container.firstChild);
-            
+
             // Auto-remove after 5 seconds
             setTimeout(() => {
                 alertDiv.remove();
@@ -352,5 +358,8 @@
         // Auto-refresh every 30 seconds
         setInterval(refreshData, 30000);
     </script>
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'payments' }) %>
 </body>
+
 </html>

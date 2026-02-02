@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,260 +11,277 @@
     <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Include Billing Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-edit"></i> Edit Invoice
-                    </h1>
-                    <div class="btn-group" role="group">
-                        <a href="/admin/billing/invoices/<%= invoice.id %>" class="btn btn-outline-info">
-                            <i class="bx bx-file-doc"></i> Lihat Detail
-                        </a>
-                        <a href="/admin/billing/invoices" class="btn btn-outline-secondary">
-                            <i class="bx bx-arrow-back"></i> Kembali
-                        </a>
+                <!-- Main content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="bx bx-edit"></i> Edit Invoice
+                        </h1>
+                        <div class="btn-group" role="group">
+                            <a href="/admin/billing/invoices/<%= invoice.id %>" class="btn btn-outline-info">
+                                <i class="bx bx-file-doc"></i> Lihat Detail
+                            </a>
+                            <a href="/admin/billing/invoices" class="btn btn-outline-secondary">
+                                <i class="bx bx-arrow-back"></i> Kembali
+                            </a>
+                        </div>
                     </div>
-                </div>
 
-                <div class="row">
-                    <div class="col-lg-8">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-receipt"></i> Edit Invoice #<%= invoice.invoice_number %>
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <form id="editInvoiceForm">
-                                    <input type="hidden" name="invoice_id" value="<%= invoice.id %>">
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="editCustomer" class="form-label">Pelanggan *</label>
-                                                <select class="form-select" id="editCustomer" name="customer_id" required>
-                                                    <option value="">Pilih Pelanggan</option>
-                                                    <% if (customers && customers.length > 0) { %>
-                                                        <% customers.forEach(function(customer) { %>
-                                                            <option value="<%= customer.id %>" 
-                                                                    <%= customer.id === invoice.customer_id ? 'selected' : '' %>>
-                                                                <%= customer.username %> - <%= customer.name %>
-                                                            </option>
-                                                        <% }); %>
-                                                    <% } %>
-                                                </select>
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bx bx-receipt"></i> Edit Invoice #<%= invoice.invoice_number %>
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="editInvoiceForm">
+                                        <input type="hidden" name="invoice_id" value="<%= invoice.id %>">
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="editCustomer" class="form-label">Pelanggan *</label>
+                                                    <select class="form-select" id="editCustomer" name="customer_id"
+                                                        required>
+                                                        <option value="">Pilih Pelanggan</option>
+                                                        <% if (customers && customers.length> 0) { %>
+                                                            <% customers.forEach(function(customer) { %>
+                                                                <option value="<%= customer.id %>"
+                                                                    <%=customer.id===invoice.customer_id ? 'selected'
+                                                                    : '' %>>
+                                                                    <%= customer.username %> - <%= customer.name %>
+                                                                </option>
+                                                                <% }); %>
+                                                                    <% } %>
+                                                    </select>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="editPackage" class="form-label">Paket *</label>
-                                                <select class="form-select" id="editPackage" name="package_id" required>
-                                                    <option value="">Pilih Paket</option>
-                                                    <% if (packages && packages.length > 0) { %>
-                                                        <% packages.forEach(function(package) { %>
-                                                            <option value="<%= package.id %>" 
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="editPackage" class="form-label">Paket *</label>
+                                                    <select class="form-select" id="editPackage" name="package_id"
+                                                        required>
+                                                        <option value="">Pilih Paket</option>
+                                                        <% if (packages && packages.length> 0) { %>
+                                                            <% packages.forEach(function(package) { %>
+                                                                <option value="<%= package.id %>"
                                                                     data-price="<%= package.price %>"
-                                                                    <%= package.id === invoice.package_id ? 'selected' : '' %>>
-                                                                <%= package.name %> - <%= package.speed %> - Rp <%= parseFloat(package.price).toLocaleString('id-ID') %>
-                                                            </option>
-                                                        <% }); %>
-                                                    <% } %>
-                                                </select>
+                                                                    <%=package.id===invoice.package_id ? 'selected' : ''
+                                                                    %>>
+                                                                    <%= package.name %> - <%= package.speed %> - Rp <%=
+                                                                                parseFloat(package.price).toLocaleString('id-ID')
+                                                                                %>
+                                                                </option>
+                                                                <% }); %>
+                                                                    <% } %>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="editAmount" class="form-label">Jumlah (Rp) *</label>
-                                                <input type="number" class="form-control" id="editAmount" name="amount" 
-                                                       value="<%= invoice.amount %>" min="0" step="1000" required>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="editAmount" class="form-label">Jumlah (Rp) *</label>
+                                                    <input type="number" class="form-control" id="editAmount"
+                                                        name="amount" value="<%= invoice.amount %>" min="0" step="1000"
+                                                        required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="editDueDate" class="form-label">Jatuh Tempo *</label>
+                                                    <input type="date" class="form-control" id="editDueDate"
+                                                        name="due_date" value="<%= invoice.due_date %>" required>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label for="editDueDate" class="form-label">Jatuh Tempo *</label>
-                                                <input type="date" class="form-control" id="editDueDate" name="due_date" 
-                                                       value="<%= invoice.due_date %>" required>
-                                            </div>
+
+                                        <div class="mb-3">
+                                            <label for="editNotes" class="form-label">Catatan</label>
+                                            <textarea class="form-control" id="editNotes" name="notes" rows="3"
+                                                placeholder="Catatan tambahan (opsional)"><%= invoice.notes || '' %></textarea>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="editNotes" class="form-label">Catatan</label>
-                                        <textarea class="form-control" id="editNotes" name="notes" rows="3" 
-                                                  placeholder="Catatan tambahan (opsional)"><%= invoice.notes || '' %></textarea>
-                                    </div>
-                                    
-                                    <div class="d-flex justify-content-between">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="bx bx-save"></i> Simpan Perubahan
-                                        </button>
-                                        <button type="button" class="btn btn-danger" onclick="deleteInvoice()">
-                                            <i class="bx bx-trash"></i> Hapus Invoice
-                                        </button>
-                                    </div>
-                                </form>
+
+                                        <div class="d-flex justify-content-between">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bx bx-save"></i> Simpan Perubahan
+                                            </button>
+                                            <button type="button" class="btn btn-danger" onclick="deleteInvoice()">
+                                                <i class="bx bx-trash"></i> Hapus Invoice
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Informasi Invoice</h5>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <td class="fw-bold">No. Invoice:</td>
+                                            <td>
+                                                <%= invoice.invoice_number %>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Status:</td>
+                                            <td>
+                                                <% if (invoice.status==='paid' ) { %>
+                                                    <span class="badge bg-success">Lunas</span>
+                                                    <% } else if (invoice.status==='unpaid' ) { %>
+                                                        <% if (new Date(invoice.due_date) < new Date()) { %>
+                                                            <span class="badge bg-danger">Terlambat</span>
+                                                            <% } else { %>
+                                                                <span class="badge bg-warning">Belum Lunas</span>
+                                                                <% } %>
+                                                                    <% } %>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Tanggal Dibuat:</td>
+                                            <td>
+                                                <%= new Date(invoice.created_at).toLocaleDateString('id-ID') %>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Pelanggan:</td>
+                                            <td>
+                                                <%= invoice.customer_name %>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Paket:</td>
+                                            <td>
+                                                <%= invoice.package_name %>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="col-lg-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Informasi Invoice</h5>
-                            </div>
-                            <div class="card-body">
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <td class="fw-bold">No. Invoice:</td>
-                                        <td><%= invoice.invoice_number %></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Status:</td>
-                                        <td>
-                                            <% if (invoice.status === 'paid') { %>
-                                                <span class="badge bg-success">Lunas</span>
-                                            <% } else if (invoice.status === 'unpaid') { %>
-                                                <% if (new Date(invoice.due_date) < new Date()) { %>
-                                                    <span class="badge bg-danger">Terlambat</span>
-                                                <% } else { %>
-                                                    <span class="badge bg-warning">Belum Lunas</span>
-                                                <% } %>
-                                            <% } %>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Tanggal Dibuat:</td>
-                                        <td><%= new Date(invoice.created_at).toLocaleDateString('id-ID') %></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Pelanggan:</td>
-                                        <td><%= invoice.customer_name %></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Paket:</td>
-                                        <td><%= invoice.package_name %></td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
+                </main>
         </div>
     </div>
 
 
 
-<script>
+    <script>
 
 
-// Auto-fill amount when package is selected
-document.getElementById('editPackage').addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
-    const price = selectedOption.getAttribute('data-price');
-    if (price) {
-        document.getElementById('editAmount').value = price;
-    }
-});
-
-// Edit Invoice Form
-document.getElementById('editInvoiceForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const data = Object.fromEntries(formData);
-    
-    // Validate required fields
-    if (!data.customer_id || !data.package_id || !data.amount || !data.due_date) {
-        showAlert('danger', 'Mohon isi semua field yang wajib diisi');
-        return;
-    }
-    
-    // Disable submit button to prevent double submission
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Menyimpan...';
-    
-    fetch(`/admin/billing/invoices/<%= invoice.id %>`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            // Show success notification
-            showAlert('success', '✅ Invoice berhasil diperbarui!');
-            
-            // Redirect to invoice detail page after a short delay
-            setTimeout(() => {
-                window.location.href = `/admin/billing/invoices/<%= invoice.id %>`;
-            }, 1500);
-        } else {
-            showAlert('danger', '❌ ' + result.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('danger', '❌ Terjadi kesalahan saat memperbarui invoice');
-    })
-    .finally(() => {
-        // Re-enable submit button
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-    });
-});
-
-// Delete Invoice Function
-function deleteInvoice() {
-    if (confirm('Apakah Anda yakin ingin menghapus invoice ini? Tindakan ini tidak dapat dibatalkan.')) {
-        fetch(`/admin/billing/invoices/<%= invoice.id %>`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
+        // Auto-fill amount when package is selected
+        document.getElementById('editPackage').addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const price = selectedOption.getAttribute('data-price');
+            if (price) {
+                document.getElementById('editAmount').value = price;
             }
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                showAlert('success', '✅ Invoice berhasil dihapus!');
-                setTimeout(() => {
-                    window.location.href = '/admin/billing/invoices';
-                }, 1500);
-            } else {
-                showAlert('danger', '❌ ' + result.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert('danger', '❌ Terjadi kesalahan saat menghapus invoice');
         });
-    }
-}
 
-// Format amount input
-document.getElementById('editAmount').addEventListener('input', function(e) {
-    this.value = this.value.replace(/[^0-9]/g, '');
-});
+        // Edit Invoice Form
+        document.getElementById('editInvoiceForm').addEventListener('submit', function (e) {
+            e.preventDefault();
 
-// Alert function
-function showAlert(type, message) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    alertDiv.style.cssText = `
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            // Validate required fields
+            if (!data.customer_id || !data.package_id || !data.amount || !data.due_date) {
+                showAlert('danger', 'Mohon isi semua field yang wajib diisi');
+                return;
+            }
+
+            // Disable submit button to prevent double submission
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Menyimpan...';
+
+            fetch(`/admin/billing/invoices/<%= invoice.id %>`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        // Show success notification
+                        showAlert('success', '✅ Invoice berhasil diperbarui!');
+
+                        // Redirect to invoice detail page after a short delay
+                        setTimeout(() => {
+                            window.location.href = `/admin/billing/invoices/<%= invoice.id %>`;
+                        }, 1500);
+                    } else {
+                        showAlert('danger', '❌ ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', '❌ Terjadi kesalahan saat memperbarui invoice');
+                })
+                .finally(() => {
+                    // Re-enable submit button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                });
+        });
+
+        // Delete Invoice Function
+        function deleteInvoice() {
+            if (confirm('Apakah Anda yakin ingin menghapus invoice ini? Tindakan ini tidak dapat dibatalkan.')) {
+                fetch(`/admin/billing/invoices/<%= invoice.id %>`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            showAlert('success', '✅ Invoice berhasil dihapus!');
+                            setTimeout(() => {
+                                window.location.href = '/admin/billing/invoices';
+                            }, 1500);
+                        } else {
+                            showAlert('danger', '❌ ' + result.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showAlert('danger', '❌ Terjadi kesalahan saat menghapus invoice');
+                    });
+            }
+        }
+
+        // Format amount input
+        document.getElementById('editAmount').addEventListener('input', function (e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+
+        // Alert function
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = `
         top: 20px;
         right: 20px;
         z-index: 9999;
@@ -272,7 +290,7 @@ function showAlert(type, message) {
         border: none;
         border-radius: 8px;
     `;
-         alertDiv.innerHTML = `
+            alertDiv.innerHTML = `
          <div class="d-flex align-items-center">
              <div class="flex-grow-1">
                  ${message}
@@ -280,19 +298,22 @@ function showAlert(type, message) {
              <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
          </div>
      `;
-     
-     document.body.appendChild(alertDiv);
-     
-     // Auto remove after 4 seconds
-     setTimeout(() => {
-         if (alertDiv.parentNode) {
-             alertDiv.remove();
-         }
-     }, 4000);
- }
- </script>
- 
- <!-- Bootstrap Bundle with Popper -->
- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
- </body>
- </html>
+
+            document.body.appendChild(alertDiv);
+
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 4000);
+        }
+    </script>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'invoices' }) %>
+</body>
+
+</html>

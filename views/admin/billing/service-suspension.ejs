@@ -293,81 +293,83 @@
         </div>
     </div>
 
-    <!-- Toast Container -->
-    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'settings' }) %>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <!-- Toast Container -->
+        <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
-    <script>
-        // Toast function
-        function showToast(type, title, message) {
-            const toastId = 'toast-' + Date.now();
-            const iconMap = {
-                success: 'bx bx-check-circle',
-                error: 'bx bx-x-circle',
-                warning: 'bx bx-exclamation-triangle',
-                info: 'bx bx-info-circle'
-            };
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script>
+            // Fungsi toast notification (Ensure it exists)
+            function showToast(type, title, message, duration = 5000) {
+                const toastId = 'toast-' + Date.now();
+                const bgClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-primary';
+                const iconClass = type === 'success' ? 'bi-check-circle' : type === 'error' ? 'bi-x-circle' : 'bi-info-circle';
 
-            const toastHtml = `
-                <div id="${toastId}" class="toast ${type}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
-                    <div class="toast-header">
-                        <i class="${iconMap[type]} me-2"></i>
-                        <strong class="me-auto">${title}</strong>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                const toastHtml = `
+                    <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="bi ${iconClass} me-2"></i>
+                                <strong>${title}</strong><br>
+                                <small>${message}</small>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
                     </div>
-                    <div class="toast-body">${message}</div>
-                </div>
-            `;
+                `;
 
-            $('#toast-container').append(toastHtml);
-            new bootstrap.Toast(document.getElementById(toastId)).show();
+                $('#toast-container').append(toastHtml);
+                const toastElement = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastElement, { delay: duration });
+                toast.show();
 
-            setTimeout(() => {
-                $(`#${toastId}`).remove();
-            }, 6000);
-        }
+                toastElement.addEventListener('hidden.bs.toast', () => {
+                    toastElement.remove();
+                });
+            }
 
-        // Load statistics
-        function loadStats() {
-            $.get('/admin/billing/api/stats', function (response) {
-                const stats = response.data || response;
-                $('#activeCustomers').text(stats.active_customers || 0);
-            }).fail(() => {
-                $('#activeCustomers').text('Error');
-            });
+            // Load statistics
+            function loadStats() {
+                $.get('/admin/billing/api/stats', function (response) {
+                    const stats = response.data || response;
+                    $('#activeCustomers').text(stats.active_customers || 0);
+                }).fail(() => {
+                    $('#activeCustomers').text('Error');
+                });
 
-            $.get('/admin/billing/api/customers', function (response) {
-                const customers = response.customers || response;
-                const suspended = customers.filter(c => c.status === 'suspended').length;
-                $('#suspendedCustomers').text(suspended);
-            }).fail(() => {
-                $('#suspendedCustomers').text('Error');
-            });
+                $.get('/admin/billing/api/customers', function (response) {
+                    const customers = response.customers || response;
+                    const suspended = customers.filter(c => c.status === 'suspended').length;
+                    $('#suspendedCustomers').text(suspended);
+                }).fail(() => {
+                    $('#suspendedCustomers').text('Error');
+                });
 
-            $.get('/admin/billing/api/overdue', function (overdue) {
-                $('#overdueInvoices').text(overdue.length);
-            }).fail(() => {
-                $('#overdueInvoices').text('Error');
-            });
-        }
+                $.get('/admin/billing/api/overdue', function (overdue) {
+                    $('#overdueInvoices').text(overdue.length);
+                }).fail(() => {
+                    $('#overdueInvoices').text('Error');
+                });
+            }
 
-        // Load suspended customers table
-        function loadSuspendedCustomers() {
-            $.get('/admin/billing/api/customers', function (response) {
-                const customers = response.customers || response;
-                const suspended = customers.filter(c => c.status === 'suspended');
-                const tbody = $('#suspendedTable tbody');
-                tbody.empty();
+            // Load suspended customers table
+            function loadSuspendedCustomers() {
+                $.get('/admin/billing/api/customers', function (response) {
+                    const customers = response.customers || response;
+                    const suspended = customers.filter(c => c.status === 'suspended');
+                    const tbody = $('#suspendedTable tbody');
+                    tbody.empty();
 
-                if (suspended.length === 0) {
-                    tbody.append('<tr><td colspan="6" class="text-center text-muted">Tidak ada pelanggan yang suspended</td></tr>');
-                    return;
-                }
+                    if (suspended.length === 0) {
+                        tbody.append('<tr><td colspan="6" class="text-center text-muted">Tidak ada pelanggan yang suspended</td></tr>');
+                        return;
+                    }
 
-                suspended.forEach(customer => {
-                    const row = `
+                    suspended.forEach(customer => {
+                        const row = `
                         <tr>
                             <td>${customer.username}</td>
                             <td>${customer.name}</td>
@@ -381,388 +383,386 @@
                             </td>
                         </tr>
                     `;
-                    tbody.append(row);
+                        tbody.append(row);
+                    });
+                }).fail(() => {
+                    $('#suspendedTable tbody').html('<tr><td colspan="6" class="text-center text-danger">Error loading data</td></tr>');
                 });
-            }).fail(() => {
-                $('#suspendedTable tbody').html('<tr><td colspan="6" class="text-center text-danger">Error loading data</td></tr>');
-            });
-        }
-
-        // Check overdue customers
-        $('#checkOverdueBtn').click(function () {
-            const btn = $(this);
-            btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-2"></i>Checking...');
-
-            $.post('/admin/billing/service-suspension/check-overdue', function (response) {
-                if (response.success) {
-                    const message = `Checked: ${response.checked || 0}, Suspended: ${response.suspended || 0}, Errors: ${response.errors || 0}`;
-                    showToast('success', 'Check Overdue Complete', message);
-                    loadStats();
-                    loadSuspendedCustomers();
-                } else {
-                    showToast('error', 'Error', response.message || 'Unknown error occurred');
-                }
-            }).fail(function (xhr) {
-                const response = xhr.responseJSON || {};
-                showToast('error', 'Error', response.message || 'Request failed');
-            }).always(function () {
-                btn.prop('disabled', false).html('<i class="bx bx-search me-2"></i>Cek & Suspend Overdue');
-            });
-        });
-
-        // Check paid customers
-        $('#checkPaidBtn').click(function () {
-            const btn = $(this);
-            btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-2"></i>Checking...');
-
-            $.post('/admin/billing/service-suspension/check-paid', function (response) {
-                if (response.success) {
-                    const message = `Checked: ${response.checked || 0}, Restored: ${response.restored || 0}, Errors: ${response.errors || 0}`;
-                    showToast('success', 'Check Paid Complete', message);
-                    loadStats();
-                    loadSuspendedCustomers();
-                } else {
-                    showToast('error', 'Error', response.message || 'Unknown error occurred');
-                }
-            }).fail(function (xhr) {
-                const response = xhr.responseJSON || {};
-                showToast('error', 'Error', response.message || 'Request failed');
-            }).always(function () {
-                btn.prop('disabled', false).html('<i class="bx bx-check me-2"></i>Cek & Restore Paid');
-            });
-        });
-
-        // Refresh stats
-        $('#refreshStatsBtn').click(function () {
-            const btn = $(this);
-            btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-2"></i>Loading...');
-
-            loadStats();
-            loadGracePeriod(); // Also reload grace period
-
-            setTimeout(() => {
-                btn.prop('disabled', false).html('<i class="bx bx-refresh me-2"></i>Refresh Stats');
-                showToast('success', 'Refreshed', 'Statistics updated');
-            }, 1000);
-        });
-
-        // Refresh table
-        $('#refreshTableBtn').click(function () {
-            loadSuspendedCustomers();
-            showToast('info', 'Refreshed', 'Table updated');
-        });
-
-        // Restore customer
-        function restoreCustomer(username) {
-            if (!username || username.trim() === '') {
-                showToast('error', 'Error', 'Username tidak valid');
-                return;
             }
 
-            if (!confirm(`Yakin ingin restore layanan untuk pelanggan ${username}?`)) return;
+            // Check overdue customers
+            $('#checkOverdueBtn').click(function () {
+                const btn = $(this);
+                btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-2"></i>Checking...');
 
-            const reason = prompt('Masukkan alasan buka isolir (opsional):', 'Manual restore');
-            if (reason === null) return; // user canceled prompt
-
-            // Show loading state
-            showToast('info', 'Processing', `Sedang mengaktifkan layanan ${username}...`);
-
-            $.post(`/admin/billing/service-suspension/restore/${username}`, { reason }, function (response) {
-                if (response.success) {
-                    const r = (response.reason || reason || '').trim();
-                    const msg = r ? `Layanan ${username} diaktifkan. Alasan: ${r}` : `Layanan ${username} berhasil diaktifkan`;
-                    showToast('success', 'Service Restored', msg);
-                    loadStats();
-                    loadSuspendedCustomers();
-                } else {
-                    showToast('error', 'Error', response.message || 'Gagal mengaktifkan layanan');
-                }
-            }).fail(function (xhr) {
-                const response = xhr.responseJSON || {};
-                showToast('error', 'Error', response.message || 'Request failed');
+                $.post('/admin/billing/service-suspension/check-overdue', function (response) {
+                    if (response.success) {
+                        const message = `Checked: ${response.checked || 0}, Suspended: ${response.suspended || 0}, Errors: ${response.errors || 0}`;
+                        showToast('success', 'Check Overdue Complete', message);
+                        loadStats();
+                        loadSuspendedCustomers();
+                    } else {
+                        showToast('error', 'Error', response.message || 'Unknown error occurred');
+                    }
+                }).fail(function (xhr) {
+                    const response = xhr.responseJSON || {};
+                    showToast('error', 'Error', response.message || 'Request failed');
+                }).always(function () {
+                    btn.prop('disabled', false).html('<i class="bx bx-search me-2"></i>Cek & Suspend Overdue');
+                });
             });
-        }
 
-        // Initialize
-        $(document).ready(function () {
-            // Load isolir profiles and current setting
-            loadIsolirProfiles();
-            loadCurrentIsolirProfile();
-            loadGracePeriod();
-            loadStats();
-            loadSuspendedCustomers();
-        });
+            // Check paid customers
+            $('#checkPaidBtn').click(function () {
+                const btn = $(this);
+                btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-2"></i>Checking...');
 
-        // Load Mikrotik PPPoE profiles with active profile highlighting from settings.json
-        function loadIsolirProfiles(selected) {
-            const sel = document.getElementById('isolirProfileSelect');
-            if (!sel) return;
-            sel.innerHTML = '<option>Loading...</option>';
+                $.post('/admin/billing/service-suspension/check-paid', function (response) {
+                    if (response.success) {
+                        const message = `Checked: ${response.checked || 0}, Restored: ${response.restored || 0}, Errors: ${response.errors || 0}`;
+                        showToast('success', 'Check Paid Complete', message);
+                        loadStats();
+                        loadSuspendedCustomers();
+                    } else {
+                        showToast('error', 'Error', response.message || 'Unknown error occurred');
+                    }
+                }).fail(function (xhr) {
+                    const response = xhr.responseJSON || {};
+                    showToast('error', 'Error', response.message || 'Request failed');
+                }).always(function () {
+                    btn.prop('disabled', false).html('<i class="bx bx-check me-2"></i>Cek & Restore Paid');
+                });
+            });
 
-            // Pertama, ambil profil aktif dari settings.json
-            fetch('/admin/billing/service-suspension/isolir-profile')
-                .then(r => r.json())
-                .then(settingsData => {
-                    const currentIsolirProfile = (settingsData && settingsData.success) ? settingsData.isolir_profile : 'isolir';
+            // Refresh stats
+            $('#refreshStatsBtn').click(function () {
+                const btn = $(this);
+                btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-2"></i>Loading...');
 
-                    // Kemudian load profil dari Mikrotik API
-                    return fetch('/admin/mikrotik/profiles/api')
-                        .then(r => r.json())
-                        .then(data => {
-                            const names = Array.from(new Set(((data && data.profiles) || []).map(p => p.name).filter(Boolean)));
+                loadStats();
+                loadGracePeriod(); // Also reload grace period
 
-                            // Pastikan profil dari settings.json ada di daftar
-                            if (currentIsolirProfile && !names.includes(currentIsolirProfile)) {
-                                names.unshift(currentIsolirProfile);
-                            }
+                setTimeout(() => {
+                    btn.prop('disabled', false).html('<i class="bx bx-refresh me-2"></i>Refresh Stats');
+                    showToast('success', 'Refreshed', 'Statistics updated');
+                }, 1000);
+            });
 
-                            sel.innerHTML = '';
-                            names.forEach(n => {
+            // Refresh table
+            $('#refreshTableBtn').click(function () {
+                loadSuspendedCustomers();
+                showToast('info', 'Refreshed', 'Table updated');
+            });
+
+            // Restore customer
+            function restoreCustomer(username) {
+                if (!username || username.trim() === '') {
+                    showToast('error', 'Error', 'Username tidak valid');
+                    return;
+                }
+
+                if (!confirm(`Yakin ingin restore layanan untuk pelanggan ${username}?`)) return;
+
+                const reason = prompt('Masukkan alasan buka isolir (opsional):', 'Manual restore');
+                if (reason === null) return; // user canceled prompt
+
+                // Show loading state
+                showToast('info', 'Processing', `Sedang mengaktifkan layanan ${username}...`);
+
+                $.post(`/admin/billing/service-suspension/restore/${username}`, { reason }, function (response) {
+                    if (response.success) {
+                        const r = (response.reason || reason || '').trim();
+                        const msg = r ? `Layanan ${username} diaktifkan. Alasan: ${r}` : `Layanan ${username} berhasil diaktifkan`;
+                        showToast('success', 'Service Restored', msg);
+                        loadStats();
+                        loadSuspendedCustomers();
+                    } else {
+                        showToast('error', 'Error', response.message || 'Gagal mengaktifkan layanan');
+                    }
+                }).fail(function (xhr) {
+                    const response = xhr.responseJSON || {};
+                    showToast('error', 'Error', response.message || 'Request failed');
+                });
+            }
+
+            // Initialize
+            $(document).ready(function () {
+                // Load isolir profiles and current setting
+                loadIsolirProfiles();
+                loadCurrentIsolirProfile();
+                loadGracePeriod();
+                loadStats();
+                loadSuspendedCustomers();
+            });
+
+            // Load Mikrotik PPPoE profiles with active profile highlighting from settings.json
+            function loadIsolirProfiles(selected) {
+                const sel = document.getElementById('isolirProfileSelect');
+                if (!sel) return;
+                sel.innerHTML = '<option>Loading...</option>';
+
+                // Pertama, ambil profil aktif dari settings.json
+                fetch('/admin/billing/service-suspension/isolir-profile')
+                    .then(r => r.json())
+                    .then(settingsData => {
+                        const currentIsolirProfile = (settingsData && settingsData.success) ? settingsData.isolir_profile : 'isolir';
+
+                        // Kemudian load profil dari Mikrotik API
+                        return fetch('/admin/mikrotik/profiles/api')
+                            .then(r => r.json())
+                            .then(data => {
+                                const names = Array.from(new Set(((data && data.profiles) || []).map(p => p.name).filter(Boolean)));
+
+                                // Pastikan profil dari settings.json ada di daftar
+                                if (currentIsolirProfile && !names.includes(currentIsolirProfile)) {
+                                    names.unshift(currentIsolirProfile);
+                                }
+
+                                sel.innerHTML = '';
+                                names.forEach(n => {
+                                    const opt = document.createElement('option');
+                                    opt.value = n;
+
+                                    // Tandai profil yang sedang aktif dari settings.json
+                                    if (n === currentIsolirProfile) {
+                                        opt.textContent = n + ' (Aktif)';
+                                        opt.selected = true;
+                                    } else {
+                                        opt.textContent = n;
+                                    }
+
+                                    sel.appendChild(opt);
+                                });
+
+                                // Set selected value jika ada parameter, tapi jangan override profil aktif
+                                if (selected && selected !== currentIsolirProfile) {
+                                    sel.value = selected;
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Load isolir profiles error:', err);
+                                // Fallback: buat dropdown dengan profil dari settings.json
+                                sel.innerHTML = '';
                                 const opt = document.createElement('option');
-                                opt.value = n;
-
-                                // Tandai profil yang sedang aktif dari settings.json
-                                if (n === currentIsolirProfile) {
-                                    opt.textContent = n + ' (Aktif)';
-                                    opt.selected = true;
-                                } else {
+                                opt.value = currentIsolirProfile;
+                                opt.textContent = currentIsolirProfile + ' (Aktif)';
+                                opt.selected = true;
+                                sel.appendChild(opt);
+                                showToast('warning', 'Fallback', 'Menggunakan profil dari pengaturan karena gagal load dari Mikrotik');
+                            });
+                    })
+                    .catch(err => {
+                        console.error('Error loading current isolir profile:', err);
+                        // Jika gagal load settings, tetap load dari Mikrotik
+                        fetch('/admin/mikrotik/profiles/api')
+                            .then(r => r.json())
+                            .then(data => {
+                                const names = Array.from(new Set(((data && data.profiles) || []).map(p => p.name).filter(Boolean)));
+                                if (!names.includes('isolir')) names.unshift('isolir');
+                                sel.innerHTML = '';
+                                names.forEach(n => {
+                                    const opt = document.createElement('option');
+                                    opt.value = n;
                                     opt.textContent = n;
-                                }
-
-                                sel.appendChild(opt);
+                                    sel.appendChild(opt);
+                                });
+                                if (selected) sel.value = selected;
+                            })
+                            .catch(err => {
+                                console.error('Load isolir profiles error:', err);
+                                sel.innerHTML = '<option value="isolir">isolir</option>';
+                                showToast('error', 'Gagal', 'Gagal memuat profile Mikrotik');
                             });
-
-                            // Set selected value jika ada parameter, tapi jangan override profil aktif
-                            if (selected && selected !== currentIsolirProfile) {
-                                sel.value = selected;
-                            }
-                        })
-                        .catch(err => {
-                            console.error('Load isolir profiles error:', err);
-                            // Fallback: buat dropdown dengan profil dari settings.json
-                            sel.innerHTML = '';
-                            const opt = document.createElement('option');
-                            opt.value = currentIsolirProfile;
-                            opt.textContent = currentIsolirProfile + ' (Aktif)';
-                            opt.selected = true;
-                            sel.appendChild(opt);
-                            showToast('warning', 'Fallback', 'Menggunakan profil dari pengaturan karena gagal load dari Mikrotik');
-                        });
-                })
-                .catch(err => {
-                    console.error('Error loading current isolir profile:', err);
-                    // Jika gagal load settings, tetap load dari Mikrotik
-                    fetch('/admin/mikrotik/profiles/api')
-                        .then(r => r.json())
-                        .then(data => {
-                            const names = Array.from(new Set(((data && data.profiles) || []).map(p => p.name).filter(Boolean)));
-                            if (!names.includes('isolir')) names.unshift('isolir');
-                            sel.innerHTML = '';
-                            names.forEach(n => {
-                                const opt = document.createElement('option');
-                                opt.value = n;
-                                opt.textContent = n;
-                                sel.appendChild(opt);
-                            });
-                            if (selected) sel.value = selected;
-                        })
-                        .catch(err => {
-                            console.error('Load isolir profiles error:', err);
-                            sel.innerHTML = '<option value="isolir">isolir</option>';
-                            showToast('error', 'Gagal', 'Gagal memuat profile Mikrotik');
-                        });
-                });
-        }
-
-        // Get current isolir profile setting
-        function loadCurrentIsolirProfile() {
-            fetch('/admin/billing/service-suspension/isolir-profile')
-                .then(r => r.json())
-                .then(data => {
-                    if (data && data.success) {
-                        const current = data.isolir_profile || 'isolir';
-                        // ensure options exist then update tampilan
-                        const sel = document.getElementById('isolirProfileSelect');
-                        if (sel && sel.options.length > 0) {
-                            // Update tampilan profil aktif tanpa mengubah struktur dropdown
-                            for (let i = 0; i < sel.options.length; i++) {
-                                const option = sel.options[i];
-                                if (option.value === current) {
-                                    option.textContent = current + ' (Aktif)';
-                                    // Pastikan tetap selected
-                                    sel.value = current;
-                                } else if (option.textContent.includes(' (Aktif)')) {
-                                    option.textContent = option.value;
-                                }
-                            }
-                        }
-                        else {
-                            loadIsolirProfiles(current);
-                        }
-                        // tandai siap agar change berikutnya dianggap aksi user
-                        isolirSelectReady = true;
-                    }
-                })
-                .catch(() => { });
-        }
-
-        // Save isolir profile
-        $('#saveIsolirProfileBtn').click(function () {
-            const sel = document.getElementById('isolirProfileSelect');
-            if (!sel) return;
-            const value = sel.value || 'isolir';
-            const btn = $(this);
-            btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-1"></i>Menyimpan...');
-            fetch('/admin/billing/service-suspension/isolir-profile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                body: new URLSearchParams({ isolir_profile: value }).toString()
-            }).then(r => r.json()).then(data => {
-                if (data && data.success) {
-                    showToast('success', 'Tersimpan', `Isolir profile diset ke: ${value}`);
-                    // Update tampilan setelah save berhasil
-                    setTimeout(() => {
-                        const sel = document.getElementById('isolirProfileSelect');
-                        if (sel) {
-                            for (let i = 0; i < sel.options.length; i++) {
-                                const option = sel.options[i];
-                                if (option.value === value) {
-                                    option.textContent = value + ' (Aktif)';
-                                    option.selected = true;
-                                } else if (option.textContent.includes(' (Aktif)')) {
-                                    option.textContent = option.value;
-                                }
-                            }
-                        }
-                    }, 100);
-                } else {
-                    showToast('error', 'Gagal', data.message || 'Gagal menyimpan');
-                }
-            }).catch(err => {
-                showToast('error', 'Gagal', 'Gagal menyimpan');
-            }).finally(() => {
-                btn.prop('disabled', false).html('<i class="bx bx-save me-1"></i>Simpan');
-            });
-        });
-
-        // Autosave saat pilihan profil berubah
-        let isolirSelectReady = false;
-        $(document).on('change', '#isolirProfileSelect', function () {
-            if (!isolirSelectReady) return; // hindari trigger saat inisialisasi
-            const value = this.value || 'isolir';
-            fetch('/admin/billing/service-suspension/isolir-profile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                body: new URLSearchParams({ isolir_profile: value }).toString()
-            }).then(r => r.json()).then(data => {
-                if (data && data.success) {
-                    showToast('success', 'Tersimpan', `Isolir profile diset ke: ${value}`);
-                    // Update tampilan setelah autosave berhasil
-                    setTimeout(() => {
-                        const sel = document.getElementById('isolirProfileSelect');
-                        if (sel) {
-                            for (let i = 0; i < sel.options.length; i++) {
-                                const option = sel.options[i];
-                                if (option.value === value) {
-                                    option.textContent = value + ' (Aktif)';
-                                    option.selected = true;
-                                } else if (option.textContent.includes(' (Aktif)')) {
-                                    option.textContent = option.value;
-                                }
-                            }
-                        }
-                    }, 100);
-                } else {
-                    showToast('error', 'Gagal', data.message || 'Gagal menyimpan');
-                }
-            }).catch(() => {
-                showToast('error', 'Gagal', 'Gagal menyimpan');
-            });
-        });
-
-        // Reload profiles button
-        $('#reloadIsolirProfilesBtn').click(function () {
-            // Ambil nilai terkini dari settings.json lalu reload profiles dengan pilihan itu
-            fetch('/admin/billing/service-suspension/isolir-profile')
-                .then(r => r.json())
-                .then(data => {
-                    const current = (data && data.success && data.isolir_profile) ? data.isolir_profile : (document.getElementById('isolirProfileSelect')?.value || 'isolir');
-                    loadIsolirProfiles(current);
-                    // Setelah memuat, pastikan profil aktif tetap ter-highlight
-                    setTimeout(() => {
-                        const sel = document.getElementById('isolirProfileSelect');
-                        if (sel) {
-                            for (let i = 0; i < sel.options.length; i++) {
-                                const option = sel.options[i];
-                                if (option.value === current) {
-                                    option.textContent = current + ' (Aktif)';
-                                    option.selected = true;
-                                } else if (option.textContent.includes(' (Aktif)')) {
-                                    option.textContent = option.value;
-                                }
-                            }
-                        }
-                    }, 300);
-                })
-                .catch(() => {
-                    const current = document.getElementById('isolirProfileSelect')?.value;
-                    loadIsolirProfiles(current);
-                });
-        });
-
-        // Load current grace period setting
-        function loadGracePeriod() {
-            fetch('/admin/billing/service-suspension/grace-period')
-                .then(r => r.json())
-                .then(data => {
-                    if (data && data.success) {
-                        const current = data.grace_period_days || '3';
-                        document.getElementById('gracePeriodInput').value = current;
-                        document.getElementById('currentGracePeriod').textContent = current;
-                    }
-                })
-                .catch(err => {
-                    console.error('Error loading grace period:', err);
-                    // Set default value
-                    document.getElementById('gracePeriodInput').value = '3';
-                    document.getElementById('currentGracePeriod').textContent = '3';
-                });
-        }
-
-        // Save grace period
-        $('#saveGracePeriodBtn').click(function () {
-            const input = document.getElementById('gracePeriodInput');
-            const value = input.value.trim();
-
-            if (!value || isNaN(value) || parseInt(value) < 1 || parseInt(value) > 30) {
-                showToast('error', 'Error', 'Grace period harus antara 1-30 hari');
-                return;
+                    });
             }
 
-            const btn = $(this);
-            btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-1"></i>Menyimpan...');
+            // Get current isolir profile setting
+            function loadCurrentIsolirProfile() {
+                fetch('/admin/billing/service-suspension/isolir-profile')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data.success) {
+                            const current = data.isolir_profile || 'isolir';
+                            // ensure options exist then update tampilan
+                            const sel = document.getElementById('isolirProfileSelect');
+                            if (sel && sel.options.length > 0) {
+                                // Update tampilan profil aktif tanpa mengubah struktur dropdown
+                                for (let i = 0; i < sel.options.length; i++) {
+                                    const option = sel.options[i];
+                                    if (option.value === current) {
+                                        option.textContent = current + ' (Aktif)';
+                                        // Pastikan tetap selected
+                                        sel.value = current;
+                                    } else if (option.textContent.includes(' (Aktif)')) {
+                                        option.textContent = option.value;
+                                    }
+                                }
+                            }
+                            else {
+                                loadIsolirProfiles(current);
+                            }
+                            // tandai siap agar change berikutnya dianggap aksi user
+                            isolirSelectReady = true;
+                        }
+                    })
+                    .catch(() => { });
+            }
 
-            fetch('/admin/billing/service-suspension/grace-period', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                body: new URLSearchParams({ grace_period_days: value }).toString()
-            }).then(r => r.json()).then(data => {
-                if (data && data.success) {
-                    showToast('success', 'Tersimpan', `Grace period diset ke: ${value} hari`);
-                    loadGracePeriod(); // Reload untuk update tampilan
-                } else {
-                    showToast('error', 'Gagal', data.message || 'Gagal menyimpan');
-                }
-            }).catch(err => {
-                showToast('error', 'Gagal', 'Gagal menyimpan');
-            }).finally(() => {
-                btn.prop('disabled', false).html('<i class="bx bx-save me-1"></i>Simpan');
+            // Save isolir profile
+            $('#saveIsolirProfileBtn').click(function () {
+                const sel = document.getElementById('isolirProfileSelect');
+                if (!sel) return;
+                const value = sel.value || 'isolir';
+                const btn = $(this);
+                btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-1"></i>Menyimpan...');
+                fetch('/admin/billing/service-suspension/isolir-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: new URLSearchParams({ isolir_profile: value }).toString()
+                }).then(r => r.json()).then(data => {
+                    if (data && data.success) {
+                        showToast('success', 'Tersimpan', `Isolir profile diset ke: ${value}`);
+                        // Update tampilan setelah save berhasil
+                        setTimeout(() => {
+                            const sel = document.getElementById('isolirProfileSelect');
+                            if (sel) {
+                                for (let i = 0; i < sel.options.length; i++) {
+                                    const option = sel.options[i];
+                                    if (option.value === value) {
+                                        option.textContent = value + ' (Aktif)';
+                                        option.selected = true;
+                                    } else if (option.textContent.includes(' (Aktif)')) {
+                                        option.textContent = option.value;
+                                    }
+                                }
+                            }
+                        }, 100);
+                    } else {
+                        showToast('error', 'Gagal', data.message || 'Gagal menyimpan');
+                    }
+                }).catch(err => {
+                    showToast('error', 'Gagal', 'Gagal menyimpan');
+                }).finally(() => {
+                    btn.prop('disabled', false).html('<i class="bx bx-save me-1"></i>Simpan');
+                });
             });
-        });
-    </script>
 
-    <!-- Mobile Bottom Navbar -->
-    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'payments' }) %>
+            // Autosave saat pilihan profil berubah
+            let isolirSelectReady = false;
+            $(document).on('change', '#isolirProfileSelect', function () {
+                if (!isolirSelectReady) return; // hindari trigger saat inisialisasi
+                const value = this.value || 'isolir';
+                fetch('/admin/billing/service-suspension/isolir-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: new URLSearchParams({ isolir_profile: value }).toString()
+                }).then(r => r.json()).then(data => {
+                    if (data && data.success) {
+                        showToast('success', 'Tersimpan', `Isolir profile diset ke: ${value}`);
+                        // Update tampilan setelah autosave berhasil
+                        setTimeout(() => {
+                            const sel = document.getElementById('isolirProfileSelect');
+                            if (sel) {
+                                for (let i = 0; i < sel.options.length; i++) {
+                                    const option = sel.options[i];
+                                    if (option.value === value) {
+                                        option.textContent = value + ' (Aktif)';
+                                        option.selected = true;
+                                    } else if (option.textContent.includes(' (Aktif)')) {
+                                        option.textContent = option.value;
+                                    }
+                                }
+                            }
+                        }, 100);
+                    } else {
+                        showToast('error', 'Gagal', data.message || 'Gagal menyimpan');
+                    }
+                }).catch(() => {
+                    showToast('error', 'Gagal', 'Gagal menyimpan');
+                });
+            });
+
+            // Reload profiles button
+            $('#reloadIsolirProfilesBtn').click(function () {
+                // Ambil nilai terkini dari settings.json lalu reload profiles dengan pilihan itu
+                fetch('/admin/billing/service-suspension/isolir-profile')
+                    .then(r => r.json())
+                    .then(data => {
+                        const current = (data && data.success && data.isolir_profile) ? data.isolir_profile : (document.getElementById('isolirProfileSelect')?.value || 'isolir');
+                        loadIsolirProfiles(current);
+                        // Setelah memuat, pastikan profil aktif tetap ter-highlight
+                        setTimeout(() => {
+                            const sel = document.getElementById('isolirProfileSelect');
+                            if (sel) {
+                                for (let i = 0; i < sel.options.length; i++) {
+                                    const option = sel.options[i];
+                                    if (option.value === current) {
+                                        option.textContent = current + ' (Aktif)';
+                                        option.selected = true;
+                                    } else if (option.textContent.includes(' (Aktif)')) {
+                                        option.textContent = option.value;
+                                    }
+                                }
+                            }
+                        }, 300);
+                    })
+                    .catch(() => {
+                        const current = document.getElementById('isolirProfileSelect')?.value;
+                        loadIsolirProfiles(current);
+                    });
+            });
+
+            // Load current grace period setting
+            function loadGracePeriod() {
+                fetch('/admin/billing/service-suspension/grace-period')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data.success) {
+                            const current = data.grace_period_days || '3';
+                            document.getElementById('gracePeriodInput').value = current;
+                            document.getElementById('currentGracePeriod').textContent = current;
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error loading grace period:', err);
+                        // Set default value
+                        document.getElementById('gracePeriodInput').value = '3';
+                        document.getElementById('currentGracePeriod').textContent = '3';
+                    });
+            }
+
+            // Save grace period
+            $('#saveGracePeriodBtn').click(function () {
+                const input = document.getElementById('gracePeriodInput');
+                const value = input.value.trim();
+
+                if (!value || isNaN(value) || parseInt(value) < 1 || parseInt(value) > 30) {
+                    showToast('error', 'Error', 'Grace period harus antara 1-30 hari');
+                    return;
+                }
+
+                const btn = $(this);
+                btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin me-1"></i>Menyimpan...');
+
+                fetch('/admin/billing/service-suspension/grace-period', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: new URLSearchParams({ grace_period_days: value }).toString()
+                }).then(r => r.json()).then(data => {
+                    if (data && data.success) {
+                        showToast('success', 'Tersimpan', `Grace period diset ke: ${value} hari`);
+                        loadGracePeriod(); // Reload untuk update tampilan
+                    } else {
+                        showToast('error', 'Gagal', data.message || 'Gagal menyimpan');
+                    }
+                }).catch(err => {
+                    showToast('error', 'Gagal', 'Gagal menyimpan');
+                }).finally(() => {
+                    btn.prop('disabled', false).html('<i class="bx bx-save me-1"></i>Simpan');
+                });
+            });
+        </script>
+
 </body>
 
 </html>

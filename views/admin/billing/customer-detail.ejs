@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,268 +11,328 @@
     <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Include Billing Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-user"></i> Detail Pelanggan
-                    </h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/admin/billing/customers">Pelanggan</a></li>
-                            <li class="breadcrumb-item active" aria-current="page"><%= customer.name %></li>
-                        </ol>
-                    </nav>
-                </div>
+                <!-- Main content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="bx bx-user"></i> Detail Pelanggan
+                        </h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/admin/billing/customers">Pelanggan</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">
+                                    <%= customer.name %>
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
 
-                <!-- Customer Info Card -->
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-user-circle"></i> Informasi Pelanggan
-                                </h5>
+                    <!-- Customer Info Card -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bx bx-user-circle"></i> Informasi Pelanggan
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <strong>Username:</strong>
+                                        <%= customer ? customer.username : 'N/A' %>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Nama:</strong>
+                                        <%= customer ? customer.name : 'N/A' %>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Telepon:</strong>
+                                        <%= customer && customer.phone ? customer.phone : '-' %>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Email:</strong>
+                                        <%= customer && customer.email ? customer.email : '-' %>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Alamat:</strong>
+                                        <%= customer && customer.address ? customer.address : '-' %>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Status:</strong>
+                                        <% if (customer && customer.status==='active' ) { %>
+                                            <span class="badge bg-success">Aktif</span>
+                                            <% } else if (customer && customer.status==='inactive' ) { %>
+                                                <span class="badge bg-secondary">Tidak Aktif</span>
+                                                <% } else if (customer && customer.status==='suspended' ) { %>
+                                                    <span class="badge bg-warning">Ditangguhkan</span>
+                                                    <% } else { %>
+                                                        <span class="badge bg-secondary">Tidak Diketahui</span>
+                                                        <% } %>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Bergabung:</strong>
+                                        <%= customer && customer.join_date ? new
+                                            Date(customer.join_date).toLocaleDateString('id-ID') : 'N/A' %>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <strong>Username:</strong> <%= customer ? customer.username : 'N/A' %>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bx bx-package"></i> Paket Internet
+                                    </h5>
                                 </div>
-                                <div class="mb-3">
-                                    <strong>Nama:</strong> <%= customer ? customer.name : 'N/A' %>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>Telepon:</strong> <%= customer && customer.phone ? customer.phone : '-' %>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>Email:</strong> <%= customer && customer.email ? customer.email : '-' %>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>Alamat:</strong> <%= customer && customer.address ? customer.address : '-' %>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>Status:</strong> 
-                                    <% if (customer && customer.status === 'active') { %>
-                                        <span class="badge bg-success">Aktif</span>
-                                    <% } else if (customer && customer.status === 'inactive') { %>
-                                        <span class="badge bg-secondary">Tidak Aktif</span>
-                                    <% } else if (customer && customer.status === 'suspended') { %>
-                                        <span class="badge bg-warning">Ditangguhkan</span>
-                                    <% } else { %>
-                                        <span class="badge bg-secondary">Tidak Diketahui</span>
-                                    <% } %>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>Bergabung:</strong> <%= customer && customer.join_date ? new Date(customer.join_date).toLocaleDateString('id-ID') : 'N/A' %>
+                                <div class="card-body">
+                                    <% if (customer && customer.package_name) { %>
+                                        <div class="mb-3">
+                                            <strong>Nama Paket:</strong>
+                                            <%= customer.package_name %>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>Kecepatan:</strong>
+                                            <%= customer.package_speed %>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>Harga:</strong> Rp <%= customer.package_price ?
+                                                parseFloat(customer.package_price).toLocaleString('id-ID') : '0' %>
+                                        </div>
+                                        <% } else { %>
+                                            <div class="alert alert-warning">
+                                                <i class="bx bx-alert"></i> Pelanggan belum memiliki paket internet
+                                            </div>
+                                            <% } %>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="col-md-8">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-package"></i> Paket Internet
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <% if (customer && customer.package_name) { %>
-                                    <div class="mb-3">
-                                        <strong>Nama Paket:</strong> <%= customer.package_name %>
-                                    </div>
-                                    <div class="mb-3">
-                                        <strong>Kecepatan:</strong> <%= customer.package_speed %>
-                                    </div>
-                                    <div class="mb-3">
-                                        <strong>Harga:</strong> Rp <%= customer.package_price ? parseFloat(customer.package_price).toLocaleString('id-ID') : '0' %>
-                                    </div>
-                                <% } else { %>
-                                    <div class="alert alert-warning">
-                                        <i class="bx bx-alert"></i> Pelanggan belum memiliki paket internet
-                                    </div>
-                                <% } %>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Invoices Table -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-receipt"></i> Riwayat Tagihan
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-centered table-nowrap table-hover mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>No. Tagihan</th>
-                                                <th>Paket</th>
-                                                <th>Jumlah</th>
-                                                <th>Status</th>
-                                                <th>Jatuh Tempo</th>
-                                                <th>Tanggal Dibuat</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% if (invoices && invoices.length > 0) { %>
-                                                <% invoices.forEach(function(invoice) { %>
-                                                    <tr>
-                                                        <td>
-                                                            <span class="text-body fw-bold"><%= invoice ? invoice.invoice_number : 'N/A' %></span>
-                                                        </td>
-                                                        <td><%= invoice ? invoice.package_name : 'N/A' %></td>
-                                                        <td>Rp <%= invoice && invoice.amount ? parseFloat(invoice.amount).toLocaleString('id-ID') : '0' %></td>
-                                                        <td>
-                                                            <% if (invoice && invoice.status === 'paid') { %>
-                                                                <span class="badge bg-success">Lunas</span>
-                                                            <% } else if (invoice && invoice.status === 'unpaid') { %>
-                                                                <% if (invoice.due_date && new Date(invoice.due_date) < new Date()) { %>
-                                                                    <span class="badge bg-danger">Terlambat</span>
-                                                                <% } else { %>
-                                                                    <span class="badge bg-warning">Belum Lunas</span>
-                                                                <% } %>
-                                                            <% } else { %>
-                                                                <span class="badge bg-secondary">Tidak Diketahui</span>
-                                                            <% } %>
-                                                        </td>
-                                                        <td>
-                                                            <% if (invoice && invoice.due_date) { %>
-                                                                <% if (new Date(invoice.due_date) < new Date() && invoice.status === 'unpaid') { %>
-                                                                    <span class="text-danger">
-                                                                        <%= new Date(invoice.due_date).toLocaleDateString('id-ID') %>
-                                                                    </span>
-                                                                <% } else { %>
-                                                                    <%= new Date(invoice.due_date).toLocaleDateString('id-ID') %>
-                                                                <% } %>
-                                                            <% } else { %>
-                                                                N/A
-                                                            <% } %>
-                                                        </td>
-                                                        <td><%= invoice && invoice.created_at ? new Date(invoice.created_at).toLocaleDateString('id-ID') : 'N/A' %></td>
-                                                        <td>
-                                                            <% if (invoice) { %>
-                                                                <div class="btn-group" role="group">
-                                                                    <button type="button" class="btn btn-sm btn-outline-primary view-invoice-btn"
+                    <!-- Invoices Table -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bx bx-receipt"></i> Riwayat Tagihan
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-centered table-nowrap table-hover mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>No. Tagihan</th>
+                                                    <th>Paket</th>
+                                                    <th>Jumlah</th>
+                                                    <th>Status</th>
+                                                    <th>Jatuh Tempo</th>
+                                                    <th>Tanggal Dibuat</th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% if (invoices && invoices.length> 0) { %>
+                                                    <% invoices.forEach(function(invoice) { %>
+                                                        <tr>
+                                                            <td>
+                                                                <span class="text-body fw-bold">
+                                                                    <%= invoice ? invoice.invoice_number : 'N/A' %>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <%= invoice ? invoice.package_name : 'N/A' %>
+                                                            </td>
+                                                            <td>Rp <%= invoice && invoice.amount ?
+                                                                    parseFloat(invoice.amount).toLocaleString('id-ID')
+                                                                    : '0' %>
+                                                            </td>
+                                                            <td>
+                                                                <% if (invoice && invoice.status==='paid' ) { %>
+                                                                    <span class="badge bg-success">Lunas</span>
+                                                                    <% } else if (invoice && invoice.status==='unpaid' )
+                                                                        { %>
+                                                                        <% if (invoice.due_date && new
+                                                                            Date(invoice.due_date) < new Date()) { %>
+                                                                            <span
+                                                                                class="badge bg-danger">Terlambat</span>
+                                                                            <% } else { %>
+                                                                                <span class="badge bg-warning">Belum
+                                                                                    Lunas</span>
+                                                                                <% } %>
+                                                                                    <% } else { %>
+                                                                                        <span
+                                                                                            class="badge bg-secondary">Tidak
+                                                                                            Diketahui</span>
+                                                                                        <% } %>
+                                                            </td>
+                                                            <td>
+                                                                <% if (invoice && invoice.due_date) { %>
+                                                                    <% if (new Date(invoice.due_date) < new Date() &&
+                                                                        invoice.status==='unpaid' ) { %>
+                                                                        <span class="text-danger">
+                                                                            <%= new
+                                                                                Date(invoice.due_date).toLocaleDateString('id-ID')
+                                                                                %>
+                                                                        </span>
+                                                                        <% } else { %>
+                                                                            <%= new
+                                                                                Date(invoice.due_date).toLocaleDateString('id-ID')
+                                                                                %>
+                                                                                <% } %>
+                                                                                    <% } else { %>
+                                                                                        N/A
+                                                                                        <% } %>
+                                                            </td>
+                                                            <td>
+                                                                <%= invoice && invoice.created_at ? new
+                                                                    Date(invoice.created_at).toLocaleDateString('id-ID')
+                                                                    : 'N/A' %>
+                                                            </td>
+                                                            <td>
+                                                                <% if (invoice) { %>
+                                                                    <div class="btn-group" role="group">
+                                                                        <button type="button"
+                                                                            class="btn btn-sm btn-outline-primary view-invoice-btn"
                                                                             data-id="<%= invoice.id %>"
-                                                                            data-bs-toggle="tooltip" 
-                                                                            data-bs-placement="top" 
+                                                                            data-bs-toggle="tooltip"
+                                                                            data-bs-placement="top"
                                                                             title="Lihat Detail">
-                                                                        <i class="mdi mdi-file-document-outline"></i>
-                                                                    </button>
-                                                                    <% if (invoice.status === 'unpaid') { %>
-                                                                        <button type="button" class="btn btn-sm btn-outline-success mark-paid-btn"
+                                                                            <i
+                                                                                class="mdi mdi-file-document-outline"></i>
+                                                                        </button>
+                                                                        <% if (invoice.status==='unpaid' ) { %>
+                                                                            <button type="button"
+                                                                                class="btn btn-sm btn-outline-success mark-paid-btn"
                                                                                 data-id="<%= invoice.id %>"
                                                                                 data-invoice-number="<%= invoice.invoice_number %>"
                                                                                 data-amount="<%= invoice.amount %>"
-                                                                                data-bs-toggle="tooltip" 
-                                                                                data-bs-placement="top" 
+                                                                                data-bs-toggle="tooltip"
+                                                                                data-bs-placement="top"
                                                                                 title="Tandai Lunas">
-                                                                            <i class="mdi mdi-cash-check"></i>
-                                                                        </button>
-                                                                    <% } %>
-                                                                    <button type="button" class="btn btn-sm btn-outline-info print-invoice-btn"
-                                                                            data-id="<%= invoice.id %>"
-                                                                            data-bs-toggle="tooltip" 
-                                                                            data-bs-placement="top" 
-                                                                            title="Cetak Invoice">
-                                                                        <i class="mdi mdi-printer-outline"></i>
-                                                                    </button>
-                                                                </div>
+                                                                                <i class="mdi mdi-cash-check"></i>
+                                                                            </button>
+                                                                            <% } %>
+                                                                                <button type="button"
+                                                                                    class="btn btn-sm btn-outline-info print-invoice-btn"
+                                                                                    data-id="<%= invoice.id %>"
+                                                                                    data-bs-toggle="tooltip"
+                                                                                    data-bs-placement="top"
+                                                                                    title="Cetak Invoice">
+                                                                                    <i
+                                                                                        class="mdi mdi-printer-outline"></i>
+                                                                                </button>
+                                                                    </div>
+                                                                    <% } else { %>
+                                                                        <span class="text-muted">N/A</span>
+                                                                        <% } %>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
                                                             <% } else { %>
-                                                                <span class="text-muted">N/A</span>
-                                                            <% } %>
-                                                        </td>
-                                                    </tr>
-                                                <% }); %>
-                                            <% } else { %>
-                                                <tr>
-                                                    <td colspan="7" class="text-center text-muted">Belum ada tagihan</td>
-                                                </tr>
-                                            <% } %>
-                                        </tbody>
-                                    </table>
+                                                                <tr>
+                                                                    <td colspan="7" class="text-center text-muted">Belum
+                                                                        ada tagihan</td>
+                                                                </tr>
+                                                                <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <!-- Trouble Reports Table -->
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header d-flex align-items-center">
-                                <h5 class="card-title mb-0">
-                                    <i class="bi bi-exclamation-triangle me-1"></i> Riwayat Laporan Gangguan
-                                </h5>
-                                <span class="badge bg-light text-dark ms-2"><%= troubleReports && troubleReports.length ? troubleReports.length : 0 %> laporan</span>
-                                <a href="/admin/trouble" class="btn btn-sm btn-outline-primary ms-auto">Kelola Semua</a>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-centered table-nowrap table-hover mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Tanggal</th>
-                                                <th>Kategori</th>
-                                                <th>Lokasi</th>
-                                                <th>Status</th>
-                                                <th>Catatan Terakhir</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% if (typeof troubleReports !== 'undefined' && troubleReports && troubleReports.length > 0) { %>
-                                                <% troubleReports.slice().reverse().forEach(function(rep) { %>
-                                                    <tr>
-                                                        <td>#<%= rep.id %></td>
-                                                        <td><%= rep.created_at ? new Date(rep.created_at).toLocaleString('id-ID') : '-' %></td>
-                                                        <td><%= rep.category || '-' %></td>
-                                                        <td><%= rep.location || '-' %></td>
-                                                        <td>
-                                                            <span class="badge <%= 
+                    <!-- Trouble Reports Table -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex align-items-center">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bi bi-exclamation-triangle me-1"></i> Riwayat Laporan Gangguan
+                                    </h5>
+                                    <span class="badge bg-light text-dark ms-2">
+                                        <%= troubleReports && troubleReports.length ? troubleReports.length : 0 %>
+                                            laporan
+                                    </span>
+                                    <a href="/admin/trouble" class="btn btn-sm btn-outline-primary ms-auto">Kelola
+                                        Semua</a>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-centered table-nowrap table-hover mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Tanggal</th>
+                                                    <th>Kategori</th>
+                                                    <th>Lokasi</th>
+                                                    <th>Status</th>
+                                                    <th>Catatan Terakhir</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% if (typeof troubleReports !=='undefined' && troubleReports &&
+                                                    troubleReports.length> 0) { %>
+                                                    <% troubleReports.slice().reverse().forEach(function(rep) { %>
+                                                        <tr>
+                                                            <td>#<%= rep.id %>
+                                                            </td>
+                                                            <td>
+                                                                <%= rep.created_at ? new
+                                                                    Date(rep.created_at).toLocaleString('id-ID') : '-'
+                                                                    %>
+                                                            </td>
+                                                            <td>
+                                                                <%= rep.category || '-' %>
+                                                            </td>
+                                                            <td>
+                                                                <%= rep.location || '-' %>
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge <%= 
                                                                 rep.status === 'open' ? 'bg-danger' : 
                                                                 rep.status === 'in_progress' ? 'bg-warning text-dark' : 
                                                                 rep.status === 'resolved' ? 'bg-success' : 
                                                                 'bg-secondary' %>">
-                                                                <%= rep.status || '-' %>
-                                                            </span>
-                                                        </td>
-                                                        <td style="max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                            <%= rep.notes && rep.notes.length ? rep.notes[rep.notes.length - 1] : '-' %>
-                                                        </td>
-                                                    </tr>
-                                                <% }); %>
-                                            <% } else { %>
-                                                <tr>
-                                                    <td colspan="6" class="text-center text-muted">Belum ada laporan gangguan</td>
-                                                </tr>
-                                            <% } %>
-                                        </tbody>
-                                    </table>
+                                                                    <%= rep.status || '-' %>
+                                                                </span>
+                                                            </td>
+                                                            <td
+                                                                style="max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                <%= rep.notes && rep.notes.length ?
+                                                                    rep.notes[rep.notes.length - 1] : '-' %>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
+                                                            <% } else { %>
+                                                                <tr>
+                                                                    <td colspan="6" class="text-center text-muted">Belum
+                                                                        ada laporan gangguan</td>
+                                                                </tr>
+                                                                <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
         </div>
     </div>
 
     <!-- Mark as Paid Modal -->
-    <div class="modal fade" id="markAsPaidModal" tabindex="-1" aria-labelledby="markAsPaidModalLabel" aria-hidden="true">
+    <div class="modal fade" id="markAsPaidModal" tabindex="-1" aria-labelledby="markAsPaidModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -294,7 +355,8 @@
                         </div>
                         <div class="mb-3">
                             <label for="paymentNotes" class="form-label">Catatan Pembayaran</label>
-                            <textarea class="form-control" id="paymentNotes" name="notes" rows="3" placeholder="Catatan pembayaran (opsional)"></textarea>
+                            <textarea class="form-control" id="paymentNotes" name="notes" rows="3"
+                                placeholder="Catatan pembayaran (opsional)"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -307,130 +369,134 @@
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-
-        // View Invoice
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.view-invoice-btn')) {
-                const button = e.target.closest('.view-invoice-btn');
-                const id = button.getAttribute('data-id');
-                window.open(`/admin/billing/invoices/${id}`, '_blank');
-            }
-        });
-        
-        // Print Invoice
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.print-invoice-btn')) {
-                const button = e.target.closest('.print-invoice-btn');
-                const id = button.getAttribute('data-id');
-                window.open(`/admin/billing/invoices/${id}/print`, '_blank');
-            }
-        });
-        
-        // Mark as Paid
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.mark-paid-btn')) {
-                const button = e.target.closest('.mark-paid-btn');
-                const id = button.getAttribute('data-id');
-                const invoiceNumber = button.getAttribute('data-invoice-number');
-                const amount = button.getAttribute('data-amount');
-                
-                document.getElementById('paidInvoiceId').value = id;
-                document.getElementById('markAsPaidModalLabel').textContent = `Tandai Sebagai Lunas - ${invoiceNumber}`;
-                $('#markAsPaidModal').modal('show');
-            }
-        });
-    });
-
-    // Handle mark as paid form submission
-    document.getElementById('markAsPaidForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const data = Object.fromEntries(formData);
-        const invoiceId = data.invoice_id;
-        const paymentMethod = data.payment_method;
-        const notes = data.notes;
-        
-        // Validate required fields
-        if (!paymentMethod) {
-            alert('Mohon pilih metode pembayaran');
-            return;
-        }
-        
-        // Disable submit button to prevent double submission
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Memproses...';
-        
-        // Get invoice amount first
-        fetch(`/admin/billing/api/invoices/${invoiceId}`)
-        .then(response => response.json())
-        .then(invoiceData => {
-            if (!invoiceData.success) {
-                throw new Error('Failed to get invoice data');
-            }
-            
-            const invoiceAmount = parseFloat(invoiceData.invoice.amount);
-            
-            // Record the payment with correct amount
-            return fetch('/admin/billing/payments', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    invoice_id: invoiceId,
-                    amount: invoiceAmount,
-                    payment_method: paymentMethod,
-                    reference_number: '',
-                    notes: notes || ''
-                })
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (!result.success) {
-                    throw new Error(result.message || 'Gagal mencatat pembayaran');
-                }
-                // Close modal and reset form
-                $('#markAsPaidModal').modal('hide');
-                document.getElementById('markAsPaidForm').reset();
-                
-                // Show success notification
-                alert('✅ Tagihan berhasil ditandai sebagai lunas!');
-                
-                // Reload page after a short delay
-                setTimeout(() => location.reload(), 1500);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('❌ Terjadi kesalahan saat menandai tagihan sebagai lunas');
-            })
-            .finally(() => {
-                // Re-enable submit button
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('❌ Terjadi kesalahan saat menandai tagihan sebagai lunas');
-        })
-        .finally(() => {
-            // Re-enable submit button
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
+
+            // View Invoice
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('.view-invoice-btn')) {
+                    const button = e.target.closest('.view-invoice-btn');
+                    const id = button.getAttribute('data-id');
+                    window.open(`/admin/billing/invoices/${id}`, '_blank');
+                }
+            });
+
+            // Print Invoice
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('.print-invoice-btn')) {
+                    const button = e.target.closest('.print-invoice-btn');
+                    const id = button.getAttribute('data-id');
+                    window.open(`/admin/billing/invoices/${id}/print`, '_blank');
+                }
+            });
+
+            // Mark as Paid
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('.mark-paid-btn')) {
+                    const button = e.target.closest('.mark-paid-btn');
+                    const id = button.getAttribute('data-id');
+                    const invoiceNumber = button.getAttribute('data-invoice-number');
+                    const amount = button.getAttribute('data-amount');
+
+                    document.getElementById('paidInvoiceId').value = id;
+                    document.getElementById('markAsPaidModalLabel').textContent = `Tandai Sebagai Lunas - ${invoiceNumber}`;
+                    $('#markAsPaidModal').modal('show');
+                }
+            });
         });
-         });
-     </script>
-     
-     <!-- Bootstrap Bundle with Popper -->
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
- </body>
- </html> 
+
+        // Handle mark as paid form submission
+        document.getElementById('markAsPaidForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            const invoiceId = data.invoice_id;
+            const paymentMethod = data.payment_method;
+            const notes = data.notes;
+
+            // Validate required fields
+            if (!paymentMethod) {
+                alert('Mohon pilih metode pembayaran');
+                return;
+            }
+
+            // Disable submit button to prevent double submission
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Memproses...';
+
+            // Get invoice amount first
+            fetch(`/admin/billing/api/invoices/${invoiceId}`)
+                .then(response => response.json())
+                .then(invoiceData => {
+                    if (!invoiceData.success) {
+                        throw new Error('Failed to get invoice data');
+                    }
+
+                    const invoiceAmount = parseFloat(invoiceData.invoice.amount);
+
+                    // Record the payment with correct amount
+                    return fetch('/admin/billing/payments', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            invoice_id: invoiceId,
+                            amount: invoiceAmount,
+                            payment_method: paymentMethod,
+                            reference_number: '',
+                            notes: notes || ''
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (!result.success) {
+                                throw new Error(result.message || 'Gagal mencatat pembayaran');
+                            }
+                            // Close modal and reset form
+                            $('#markAsPaidModal').modal('hide');
+                            document.getElementById('markAsPaidForm').reset();
+
+                            // Show success notification
+                            alert('✅ Tagihan berhasil ditandai sebagai lunas!');
+
+                            // Reload page after a short delay
+                            setTimeout(() => location.reload(), 1500);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('❌ Terjadi kesalahan saat menandai tagihan sebagai lunas');
+                        })
+                        .finally(() => {
+                            // Re-enable submit button
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('❌ Terjadi kesalahan saat menandai tagihan sebagai lunas');
+                })
+                .finally(() => {
+                    // Re-enable submit button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                });
+        });
+    </script>
+
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'customers' }) %>
+
+        <!-- Bootstrap Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

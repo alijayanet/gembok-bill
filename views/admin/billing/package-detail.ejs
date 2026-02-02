@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,142 +11,166 @@
     <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Include Billing Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-package"></i> Detail Paket
-                    </h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/admin/billing/packages">Paket</a></li>
-                            <li class="breadcrumb-item active" aria-current="page"><%= package.name %></li>
-                        </ol>
-                    </nav>
-                </div>
+                <!-- Main content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="bx bx-package"></i> Detail Paket
+                        </h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/admin/billing/packages">Paket</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">
+                                    <%= package.name %>
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
 
-                <!-- Package Info Card -->
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-info-circle"></i> Informasi Paket
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <strong>Nama Paket:</strong> <%= package.name %>
+                    <!-- Package Info Card -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bx bx-info-circle"></i> Informasi Paket
+                                    </h5>
                                 </div>
-                                <div class="mb-3">
-                                    <strong>Kecepatan:</strong> <%= package.speed %>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>Harga:</strong> Rp <%= parseFloat(package.price).toLocaleString('id-ID') %>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>Deskripsi:</strong> <%= package.description || '-' %>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>Status:</strong> 
-                                    <span class="badge bg-success">Aktif</span>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <strong>Nama Paket:</strong>
+                                        <%= package.name %>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Kecepatan:</strong>
+                                        <%= package.speed %>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Harga:</strong> Rp <%= parseFloat(package.price).toLocaleString('id-ID')
+                                            %>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Deskripsi:</strong>
+                                        <%= package.description || '-' %>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Status:</strong>
+                                        <span class="badge bg-success">Aktif</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="col-md-8">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-user"></i> Pelanggan yang Menggunakan Paket Ini
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-centered table-nowrap table-hover mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>Username</th>
-                                                <th>Nama</th>
-                                                <th>Telepon</th>
-                                                <th>Status</th>
-                                                <th>Bergabung</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% if (customers && customers.length > 0) { %>
-                                                <% customers.forEach(function(customer) { %>
-                                                    <tr>
-                                                        <td>
-                                                            <span class="text-body fw-bold"><%= customer.username %></span>
-                                                        </td>
-                                                        <td><%= customer.name %></td>
-                                                        <td><%= customer.phone || '-' %></td>
-                                                        <td>
-                                                            <% if (customer.status === 'active') { %>
-                                                                <span class="badge bg-success">Aktif</span>
-                                                            <% } else if (customer.status === 'inactive') { %>
-                                                                <span class="badge bg-secondary">Tidak Aktif</span>
-                                                            <% } else if (customer.status === 'suspended') { %>
-                                                                <span class="badge bg-warning">Ditangguhkan</span>
-                                                            <% } %>
-                                                        </td>
-                                                        <td><%= new Date(customer.join_date).toLocaleDateString('id-ID') %></td>
-                                                        <td>
-                                                            <div class="btn-group" role="group">
-                                                                <a href="/admin/billing/customers/<%= customer.username %>" 
-                                                                   class="btn btn-sm btn-outline-primary"
-                                                                   data-bs-toggle="tooltip" 
-                                                                   data-bs-placement="top" 
-                                                                   title="Detail Pelanggan">
-                                                                    <i class="bx bx-user-detail"></i>
-                                                                </a>
-                                                                <a href="/admin/billing/invoices?customer_username=<%= customer.username %>" 
-                                                                   class="btn btn-sm btn-outline-info"
-                                                                   data-bs-toggle="tooltip" 
-                                                                   data-bs-placement="top" 
-                                                                   title="Lihat Tagihan">
-                                                                    <i class="bx bx-receipt"></i>
-                                                                </a>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                <% }); %>
-                                            <% } else { %>
+
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bx bx-user"></i> Pelanggan yang Menggunakan Paket Ini
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-centered table-nowrap table-hover mb-0">
+                                            <thead>
                                                 <tr>
-                                                    <td colspan="6" class="text-center text-muted">Belum ada pelanggan yang menggunakan paket ini</td>
+                                                    <th>Username</th>
+                                                    <th>Nama</th>
+                                                    <th>Telepon</th>
+                                                    <th>Status</th>
+                                                    <th>Bergabung</th>
+                                                    <th>Aksi</th>
                                                 </tr>
-                                            <% } %>
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                <% if (customers && customers.length> 0) { %>
+                                                    <% customers.forEach(function(customer) { %>
+                                                        <tr>
+                                                            <td>
+                                                                <span class="text-body fw-bold">
+                                                                    <%= customer.username %>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <%= customer.name %>
+                                                            </td>
+                                                            <td>
+                                                                <%= customer.phone || '-' %>
+                                                            </td>
+                                                            <td>
+                                                                <% if (customer.status==='active' ) { %>
+                                                                    <span class="badge bg-success">Aktif</span>
+                                                                    <% } else if (customer.status==='inactive' ) { %>
+                                                                        <span class="badge bg-secondary">Tidak
+                                                                            Aktif</span>
+                                                                        <% } else if (customer.status==='suspended' ) {
+                                                                            %>
+                                                                            <span
+                                                                                class="badge bg-warning">Ditangguhkan</span>
+                                                                            <% } %>
+                                                            </td>
+                                                            <td>
+                                                                <%= new
+                                                                    Date(customer.join_date).toLocaleDateString('id-ID')
+                                                                    %>
+                                                            </td>
+                                                            <td>
+                                                                <div class="btn-group" role="group">
+                                                                    <a href="/admin/billing/customers/<%= customer.username %>"
+                                                                        class="btn btn-sm btn-outline-primary"
+                                                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                                                        title="Detail Pelanggan">
+                                                                        <i class="bx bx-user-detail"></i>
+                                                                    </a>
+                                                                    <a href="/admin/billing/invoices?customer_username=<%= customer.username %>"
+                                                                        class="btn btn-sm btn-outline-info"
+                                                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                                                        title="Lihat Tagihan">
+                                                                        <i class="bx bx-receipt"></i>
+                                                                    </a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
+                                                            <% } else { %>
+                                                                <tr>
+                                                                    <td colspan="6" class="text-center text-muted">Belum
+                                                                        ada pelanggan yang menggunakan paket ini</td>
+                                                                </tr>
+                                                                <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
         </div>
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
         });
-    });
     </script>
 
-         <!-- Bootstrap Bundle with Popper -->
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
- </body>
- </html> 
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'customers' }) %>
+</body>
+
+</html>

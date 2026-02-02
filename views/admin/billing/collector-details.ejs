@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detail Kolektor - <%= appSettings.companyHeader %></title>
+    <title>Detail Kolektor - <%= appSettings.companyHeader %>
+    </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Admin Mobile Optimizations -->
@@ -13,7 +15,7 @@
             background: #f5f6fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         .collector-header {
             background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
@@ -21,55 +23,55 @@
             padding: 2rem;
             margin-bottom: 2rem;
         }
-        
+
         .collector-name {
             font-size: 2rem;
             font-weight: 700;
             margin: 0;
         }
-        
+
         .collector-info {
             font-size: 1.1rem;
             opacity: 0.9;
             margin: 0.5rem 0 0;
         }
-        
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
-        
+
         .stat-card {
             background: white;
             border-radius: 12px;
             padding: 1.5rem;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
             color: #28a745;
             margin: 0;
         }
-        
+
         .stat-label {
             font-size: 0.9rem;
             color: #6c757d;
             margin: 0.5rem 0 0;
         }
-        
+
         .payments-section {
             background: white;
             border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .payment-item {
             display: flex;
             justify-content: between;
@@ -77,41 +79,41 @@
             padding: 1rem 0;
             border-bottom: 1px solid #e9ecef;
         }
-        
+
         .payment-item:last-child {
             border-bottom: none;
         }
-        
+
         .payment-info h6 {
             margin: 0;
             font-weight: 600;
             color: #333;
         }
-        
+
         .payment-info small {
             color: #6c757d;
         }
-        
+
         .payment-amount {
             font-weight: 700;
             color: #28a745;
             font-size: 1.1rem;
         }
-        
+
         .commission-amount {
             font-weight: 600;
             color: #fd7e14;
             font-size: 0.9rem;
         }
-        
+
         .filter-section {
             background: white;
             border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .btn-back {
             background: #6c757d;
             border: none;
@@ -121,12 +123,12 @@
             font-weight: 500;
             transition: all 0.3s ease;
         }
-        
+
         .btn-back:hover {
             background: #5a6268;
             transform: translateY(-2px);
         }
-        
+
         .btn-export {
             background: #17a2b8;
             border: none;
@@ -136,175 +138,191 @@
             font-weight: 500;
             transition: all 0.3s ease;
         }
-        
+
         .btn-export:hover {
             background: #138496;
             transform: translateY(-2px);
         }
-        
+
         .status-badge {
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 500;
         }
-        
+
         .status-completed {
             background: #d4edda;
             color: #155724;
         }
-        
+
         .status-pending {
             background: #fff3cd;
             color: #856404;
         }
-        
+
         @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
+
             .collector-name {
                 font-size: 1.5rem;
             }
-            
+
             .payment-item {
                 flex-direction: column;
                 align-items: flex-start;
             }
-            
+
             .payment-amount {
                 margin-top: 0.5rem;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Include Admin Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-back me-3" onclick="goBack()">
-                            <i class="bi bi-arrow-left me-1"></i>Kembali
-                        </button>
-                        <h1 class="h2">
-                            <i class="bi bi-person-check me-2"></i>Detail Kolektor
-                        </h1>
-                    </div>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <button class="btn btn-export" onclick="exportCollectorDetails()">
-                            <i class="bi bi-download me-1"></i>Export Excel
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Collector Header -->
-                <div class="collector-header">
-                    <h2 class="collector-name"><%= collector.name %></h2>
-                    <div class="collector-info">
-                        <i class="bi bi-telephone me-1"></i>
-                        <%= collector.phone || 'Tidak ada nomor telepon' %>
-                    </div>
-                    <div class="collector-info">
-                        <i class="bi bi-percent me-1"></i>
-                        Komisi: <%= collector.commission_rate || 5 %>%
-                    </div>
-                </div>
-
-                <!-- Statistics -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value"><%= stats.total_payments || 0 %></div>
-                        <div class="stat-label">Total Pembayaran</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">Rp <%= (stats.total_payment_amount || 0).toLocaleString('id-ID') %></div>
-                        <div class="stat-label">Jumlah Pembayaran</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">Rp <%= (stats.total_commission || 0).toLocaleString('id-ID') %></div>
-                        <div class="stat-label">Total Komisi</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">Rp <%= (stats.total_setoran || 0).toLocaleString('id-ID') %></div>
-                        <div class="stat-label">Total Setoran</div>
-                    </div>
-                </div>
-
-                <!-- Filter Section -->
-                <div class="filter-section">
-                    <h5 class="mb-3">
-                        <i class="bi bi-funnel me-2"></i>Filter Pembayaran
-                    </h5>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label for="dateFrom" class="form-label">Dari Tanggal</label>
-                            <input type="date" class="form-control" id="dateFrom" value="<%= filters.dateFrom %>">
+                <!-- Main content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-back me-3" onclick="goBack()">
+                                <i class="bi bi-arrow-left me-1"></i>Kembali
+                            </button>
+                            <h1 class="h2">
+                                <i class="bi bi-person-check me-2"></i>Detail Kolektor
+                            </h1>
                         </div>
-                        <div class="col-md-4">
-                            <label for="dateTo" class="form-label">Sampai Tanggal</label>
-                            <input type="date" class="form-control" id="dateTo" value="<%= filters.dateTo %>">
-                        </div>
-                        <div class="col-md-4 d-flex align-items-end">
-                            <button class="btn btn-primary w-100" onclick="applyFilters()">
-                                <i class="bi bi-search me-1"></i>Filter
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <button class="btn btn-export" onclick="exportCollectorDetails()">
+                                <i class="bi bi-download me-1"></i>Export Excel
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Payments List -->
-                <div class="payments-section">
-                    <h5 class="mb-3">
-                        <i class="bi bi-clock-history me-2"></i>Riwayat Pembayaran
-                    </h5>
-                    
-                    <% if (payments.length > 0) { %>
-                        <% payments.forEach(function(payment) { %>
-                            <div class="payment-item">
-                                <div class="payment-info">
-                                    <h6><%= payment.customer_name || 'Customer Tidak Diketahui' %></h6>
-                                    <small>
-                                        <i class="bi bi-calendar me-1"></i>
-                                        <%= new Date(payment.collected_at).toLocaleDateString('id-ID') %>
-                                        <i class="bi bi-clock me-1 ms-2"></i>
-                                        <%= new Date(payment.collected_at).toLocaleTimeString('id-ID') %>
-                                    </small>
-                                    <br>
-                                    <small class="text-muted">
-                                        <i class="bi bi-credit-card me-1"></i>
-                                        <%= payment.payment_method || 'Tunai' %>
-                                        <% if (payment.notes) { %>
-                                            <br><i class="bi bi-sticky me-1"></i><%= payment.notes %>
-                                        <% } %>
-                                    </small>
-                                </div>
-                                <div class="text-end">
-                                    <div class="payment-amount">Rp <%= payment.payment_amount.toLocaleString('id-ID') %></div>
-                                    <div class="commission-amount">
-                                        Komisi: Rp <%= payment.commission_amount.toLocaleString('id-ID') %>
-                                    </div>
-                                    <div class="commission-amount">
-                                        Setoran: Rp <%= (payment.payment_amount - payment.commission_amount).toLocaleString('id-ID') %>
-                                    </div>
-                                    <span class="status-badge status-completed">Selesai</span>
-                                </div>
-                            </div>
-                        <% }); %>
-                    <% } else { %>
-                        <div class="text-center py-5">
-                            <i class="bi bi-receipt fs-1 text-muted"></i>
-                            <h5 class="mt-3">Belum ada pembayaran</h5>
-                            <p class="text-muted">Kolektor ini belum melakukan pembayaran dalam periode yang dipilih.</p>
+                    <!-- Collector Header -->
+                    <div class="collector-header">
+                        <h2 class="collector-name">
+                            <%= collector.name %>
+                        </h2>
+                        <div class="collector-info">
+                            <i class="bi bi-telephone me-1"></i>
+                            <%= collector.phone || 'Tidak ada nomor telepon' %>
                         </div>
-                    <% } %>
-                </div>
-            </main>
+                        <div class="collector-info">
+                            <i class="bi bi-percent me-1"></i>
+                            Komisi: <%= collector.commission_rate || 5 %>%
+                        </div>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">
+                                <%= stats.total_payments || 0 %>
+                            </div>
+                            <div class="stat-label">Total Pembayaran</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">Rp <%= (stats.total_payment_amount || 0).toLocaleString('id-ID') %>
+                            </div>
+                            <div class="stat-label">Jumlah Pembayaran</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">Rp <%= (stats.total_commission || 0).toLocaleString('id-ID') %>
+                            </div>
+                            <div class="stat-label">Total Komisi</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">Rp <%= (stats.total_setoran || 0).toLocaleString('id-ID') %>
+                            </div>
+                            <div class="stat-label">Total Setoran</div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="filter-section">
+                        <h5 class="mb-3">
+                            <i class="bi bi-funnel me-2"></i>Filter Pembayaran
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="dateFrom" class="form-label">Dari Tanggal</label>
+                                <input type="date" class="form-control" id="dateFrom" value="<%= filters.dateFrom %>">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="dateTo" class="form-label">Sampai Tanggal</label>
+                                <input type="date" class="form-control" id="dateTo" value="<%= filters.dateTo %>">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button class="btn btn-primary w-100" onclick="applyFilters()">
+                                    <i class="bi bi-search me-1"></i>Filter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payments List -->
+                    <div class="payments-section">
+                        <h5 class="mb-3">
+                            <i class="bi bi-clock-history me-2"></i>Riwayat Pembayaran
+                        </h5>
+
+                        <% if (payments.length> 0) { %>
+                            <% payments.forEach(function(payment) { %>
+                                <div class="payment-item">
+                                    <div class="payment-info">
+                                        <h6>
+                                            <%= payment.customer_name || 'Customer Tidak Diketahui' %>
+                                        </h6>
+                                        <small>
+                                            <i class="bi bi-calendar me-1"></i>
+                                            <%= new Date(payment.collected_at).toLocaleDateString('id-ID') %>
+                                                <i class="bi bi-clock me-1 ms-2"></i>
+                                                <%= new Date(payment.collected_at).toLocaleTimeString('id-ID') %>
+                                        </small>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="bi bi-credit-card me-1"></i>
+                                            <%= payment.payment_method || 'Tunai' %>
+                                                <% if (payment.notes) { %>
+                                                    <br><i class="bi bi-sticky me-1"></i>
+                                                    <%= payment.notes %>
+                                                        <% } %>
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="payment-amount">Rp <%=
+                                                payment.payment_amount.toLocaleString('id-ID') %>
+                                        </div>
+                                        <div class="commission-amount">
+                                            Komisi: Rp <%= payment.commission_amount.toLocaleString('id-ID') %>
+                                        </div>
+                                        <div class="commission-amount">
+                                            Setoran: Rp <%= (payment.payment_amount -
+                                                payment.commission_amount).toLocaleString('id-ID') %>
+                                        </div>
+                                        <span class="status-badge status-completed">Selesai</span>
+                                    </div>
+                                </div>
+                                <% }); %>
+                                    <% } else { %>
+                                        <div class="text-center py-5">
+                                            <i class="bi bi-receipt fs-1 text-muted"></i>
+                                            <h5 class="mt-3">Belum ada pembayaran</h5>
+                                            <p class="text-muted">Kolektor ini belum melakukan pembayaran dalam periode
+                                                yang dipilih.</p>
+                                        </div>
+                                        <% } %>
+                    </div>
+                </main>
         </div>
     </div>
 
@@ -313,29 +331,32 @@
         function goBack() {
             window.history.back();
         }
-        
+
         function applyFilters() {
             const dateFrom = document.getElementById('dateFrom').value;
             const dateTo = document.getElementById('dateTo').value;
-            
+
             const params = new URLSearchParams();
             if (dateFrom) params.append('dateFrom', dateFrom);
             if (dateTo) params.append('dateTo', dateTo);
-            
+
             window.location.href = `/admin/billing/collector-details/<%= collector.id %>?${params.toString()}`;
         }
-        
+
         function exportCollectorDetails() {
             const dateFrom = document.getElementById('dateFrom').value;
             const dateTo = document.getElementById('dateTo').value;
-            
+
             const params = new URLSearchParams();
             if (dateFrom) params.append('dateFrom', dateFrom);
             if (dateTo) params.append('dateTo', dateTo);
             params.append('export', 'excel');
-            
+
             window.location.href = `/admin/billing/collector-details/<%= collector.id %>/export?${params.toString()}`;
         }
     </script>
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'payments' }) %>
 </body>
+
 </html>

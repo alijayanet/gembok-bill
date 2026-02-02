@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,25 +16,31 @@
             border-left: 4px solid #007bff;
             height: 100%;
         }
+
         .summary-card:hover {
             transform: translateY(-2px);
         }
+
         .card {
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             border: none;
         }
+
         .card-body {
             padding: 1.25rem;
         }
+
         .stat-item {
             background: #f8f9fa;
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 10px;
         }
+
         .stat-item:last-child {
             margin-bottom: 0;
         }
+
         .month-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -41,20 +48,24 @@
             padding: 15px;
             margin-bottom: 20px;
         }
+
         .stat-item {
             background: #f8f9fa;
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 10px;
         }
+
         .revenue-positive {
             color: #28a745;
             font-weight: bold;
         }
+
         .revenue-negative {
             color: #dc3545;
             font-weight: bold;
         }
+
         .chart-container {
             height: 300px;
             background: #f8f9fa;
@@ -62,15 +73,19 @@
             padding: 20px;
             margin: 20px 0;
         }
+
         .trend-up {
             color: #28a745;
         }
+
         .trend-down {
             color: #dc3545;
         }
+
         .trend-stable {
             color: #6c757d;
         }
+
         .kpi-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -78,38 +93,46 @@
             padding: 20px;
             margin-bottom: 20px;
         }
+
         .metric-card {
             background: white;
             border-radius: 10px;
             padding: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 0;
             height: 100%;
         }
+
         .kpi-row {
             margin-bottom: 0;
         }
+
         .kpi-col {
             margin-bottom: 15px;
         }
+
         .growth-indicator {
             font-size: 0.8rem;
             padding: 2px 8px;
             border-radius: 12px;
             font-weight: bold;
         }
+
         .growth-positive {
             background: #d4edda;
             color: #155724;
         }
+
         .growth-negative {
             background: #f8d7da;
             color: #721c24;
         }
+
         .growth-neutral {
             background: #e2e3e5;
             color: #383d41;
         }
+
         .chart-container {
             height: 300px;
             background: #f8f9fa;
@@ -117,311 +140,346 @@
             padding: 20px;
             margin: 20px 0;
         }
+
         .row {
             margin-left: -15px;
             margin-right: -15px;
         }
-        .col-xl-4, .col-xl-6, .col-xl-8, .col-lg-6, .col-md-12, .col-12 {
+
+        .col-xl-4,
+        .col-xl-6,
+        .col-xl-8,
+        .col-lg-6,
+        .col-md-12,
+        .col-12 {
             padding-left: 15px;
             padding-right: 15px;
         }
+
         .mb-4 {
             margin-bottom: 1.5rem !important;
         }
+
         .mb-3 {
             margin-bottom: 1rem !important;
         }
+
         .card-body.d-flex {
             min-height: 400px;
         }
+
         .stat-item {
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
-        .stat-item h4, .stat-item h5 {
+
+        .stat-item h4,
+        .stat-item h5 {
             margin-bottom: 0;
         }
+
         .stat-item h6 {
             margin-bottom: 0.5rem;
         }
+
         .bg-primary {
             background-color: #007bff !important;
         }
+
         .text-white {
             color: #fff !important;
         }
+
         .chart-section {
             margin-bottom: 2rem;
         }
+
         .chart-card {
             height: 400px;
         }
+
         .chart-card .card-body {
             height: calc(100% - 60px);
             display: flex;
             align-items: center;
             justify-content: center;
         }
+
         .chart-card canvas {
             max-height: 100%;
             max-width: 100%;
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-calendar"></i> Summary Bulanan
-                    </h1>
-                    <div>
-                        <a href="/admin/billing/export/monthly-summary.xlsx" class="btn btn-warning me-2">
-                            <i class="bx bx-download"></i> Export Excel
-                        </a>
-                        <button id="generateSummaryBtn" class="btn btn-success me-2" onclick="generateSummary()">
-                            <i class="bx bx-plus"></i> Generate Summary Bulan Ini
-                        </button>
-                        <button id="monthlyResetBtn" class="btn btn-danger me-2" onclick="monthlyReset()">
-                            <i class="bx bx-reset"></i> Reset Bulanan
-                        </button>
-                        <a href="/admin/billing/dashboard" class="btn btn-outline-primary">
-                            <i class="bx bx-arrow-back"></i> Kembali ke Dashboard
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Info Card -->
-                <div class="alert alert-info">
-                    <i class="bx bx-info-circle me-2"></i>
-                    <strong>Info:</strong> Summary bulanan akan otomatis di-generate setiap tanggal 1 pukul 23:59. 
-                    Data summary ini akan disimpan sebagai catatan keuangan dan tidak akan ter-reset.
-                </div>
-
-                <!-- KPI Overview -->
-                <div class="row mb-4" id="kpiOverview">
-                    <div class="col-12">
-                        <div class="kpi-card">
-                            <h4 class="mb-3"><i class="bx bx-trending-up"></i> Analisis Trend 12 Bulan Terakhir</h4>
-                            <div class="row kpi-row">
-                                <div class="col-md-3 kpi-col">
-                                    <div class="metric-card">
-                                        <h6 class="text-muted mb-1">Total Revenue Growth</h6>
-                                        <h4 class="mb-0" id="revenueGrowth">-</h4>
-                                        <small id="revenueGrowthIndicator" class="growth-indicator">-</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 kpi-col">
-                                    <div class="metric-card">
-                                        <h6 class="text-muted mb-1">Customer Growth</h6>
-                                        <h4 class="mb-0" id="customerGrowth">-</h4>
-                                        <small id="customerGrowthIndicator" class="growth-indicator">-</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 kpi-col">
-                                    <div class="metric-card">
-                                        <h6 class="text-muted mb-1">Avg Monthly Revenue</h6>
-                                        <h4 class="mb-0" id="avgRevenue">-</h4>
-                                        <small class="text-muted">12 bulan terakhir</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 kpi-col">
-                                    <div class="metric-card">
-                                        <h6 class="text-muted mb-1">Best Month</h6>
-                                        <h4 class="mb-0" id="bestMonth">-</h4>
-                                        <small class="text-muted">Revenue tertinggi</small>
-                                    </div>
-                                </div>
-                            </div>
+                <!-- Main content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="bx bx-calendar"></i> Summary Bulanan
+                        </h1>
+                        <div>
+                            <a href="/admin/billing/export/monthly-summary.xlsx" class="btn btn-warning me-2">
+                                <i class="bx bx-download"></i> Export Excel
+                            </a>
+                            <button id="generateSummaryBtn" class="btn btn-success me-2" onclick="generateSummary()">
+                                <i class="bx bx-plus"></i> Generate Summary Bulan Ini
+                            </button>
+                            <button id="monthlyResetBtn" class="btn btn-danger me-2" onclick="monthlyReset()">
+                                <i class="bx bx-reset"></i> Reset Bulanan
+                            </button>
+                            <a href="/admin/billing/dashboard" class="btn btn-outline-primary">
+                                <i class="bx bx-arrow-back"></i> Kembali ke Dashboard
+                            </a>
                         </div>
                     </div>
-                </div>
 
-                <!-- Revenue Analysis -->
-                <div class="row chart-section" id="revenueAnalysis">
-                    <div class="col-xl-8 mb-3">
-                        <div class="card chart-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-line-chart"></i> Trend Pendapatan 12 Bulan Terakhir
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="revenueChart" width="400" height="200"></canvas>
-                            </div>
-                        </div>
+                    <!-- Info Card -->
+                    <div class="alert alert-info">
+                        <i class="bx bx-info-circle me-2"></i>
+                        <strong>Info:</strong> Summary bulanan akan otomatis di-generate setiap tanggal 1 pukul 23:59.
+                        Data summary ini akan disimpan sebagai catatan keuangan dan tidak akan ter-reset.
                     </div>
-                    <div class="col-xl-4 mb-3">
-                        <div class="card chart-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-pie-chart"></i> Distribusi Revenue
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="revenueDistributionChart" width="300" height="200"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Customer & Invoice Analysis -->
-                <div class="row chart-section" id="customerInvoiceAnalysis">
-                    <div class="col-xl-6 mb-3">
-                        <div class="card chart-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-group"></i> Trend Pelanggan
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="customerChart" width="400" height="200"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-6 mb-3">
-                        <div class="card chart-card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-receipt"></i> Invoice Performance
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="invoiceChart" width="400" height="200"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Summary List -->
-                <div class="row">
-                    <% if (summaries && summaries.length > 0) { %>
-                        <% summaries.forEach(function(summary) { %>
-                            <div class="col-xl-4 col-lg-6 col-md-12 mb-4">
-                                <div class="card summary-card h-100">
-                                    <div class="card-header">
-                                        <h5 class="card-title mb-0">
-                                            <i class="bx bx-calendar"></i> 
-                                            <%= new Date(summary.year, summary.month - 1).toLocaleDateString('id-ID', { year: 'numeric', month: 'long' }) %>
-                                        </h5>
-                                        <small class="text-muted">
-                                            Dibuat: <%= new Date(summary.created_at).toLocaleDateString('id-ID') %>
-                                        </small>
-                                    </div>
-                                    <div class="card-body d-flex flex-column">
-                                        <!-- Customer Stats -->
-                                        <div class="row mb-3">
-                                            <div class="col-6">
-                                                <div class="stat-item">
-                                                    <h6 class="text-primary mb-1">Total Pelanggan</h6>
-                                                    <h4 class="mb-0"><%= summary.total_customers %></h4>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="stat-item">
-                                                    <h6 class="text-success mb-1">Pelanggan Aktif</h6>
-                                                    <h4 class="mb-0"><%= summary.active_customers %></h4>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Invoice Stats -->
-                                        <div class="row mb-3">
-                                            <div class="col-6">
-                                                <div class="stat-item">
-                                                    <h6 class="text-info mb-1">Tagihan Bulanan</h6>
-                                                    <h5 class="mb-0"><%= summary.monthly_invoices %></h5>
-                                                    <small class="text-muted">
-                                                        Lunas: <%= summary.paid_monthly_invoices %> | 
-                                                        Belum: <%= summary.unpaid_monthly_invoices %>
-                                                    </small>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="stat-item">
-                                                    <h6 class="text-warning mb-1">Tagihan Voucher</h6>
-                                                    <h5 class="mb-0"><%= summary.voucher_invoices %></h5>
-                                                    <small class="text-muted">
-                                                        Lunas: <%= summary.paid_voucher_invoices %> | 
-                                                        Belum: <%= summary.unpaid_voucher_invoices %>
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Revenue Stats -->
-                                        <div class="row mb-3">
-                                            <div class="col-6">
-                                                <div class="stat-item">
-                                                    <h6 class="text-success mb-1">Pendapatan Bulanan</h6>
-                                                    <h5 class="revenue-positive mb-0">
-                                                        Rp <%= summary.monthly_revenue.toLocaleString('id-ID') %>
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="stat-item">
-                                                    <h6 class="text-info mb-1">Pendapatan Voucher</h6>
-                                                    <h5 class="revenue-positive mb-0">
-                                                        Rp <%= summary.voucher_revenue.toLocaleString('id-ID') %>
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Total Revenue -->
-                                        <div class="mt-auto">
-                                            <div class="stat-item bg-primary text-white">
-                                                <h6 class="mb-1">Total Pendapatan</h6>
-                                                <h4 class="mb-0">
-                                                    Rp <%= summary.total_revenue.toLocaleString('id-ID') %>
-                                                </h4>
-                                            </div>
-
-                                            <!-- Notes -->
-                                            <% if (summary.notes) { %>
-                                                <div class="mt-2">
-                                                    <small class="text-muted">
-                                                        <i class="bx bx-note"></i> <%= summary.notes %>
-                                                    </small>
-                                                </div>
-                                            <% } %>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <% }); %>
-                    <% } else { %>
+                    <!-- KPI Overview -->
+                    <div class="row mb-4" id="kpiOverview">
                         <div class="col-12">
-                            <div class="text-center py-5">
-                                <i class="bx bx-calendar-x" style="font-size: 4rem; color: #6c757d;"></i>
-                                <h4 class="mt-3 text-muted">Belum Ada Summary Bulanan</h4>
-                                <p class="text-muted">Summary akan otomatis di-generate setiap tanggal 1, atau Anda bisa generate manual.</p>
-                                <button class="btn btn-success" onclick="generateSummary()">
-                                    <i class="bx bx-plus"></i> Generate Summary Pertama
-                                </button>
+                            <div class="kpi-card">
+                                <h4 class="mb-3"><i class="bx bx-trending-up"></i> Analisis Trend 12 Bulan Terakhir</h4>
+                                <div class="row kpi-row">
+                                    <div class="col-md-3 kpi-col">
+                                        <div class="metric-card">
+                                            <h6 class="text-muted mb-1">Total Revenue Growth</h6>
+                                            <h4 class="mb-0" id="revenueGrowth">-</h4>
+                                            <small id="revenueGrowthIndicator" class="growth-indicator">-</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 kpi-col">
+                                        <div class="metric-card">
+                                            <h6 class="text-muted mb-1">Customer Growth</h6>
+                                            <h4 class="mb-0" id="customerGrowth">-</h4>
+                                            <small id="customerGrowthIndicator" class="growth-indicator">-</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 kpi-col">
+                                        <div class="metric-card">
+                                            <h6 class="text-muted mb-1">Avg Monthly Revenue</h6>
+                                            <h4 class="mb-0" id="avgRevenue">-</h4>
+                                            <small class="text-muted">12 bulan terakhir</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 kpi-col">
+                                        <div class="metric-card">
+                                            <h6 class="text-muted mb-1">Best Month</h6>
+                                            <h4 class="mb-0" id="bestMonth">-</h4>
+                                            <small class="text-muted">Revenue tertinggi</small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    <% } %>
-                </div>
-            </main>
+                    </div>
+
+                    <!-- Revenue Analysis -->
+                    <div class="row chart-section" id="revenueAnalysis">
+                        <div class="col-xl-8 mb-3">
+                            <div class="card chart-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bx bx-line-chart"></i> Trend Pendapatan 12 Bulan Terakhir
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="revenueChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-4 mb-3">
+                            <div class="card chart-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bx bx-pie-chart"></i> Distribusi Revenue
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="revenueDistributionChart" width="300" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer & Invoice Analysis -->
+                    <div class="row chart-section" id="customerInvoiceAnalysis">
+                        <div class="col-xl-6 mb-3">
+                            <div class="card chart-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bx bx-group"></i> Trend Pelanggan
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="customerChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-6 mb-3">
+                            <div class="card chart-card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bx bx-receipt"></i> Invoice Performance
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="invoiceChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary List -->
+                    <div class="row">
+                        <% if (summaries && summaries.length> 0) { %>
+                            <% summaries.forEach(function(summary) { %>
+                                <div class="col-xl-4 col-lg-6 col-md-12 mb-4">
+                                    <div class="card summary-card h-100">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">
+                                                <i class="bx bx-calendar"></i>
+                                                <%= new Date(summary.year, summary.month -
+                                                    1).toLocaleDateString('id-ID', { year: 'numeric' , month: 'long' })
+                                                    %>
+                                            </h5>
+                                            <small class="text-muted">
+                                                Dibuat: <%= new Date(summary.created_at).toLocaleDateString('id-ID') %>
+                                            </small>
+                                        </div>
+                                        <div class="card-body d-flex flex-column">
+                                            <!-- Customer Stats -->
+                                            <div class="row mb-3">
+                                                <div class="col-6">
+                                                    <div class="stat-item">
+                                                        <h6 class="text-primary mb-1">Total Pelanggan</h6>
+                                                        <h4 class="mb-0">
+                                                            <%= summary.total_customers %>
+                                                        </h4>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="stat-item">
+                                                        <h6 class="text-success mb-1">Pelanggan Aktif</h6>
+                                                        <h4 class="mb-0">
+                                                            <%= summary.active_customers %>
+                                                        </h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Invoice Stats -->
+                                            <div class="row mb-3">
+                                                <div class="col-6">
+                                                    <div class="stat-item">
+                                                        <h6 class="text-info mb-1">Tagihan Bulanan</h6>
+                                                        <h5 class="mb-0">
+                                                            <%= summary.monthly_invoices %>
+                                                        </h5>
+                                                        <small class="text-muted">
+                                                            Lunas: <%= summary.paid_monthly_invoices %> |
+                                                                Belum: <%= summary.unpaid_monthly_invoices %>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="stat-item">
+                                                        <h6 class="text-warning mb-1">Tagihan Voucher</h6>
+                                                        <h5 class="mb-0">
+                                                            <%= summary.voucher_invoices %>
+                                                        </h5>
+                                                        <small class="text-muted">
+                                                            Lunas: <%= summary.paid_voucher_invoices %> |
+                                                                Belum: <%= summary.unpaid_voucher_invoices %>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Revenue Stats -->
+                                            <div class="row mb-3">
+                                                <div class="col-6">
+                                                    <div class="stat-item">
+                                                        <h6 class="text-success mb-1">Pendapatan Bulanan</h6>
+                                                        <h5 class="revenue-positive mb-0">
+                                                            Rp <%= summary.monthly_revenue.toLocaleString('id-ID') %>
+                                                        </h5>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="stat-item">
+                                                        <h6 class="text-info mb-1">Pendapatan Voucher</h6>
+                                                        <h5 class="revenue-positive mb-0">
+                                                            Rp <%= summary.voucher_revenue.toLocaleString('id-ID') %>
+                                                        </h5>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Total Revenue -->
+                                            <div class="mt-auto">
+                                                <div class="stat-item bg-primary text-white">
+                                                    <h6 class="mb-1">Total Pendapatan</h6>
+                                                    <h4 class="mb-0">
+                                                        Rp <%= summary.total_revenue.toLocaleString('id-ID') %>
+                                                    </h4>
+                                                </div>
+
+                                                <!-- Notes -->
+                                                <% if (summary.notes) { %>
+                                                    <div class="mt-2">
+                                                        <small class="text-muted">
+                                                            <i class="bx bx-note"></i>
+                                                            <%= summary.notes %>
+                                                        </small>
+                                                    </div>
+                                                    <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% }); %>
+                                    <% } else { %>
+                                        <div class="col-12">
+                                            <div class="text-center py-5">
+                                                <i class="bx bx-calendar-x"
+                                                    style="font-size: 4rem; color: #6c757d;"></i>
+                                                <h4 class="mt-3 text-muted">Belum Ada Summary Bulanan</h4>
+                                                <p class="text-muted">Summary akan otomatis di-generate setiap tanggal
+                                                    1, atau Anda bisa generate manual.</p>
+                                                <button class="btn btn-success" onclick="generateSummary()">
+                                                    <i class="bx bx-plus"></i> Generate Summary Pertama
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <% } %>
+                    </div>
+                </main>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Data dari server
-        const summariesData = <%- JSON.stringify(summaries || []) %>;
-        
+        const summariesData = <% - JSON.stringify(summaries || []) %>;
+
         // Inisialisasi saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             if (summariesData && summariesData.length > 0) {
                 initializeAnalytics();
                 showAnalyticsSections();
@@ -435,7 +493,7 @@
                 const kpiOverview = document.getElementById('kpiOverview');
                 const revenueAnalysis = document.getElementById('revenueAnalysis');
                 const customerInvoiceAnalysis = document.getElementById('customerInvoiceAnalysis');
-                
+
                 if (kpiOverview) {
                     kpiOverview.style.display = 'block';
                     console.log('KPI Overview shown');
@@ -457,10 +515,10 @@
 
             // Ambil data 12 bulan terakhir
             const recentData = summariesData.slice(0, 12).reverse();
-            
+
             // Hitung KPI
             calculateKPIs(recentData);
-            
+
             // Buat grafik
             createRevenueChart(recentData);
             createRevenueDistributionChart(recentData);
@@ -477,7 +535,7 @@
                 const latestRevenue = data[data.length - 1].total_revenue;
                 const previousRevenue = data[data.length - 2].total_revenue;
                 const revenueGrowth = ((latestRevenue - previousRevenue) / previousRevenue * 100).toFixed(1);
-                
+
                 document.getElementById('revenueGrowth').textContent = revenueGrowth + '%';
                 const revenueIndicator = document.getElementById('revenueGrowthIndicator');
                 if (revenueGrowth > 0) {
@@ -501,7 +559,7 @@
                 const latestCustomers = data[data.length - 1].total_customers;
                 const previousCustomers = data[data.length - 2].total_customers;
                 const customerGrowth = ((latestCustomers - previousCustomers) / previousCustomers * 100).toFixed(1);
-                
+
                 document.getElementById('customerGrowth').textContent = customerGrowth + '%';
                 const customerIndicator = document.getElementById('customerGrowthIndicator');
                 if (customerGrowth > 0) {
@@ -571,7 +629,7 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: function(value) {
+                                callback: function (value) {
                                     return 'Rp ' + value.toLocaleString('id-ID');
                                 }
                             }
@@ -580,7 +638,7 @@
                     plugins: {
                         tooltip: {
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     return context.dataset.label + ': Rp ' + context.parsed.y.toLocaleString('id-ID');
                                 }
                             }
@@ -594,8 +652,8 @@
         function createRevenueDistributionChart(data) {
             const ctx = document.getElementById('revenueDistributionChart').getContext('2d');
             const latest = data[data.length - 1];
-            
-            
+
+
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -616,7 +674,7 @@
                         },
                         tooltip: {
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const percentage = ((context.parsed / total) * 100).toFixed(1);
                                     return context.label + ': Rp ' + context.parsed.toLocaleString('id-ID') + ' (' + percentage + '%)';
@@ -710,11 +768,11 @@
         async function generateSummary() {
             const btn = document.getElementById('generateSummaryBtn');
             const originalText = btn.innerHTML;
-            
+
             // Disable button dan show loading
             btn.disabled = true;
             btn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i>Generating...';
-            
+
             try {
                 const response = await fetch('/admin/billing/api/generate-monthly-summary', {
                     method: 'POST',
@@ -722,13 +780,13 @@
                         'Content-Type': 'application/json',
                     }
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     // Show success message
                     showAlert('success', 'Berhasil!', result.message);
-                    
+
                     // Reload page setelah 2 detik
                     setTimeout(() => {
                         location.reload();
@@ -753,11 +811,11 @@
 
             const btn = document.getElementById('monthlyResetBtn');
             const originalText = btn.innerHTML;
-            
+
             // Disable button dan show loading
             btn.disabled = true;
             btn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i>Resetting...';
-            
+
             try {
                 const response = await fetch('/admin/billing/api/monthly-reset', {
                     method: 'POST',
@@ -765,16 +823,16 @@
                         'Content-Type': 'application/json',
                     }
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     // Show success message
-                    showAlert('success', 'Reset Berhasil!', 
+                    showAlert('success', 'Reset Berhasil!',
                         `Summary bulan ${result.previousMonth}/${result.previousYear} telah disimpan.\n` +
                         `Counter direset untuk bulan ${result.month}/${result.year}.\n` +
                         `Diproses ${result.collectorsProcessed} collector.`);
-                    
+
                     // Reload page setelah 3 detik
                     setTimeout(() => {
                         location.reload();
@@ -799,12 +857,12 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             `;
-            
+
             // Insert alert di atas content
             const mainContent = document.querySelector('.main-content');
             const firstChild = mainContent.firstElementChild;
             firstChild.insertAdjacentHTML('afterend', alertHtml);
-            
+
             // Auto dismiss setelah 5 detik
             setTimeout(() => {
                 const alert = document.querySelector('.alert');
@@ -823,7 +881,7 @@
 
             const resetBtn = document.getElementById('monthlyResetBtn');
             const originalText = resetBtn.innerHTML;
-            
+
             try {
                 // Show loading state
                 resetBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
@@ -841,9 +899,9 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    showAlert('success', 'Reset Bulanan Berhasil!', 
+                    showAlert('success', 'Reset Bulanan Berhasil!',
                         'Data bulanan telah direset. Statistik akan dimulai dari nol untuk bulan ini.');
-                    
+
                     // Reload page setelah 2 detik
                     setTimeout(() => {
                         window.location.reload();
@@ -867,11 +925,11 @@
             try {
                 const response = await fetch('/admin/billing/api/monthly-reset-status');
                 const result = await response.json();
-                
+
                 if (result.success) {
                     const data = result.data;
                     console.log('Monthly reset status:', data);
-                    
+
                     // Update UI dengan informasi reset
                     if (data.lastReset) {
                         const lastResetDate = new Date(data.lastReset).toLocaleDateString('id-ID');
@@ -884,9 +942,12 @@
         }
 
         // Load reset status saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             getMonthlyResetStatus();
         });
     </script>
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'dashboard' }) %>
 </body>
+
 </html>

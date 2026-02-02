@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,230 +12,261 @@
     <!-- Admin Mobile Optimizations -->
     <link href="/css/admin-mobile.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Include Billing Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-receipt"></i> Detail Invoice
-                    </h1>
-                    <div class="btn-group" role="group">
-                        <a href="/admin/billing/invoices/<%= invoice.id %>/print" target="_blank" class="btn btn-outline-primary">
-                            <i class="bx bx-printer"></i> Cetak
-                        </a>
-                        <a href="/admin/billing/invoices/<%= invoice.id %>/edit" class="btn btn-outline-secondary">
-                            <i class="bx bx-edit"></i> Edit
-                        </a>
-                        <a href="/admin/billing/invoices" class="btn btn-outline-info">
-                            <i class="bx bx-arrow-back"></i> Kembali
-                        </a>
+                <!-- Main content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="bx bx-receipt"></i> Detail Invoice
+                        </h1>
+                        <div class="btn-group" role="group">
+                            <a href="/admin/billing/invoices/<%= invoice.id %>/print" target="_blank"
+                                class="btn btn-outline-primary">
+                                <i class="bx bx-printer"></i> Cetak
+                            </a>
+                            <a href="/admin/billing/invoices/<%= invoice.id %>/edit" class="btn btn-outline-secondary">
+                                <i class="bx bx-edit"></i> Edit
+                            </a>
+                            <a href="/admin/billing/invoices" class="btn btn-outline-info">
+                                <i class="bx bx-arrow-back"></i> Kembali
+                            </a>
+                        </div>
                     </div>
-                </div>
 
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-info-circle"></i> Informasi Invoice
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <table class="table table-borderless">
-                                            <tr>
-                                                <td class="fw-bold">No. Invoice:</td>
-                                                <td><%= invoice.invoice_number %></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold">Status:</td>
-                                                <td>
-                                                    <% if (invoice.status === 'paid') { %>
-                                                        <span class="badge bg-success">Lunas</span>
-                                                    <% } else if (invoice.status === 'unpaid') { %>
-                                                        <% if (new Date(invoice.due_date) < new Date()) { %>
-                                                            <span class="badge bg-danger">Terlambat</span>
-                                                        <% } else { %>
-                                                            <span class="badge bg-warning">Belum Lunas</span>
-                                                        <% } %>
-                                                    <% } %>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold">Jumlah:</td>
-                                                <td class="h5 text-primary">Rp <%= Math.round(parseFloat(invoice.amount)).toLocaleString('id-ID') %></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold">Jatuh Tempo:</td>
-                                                <td>
-                                                    <% if (new Date(invoice.due_date) < new Date() && invoice.status === 'unpaid') { %>
-                                                        <span class="text-danger">
-                                                            <%= new Date(invoice.due_date).toLocaleDateString('id-ID') %>
-                                                        </span>
-                                                    <% } else { %>
-                                                        <%= new Date(invoice.due_date).toLocaleDateString('id-ID') %>
-                                                    <% } %>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <table class="table table-borderless">
-                                            <tr>
-                                                <td class="fw-bold">Tanggal Dibuat:</td>
-                                                <td><%= new Date(invoice.created_at).toLocaleDateString('id-ID') %></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold">Paket:</td>
-                                                <td><%= invoice.package_name %></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold">Kecepatan:</td>
-                                                <td><%= invoice.package_speed %></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold">Catatan:</td>
-                                                <td><%= invoice.notes || '-' %></td>
-                                            </tr>
-                                        </table>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bx bx-info-circle"></i> Informasi Invoice
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <td class="fw-bold">No. Invoice:</td>
+                                                    <td>
+                                                        <%= invoice.invoice_number %>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-bold">Status:</td>
+                                                    <td>
+                                                        <% if (invoice.status==='paid' ) { %>
+                                                            <span class="badge bg-success">Lunas</span>
+                                                            <% } else if (invoice.status==='unpaid' ) { %>
+                                                                <% if (new Date(invoice.due_date) < new Date()) { %>
+                                                                    <span class="badge bg-danger">Terlambat</span>
+                                                                    <% } else { %>
+                                                                        <span class="badge bg-warning">Belum
+                                                                            Lunas</span>
+                                                                        <% } %>
+                                                                            <% } %>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-bold">Jumlah:</td>
+                                                    <td class="h5 text-primary">Rp <%=
+                                                            Math.round(parseFloat(invoice.amount)).toLocaleString('id-ID')
+                                                            %>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-bold">Jatuh Tempo:</td>
+                                                    <td>
+                                                        <% if (new Date(invoice.due_date) < new Date() &&
+                                                            invoice.status==='unpaid' ) { %>
+                                                            <span class="text-danger">
+                                                                <%= new
+                                                                    Date(invoice.due_date).toLocaleDateString('id-ID')
+                                                                    %>
+                                                            </span>
+                                                            <% } else { %>
+                                                                <%= new
+                                                                    Date(invoice.due_date).toLocaleDateString('id-ID')
+                                                                    %>
+                                                                    <% } %>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <td class="fw-bold">Tanggal Dibuat:</td>
+                                                    <td>
+                                                        <%= new Date(invoice.created_at).toLocaleDateString('id-ID') %>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-bold">Paket:</td>
+                                                    <td>
+                                                        <%= invoice.package_name %>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-bold">Kecepatan:</td>
+                                                    <td>
+                                                        <%= invoice.package_speed %>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-bold">Catatan:</td>
+                                                    <td>
+                                                        <%= invoice.notes || '-' %>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Payment Gateway Section -->
-                <% if (invoice.status === 'unpaid') { %>
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-credit-card"></i> Pembayaran Online
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h6>Status Payment Gateway:</h6>
-                                        <div id="gatewayStatus">
-                                            <div class="spinner-border spinner-border-sm" role="status">
-                                                <span class="visually-hidden">Loading...</span>
+                    <!-- Payment Gateway Section -->
+                    <% if (invoice.status==='unpaid' ) { %>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">
+                                            <i class="bx bx-credit-card"></i> Pembayaran Online
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>Status Payment Gateway:</h6>
+                                                <div id="gatewayStatus">
+                                                    <div class="spinner-border spinner-border-sm" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                    <span class="ms-2">Mengecek status gateway...</span>
+                                                </div>
                                             </div>
-                                            <span class="ms-2">Mengecek status gateway...</span>
+                                            <div class="col-md-6">
+                                                <h6>Buat Payment Link:</h6>
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-primary" onclick="createPayment('midtrans')">
+                                                        <i class="bx bx-credit-card"></i> Midtrans
+                                                    </button>
+                                                    <button class="btn btn-info" onclick="createPayment('xendit')">
+                                                        <i class="bx bx-credit-card"></i> Xendit
+                                                    </button>
+                                                    <button class="btn btn-warning" onclick="createPayment('tripay')">
+                                                        <i class="bx bx-credit-card"></i> Tripay
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="paymentResult" class="mt-3" style="display: none;">
+                                            <div class="alert alert-info">
+                                                <h6>Payment Link Berhasil Dibuat:</h6>
+                                                <p id="paymentUrl" class="mb-2"></p>
+                                                <button class="btn btn-sm btn-primary" onclick="copyPaymentUrl()">
+                                                    <i class="bx bx-content-copy"></i> Copy Link
+                                                </button>
+                                                <a id="paymentLink" href="#" target="_blank"
+                                                    class="btn btn-sm btn-success">
+                                                    <i class="bx bx-open-in-new"></i> Buka Link
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <h6>Buat Payment Link:</h6>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-primary" onclick="createPayment('midtrans')">
-                                                <i class="bx bx-credit-card"></i> Midtrans
-                                            </button>
-                                            <button class="btn btn-info" onclick="createPayment('xendit')">
-                                                <i class="bx bx-credit-card"></i> Xendit
-                                            </button>
-                                            <button class="btn btn-warning" onclick="createPayment('tripay')">
-                                                <i class="bx bx-credit-card"></i> Tripay
-                                            </button>
+                                </div>
+                            </div>
+                        </div>
+                        <% } %>
+
+                            <!-- Payment Transactions -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">
+                                                <i class="bx bx-history"></i> Riwayat Transaksi Payment Gateway
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="paymentTransactions">
+                                                <div class="spinner-border spinner-border-sm" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <span class="ms-2">Loading transaksi...</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div id="paymentResult" class="mt-3" style="display: none;">
-                                    <div class="alert alert-info">
-                                        <h6>Payment Link Berhasil Dibuat:</h6>
-                                        <p id="paymentUrl" class="mb-2"></p>
-                                        <button class="btn btn-sm btn-primary" onclick="copyPaymentUrl()">
-                                            <i class="bx bx-content-copy"></i> Copy Link
-                                        </button>
-                                        <a id="paymentLink" href="#" target="_blank" class="btn btn-sm btn-success">
-                                            <i class="bx bx-open-in-new"></i> Buka Link
-                                        </a>
+                            </div>
+
+                            <!-- Manual Payment Section -->
+                            <% if (invoice.status==='unpaid' ) { %>
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5 class="card-title mb-0">Aksi Manual</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#markAsPaidModal">
+                                                    <i class="bx bx-cash-check"></i> Tandai Sebagai Lunas
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <% } %>
+                                <% } %>
 
-                <!-- Payment Transactions -->
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-history"></i> Riwayat Transaksi Payment Gateway
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="paymentTransactions">
-                                    <div class="spinner-border spinner-border-sm" role="status">
-                                        <span class="visually-hidden">Loading...</span>
+                                    <!-- Service Control Section -->
+                                    <div class="row mt-4">
+                                        <div class="col-12">
+                                            <div class="card">
+                                                <div
+                                                    class="card-header d-flex align-items-center justify-content-between">
+                                                    <h5 class="card-title mb-0">
+                                                        <i class="bx bx-shield"></i> Kontrol Layanan (Mikrotik)
+                                                    </h5>
+                                                    <span class="badge bg-light text-dark">Customer: <%=
+                                                            invoice.customer_name %> • Status: <%=
+                                                                invoice.customer_status %></span>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="d-flex gap-2 flex-wrap">
+                                                        <button id="btnIsolir" class="btn btn-outline-danger"
+                                                            onclick="isolirManual()">
+                                                            <i class="bx bx-block"></i> Isolir Manual
+                                                        </button>
+                                                        <button id="btnRestore" class="btn btn-outline-success"
+                                                            onclick="restoreManual()">
+                                                            <i class="bx bx-check-circle"></i> Restore Manual
+                                                        </button>
+                                                    </div>
+                                                    <small class="text-muted d-block mt-2">Aksi ini akan mengubah profil
+                                                        PPPoE di Mikrotik dan status pelanggan di billing.</small>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <span class="ms-2">Loading transaksi...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Manual Payment Section -->
-                <% if (invoice.status === 'unpaid') { %>
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Aksi Manual</h5>
-                            </div>
-                            <div class="card-body">
-                                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#markAsPaidModal">
-                                    <i class="bx bx-cash-check"></i> Tandai Sebagai Lunas
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <% } %>
-
-                <!-- Service Control Section -->
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header d-flex align-items-center justify-content-between">
-                                <h5 class="card-title mb-0">
-                                    <i class="bx bx-shield"></i> Kontrol Layanan (Mikrotik)
-                                </h5>
-                                <span class="badge bg-light text-dark">Customer: <%= invoice.customer_name %> • Status: <%= invoice.customer_status %></span>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex gap-2 flex-wrap">
-                                    <button id="btnIsolir" class="btn btn-outline-danger" onclick="isolirManual()">
-                                        <i class="bx bx-block"></i> Isolir Manual
-                                    </button>
-                                    <button id="btnRestore" class="btn btn-outline-success" onclick="restoreManual()">
-                                        <i class="bx bx-check-circle"></i> Restore Manual
-                                    </button>
-                                </div>
-                                <small class="text-muted d-block mt-2">Aksi ini akan mengubah profil PPPoE di Mikrotik dan status pelanggan di billing.</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </main>
+                </main>
         </div>
     </div>
 
     <!-- Modal Mark as Paid -->
-    <div class="modal fade" id="markAsPaidModal" tabindex="-1" aria-labelledby="markAsPaidModalLabel" aria-hidden="true">
+    <div class="modal fade" id="markAsPaidModal" tabindex="-1" aria-labelledby="markAsPaidModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -257,7 +289,8 @@
                         </div>
                         <div class="mb-3">
                             <label for="paymentNotes" class="form-label">Catatan Pembayaran</label>
-                            <textarea class="form-control" id="paymentNotes" name="notes" rows="3" placeholder="Catatan pembayaran (opsional)"></textarea>
+                            <textarea class="form-control" id="paymentNotes" name="notes" rows="3"
+                                placeholder="Catatan pembayaran (opsional)"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -270,60 +303,61 @@
     </div>
 
     <style>
-    .avatar-sm {
-        width: 40px;
-        height: 40px;
-    }
+        .avatar-sm {
+            width: 40px;
+            height: 40px;
+        }
     </style>
 
     <!-- Embed invoice data as attributes to keep JS linter happy -->
-    <div id="invoiceMeta" data-invoice-id="<%= invoice.id %>" data-invoice-amount="<%= parseFloat(invoice.amount) %>" style="display:none;"></div>
+    <div id="invoiceMeta" data-invoice-id="<%= invoice.id %>" data-invoice-amount="<%= parseFloat(invoice.amount) %>"
+        style="display:none;"></div>
 
     <script>
-    // Read server values from data attributes (no EJS inside JS)
-    const _metaEl = document.getElementById('invoiceMeta');
-    const INVOICE_ID = parseInt(_metaEl.getAttribute('data-invoice-id'), 10);
-    const INVOICE_AMOUNT = parseFloat(_metaEl.getAttribute('data-invoice-amount'));
+        // Read server values from data attributes (no EJS inside JS)
+        const _metaEl = document.getElementById('invoiceMeta');
+        const INVOICE_ID = parseInt(_metaEl.getAttribute('data-invoice-id'), 10);
+        const INVOICE_AMOUNT = parseFloat(_metaEl.getAttribute('data-invoice-amount'));
 
-    // Payment Gateway Functions
-    async function loadGatewayStatus() {
-        try {
-            const response = await fetch('/payment/gateway-status');
-            const result = await response.json();
-            
-            if (result.success) {
-                const status = result.data;
-                let statusHtml = '';
-                
-                Object.keys(status).forEach(gateway => {
-                    const isEnabled = status[gateway].enabled;
-                    const isActive = status[gateway].active;
-                    const statusClass = isEnabled ? 'success' : 'danger';
-                    const statusText = isEnabled ? 'Enabled' : 'Disabled';
-                    const activeText = isActive ? ' (Active)' : '';
-                    
-                    statusHtml += `
+        // Payment Gateway Functions
+        async function loadGatewayStatus() {
+            try {
+                const response = await fetch('/payment/gateway-status');
+                const result = await response.json();
+
+                if (result.success) {
+                    const status = result.data;
+                    let statusHtml = '';
+
+                    Object.keys(status).forEach(gateway => {
+                        const isEnabled = status[gateway].enabled;
+                        const isActive = status[gateway].active;
+                        const statusClass = isEnabled ? 'success' : 'danger';
+                        const statusText = isEnabled ? 'Enabled' : 'Disabled';
+                        const activeText = isActive ? ' (Active)' : '';
+
+                        statusHtml += `
                         <span class="badge bg-${statusClass} me-2">
                             ${gateway.toUpperCase()}: ${statusText}${activeText}
                         </span>
                     `;
-                });
-                
-                document.getElementById('gatewayStatus').innerHTML = statusHtml;
-            }
-        } catch (error) {
-            console.error('Error loading gateway status:', error);
-            document.getElementById('gatewayStatus').innerHTML = '<span class="text-danger">Error loading status</span>';
-        }
-    }
+                    });
 
-    async function loadPaymentTransactions() {
-        try {
-            const response = await fetch(`/payment/transactions?invoice_id=${INVOICE_ID}`);
-            const result = await response.json();
-            
-            if (result.success && result.data.length > 0) {
-                let transactionsHtml = `
+                    document.getElementById('gatewayStatus').innerHTML = statusHtml;
+                }
+            } catch (error) {
+                console.error('Error loading gateway status:', error);
+                document.getElementById('gatewayStatus').innerHTML = '<span class="text-danger">Error loading status</span>';
+            }
+        }
+
+        async function loadPaymentTransactions() {
+            try {
+                const response = await fetch(`/payment/transactions?invoice_id=${INVOICE_ID}`);
+                const result = await response.json();
+
+                if (result.success && result.data.length > 0) {
+                    let transactionsHtml = `
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -337,12 +371,12 @@
                             </thead>
                             <tbody>
                 `;
-                
-                result.data.forEach(transaction => {
-                    const statusClass = transaction.status === 'settlement' || transaction.status === 'PAID' ? 'success' : 
-                                      transaction.status === 'pending' ? 'warning' : 'danger';
-                    
-                    transactionsHtml += `
+
+                    result.data.forEach(transaction => {
+                        const statusClass = transaction.status === 'settlement' || transaction.status === 'PAID' ? 'success' :
+                            transaction.status === 'pending' ? 'warning' : 'danger';
+
+                        transactionsHtml += `
                         <tr>
                             <td>${transaction.order_id}</td>
                             <td><span class="badge bg-primary">${transaction.gateway}</span></td>
@@ -351,147 +385,147 @@
                             <td>${new Date(transaction.created_at).toLocaleString('id-ID')}</td>
                         </tr>
                     `;
-                });
-                
-                transactionsHtml += '</tbody></table></div>';
-                document.getElementById('paymentTransactions').innerHTML = transactionsHtml;
-            } else {
-                document.getElementById('paymentTransactions').innerHTML = '<p class="text-muted">Tidak ada transaksi payment gateway</p>';
-            }
-        } catch (error) {
-            console.error('Error loading transactions:', error);
-            document.getElementById('paymentTransactions').innerHTML = '<span class="text-danger">Error loading transactions</span>';
-        }
-    }
+                    });
 
-    async function createPayment(gateway) {
-        try {
-            const button = event.target;
-            const originalText = button.innerHTML;
-            button.innerHTML = '<i class="bx bx-loading bx-spin"></i> Creating...';
-            button.disabled = true;
-            
-            const response = await fetch('/payment/create', {
+                    transactionsHtml += '</tbody></table></div>';
+                    document.getElementById('paymentTransactions').innerHTML = transactionsHtml;
+                } else {
+                    document.getElementById('paymentTransactions').innerHTML = '<p class="text-muted">Tidak ada transaksi payment gateway</p>';
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('paymentTransactions').innerHTML = '<span class="text-danger">Error loading transactions</span>';
+            }
+        }
+
+        async function createPayment(gateway) {
+            try {
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="bx bx-loading bx-spin"></i> Creating...';
+                button.disabled = true;
+
+                const response = await fetch('/payment/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        invoice_id: INVOICE_ID,
+                        gateway: gateway
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const paymentUrl = result.data.payment_url;
+                    document.getElementById('paymentUrl').textContent = paymentUrl;
+                    document.getElementById('paymentLink').href = paymentUrl;
+                    document.getElementById('paymentResult').style.display = 'block';
+
+                    showAlert('success', `Payment link berhasil dibuat dengan ${gateway}`);
+
+                    // Reload transactions
+                    await loadPaymentTransactions();
+                } else {
+                    showAlert('danger', result.message || 'Failed to create payment');
+                }
+            } catch (error) {
+                console.error('Error creating payment:', error);
+                showAlert('danger', 'Error creating payment');
+            } finally {
+                const button = event.target;
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+
+        function copyPaymentUrl() {
+            const paymentUrl = document.getElementById('paymentUrl').textContent;
+            navigator.clipboard.writeText(paymentUrl).then(() => {
+                showAlert('success', 'Payment URL copied to clipboard');
+            }).catch(() => {
+                showAlert('danger', 'Failed to copy URL');
+            });
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            loadGatewayStatus();
+            loadPaymentTransactions();
+        });
+
+        // Manual payment form
+        document.getElementById('markAsPaidForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            const invoiceId = data.invoice_id;
+            const paymentMethod = data.payment_method;
+            const notes = data.notes;
+
+            // Validate required fields
+            if (!paymentMethod) {
+                showAlert('danger', 'Mohon pilih metode pembayaran');
+                return;
+            }
+
+            // Disable submit button to prevent double submission
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bx bx-loading bx-spin"></i> Memproses...';
+
+            // First record the payment
+            fetch('/admin/billing/payments', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    invoice_id: INVOICE_ID,
-                    gateway: gateway
+                    invoice_id: invoiceId,
+                    amount: INVOICE_AMOUNT, // Use actual invoice amount
+                    payment_method: paymentMethod,
+                    notes: notes || '' // Ensure notes is not undefined
                 })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                const paymentUrl = result.data.payment_url;
-                document.getElementById('paymentUrl').textContent = paymentUrl;
-                document.getElementById('paymentLink').href = paymentUrl;
-                document.getElementById('paymentResult').style.display = 'block';
-                
-                showAlert('success', `Payment link berhasil dibuat dengan ${gateway}`);
-                
-                // Reload transactions
-                await loadPaymentTransactions();
-            } else {
-                showAlert('danger', result.message || 'Failed to create payment');
-            }
-        } catch (error) {
-            console.error('Error creating payment:', error);
-            showAlert('danger', 'Error creating payment');
-        } finally {
-            const button = event.target;
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }
-    }
-
-    function copyPaymentUrl() {
-        const paymentUrl = document.getElementById('paymentUrl').textContent;
-        navigator.clipboard.writeText(paymentUrl).then(() => {
-            showAlert('success', 'Payment URL copied to clipboard');
-        }).catch(() => {
-            showAlert('danger', 'Failed to copy URL');
-        });
-    }
-
-    // Load data on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        loadGatewayStatus();
-        loadPaymentTransactions();
-    });
-
-    // Manual payment form
-    document.getElementById('markAsPaidForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const data = Object.fromEntries(formData);
-        const invoiceId = data.invoice_id;
-        const paymentMethod = data.payment_method;
-        const notes = data.notes;
-        
-        // Validate required fields
-        if (!paymentMethod) {
-            showAlert('danger', 'Mohon pilih metode pembayaran');
-            return;
-        }
-        
-        // Disable submit button to prevent double submission
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="bx bx-loading bx-spin"></i> Memproses...';
-        
-        // First record the payment
-        fetch('/admin/billing/payments', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                invoice_id: invoiceId,
-                amount: INVOICE_AMOUNT, // Use actual invoice amount
-                payment_method: paymentMethod,
-                notes: notes || '' // Ensure notes is not undefined
             })
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (!result.success) {
-                throw new Error(result.message || 'Gagal mencatat pembayaran');
-            }
-            // Close modal and reset form (Bootstrap 5 Modal API, no jQuery)
-            const modalEl = document.getElementById('markAsPaidModal');
-            if (modalEl) {
-                const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-                modalInstance.hide();
-            }
-            document.getElementById('markAsPaidForm').reset();
-            
-            // Show success notification
-            showAlert('success', '✅ Tagihan berhasil ditandai sebagai lunas!');
-            
-            // Reload page after a short delay
-            setTimeout(() => location.reload(), 1500);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showAlert('danger', '❌ Terjadi kesalahan saat menandai tagihan sebagai lunas');
-        })
-        .finally(() => {
-            // Re-enable submit button
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
-        });
-    });
+                .then(response => response.json())
+                .then(result => {
+                    if (!result.success) {
+                        throw new Error(result.message || 'Gagal mencatat pembayaran');
+                    }
+                    // Close modal and reset form (Bootstrap 5 Modal API, no jQuery)
+                    const modalEl = document.getElementById('markAsPaidModal');
+                    if (modalEl) {
+                        const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modalInstance.hide();
+                    }
+                    document.getElementById('markAsPaidForm').reset();
 
-    // Alert function
-    function showAlert(type, message) {
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-        alertDiv.style.cssText = `
+                    // Show success notification
+                    showAlert('success', '✅ Tagihan berhasil ditandai sebagai lunas!');
+
+                    // Reload page after a short delay
+                    setTimeout(() => location.reload(), 1500);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', '❌ Terjadi kesalahan saat menandai tagihan sebagai lunas');
+                })
+                .finally(() => {
+                    // Re-enable submit button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                });
+        });
+
+        // Alert function
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = `
             top: 20px;
             right: 20px;
             z-index: 9999;
@@ -500,7 +534,7 @@
             border: none;
             border-radius: 8px;
         `;
-        alertDiv.innerHTML = `
+            alertDiv.innerHTML = `
             <div class="d-flex align-items-center">
                 <div class="flex-grow-1">
                     ${message}
@@ -508,179 +542,78 @@
                 <button type="button" class="btn-close ms-2" data-bs-dismiss="alert"></button>
             </div>
         `;
-        
-        document.body.appendChild(alertDiv);
-        
-        // Auto remove after 4 seconds
-        setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.remove();
-            }
-        }, 4000);
-    }
 
-    // Manual Isolir/Restore Handlers
-    async function isolirManual() {
-        const btn = document.getElementById('btnIsolir');
-        const original = btn.innerHTML;
-        const reason = prompt('Alasan Isolir (opsional):', 'Isolir manual dari Admin');
-        try {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Memproses...';
-            const resp = await fetch(`/admin/billing/invoices/${INVOICE_ID}/isolir`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reason: reason || 'Isolir manual dari Admin' })
-            });
-            const res = await resp.json();
-            if (res.success) {
-                showAlert('success', '✅ Layanan berhasil diisolir.');
-            } else {
-                showAlert('danger', '❌ Gagal isolir: ' + (res.message || 'Unknown error'));
-            }
-        } catch (e) {
-            console.error(e);
-            showAlert('danger', '❌ Terjadi kesalahan saat isolir');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = original;
-        }
-    }
+            document.body.appendChild(alertDiv);
 
-    async function restoreManual() {
-        const btn = document.getElementById('btnRestore');
-        const original = btn.innerHTML;
-        const reason = prompt('Alasan Restore (opsional):', 'Restore manual dari Admin');
-        try {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Memproses...';
-            const resp = await fetch(`/admin/billing/invoices/${INVOICE_ID}/restore`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reason: reason || 'Restore manual dari Admin' })
-            });
-            const res = await resp.json();
-            if (res.success) {
-                showAlert('success', '✅ Layanan berhasil direstore.');
-            } else {
-                showAlert('danger', '❌ Gagal restore: ' + (res.message || 'Unknown error'));
-            }
-        } catch (e) {
-            console.error(e);
-            showAlert('danger', '❌ Terjadi kesalahan saat restore');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = original;
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 4000);
         }
-    }
+
+        // Manual Isolir/Restore Handlers
+        async function isolirManual() {
+            const btn = document.getElementById('btnIsolir');
+            const original = btn.innerHTML;
+            const reason = prompt('Alasan Isolir (opsional):', 'Isolir manual dari Admin');
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Memproses...';
+                const resp = await fetch(`/admin/billing/invoices/${INVOICE_ID}/isolir`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason: reason || 'Isolir manual dari Admin' })
+                });
+                const res = await resp.json();
+                if (res.success) {
+                    showAlert('success', '✅ Layanan berhasil diisolir.');
+                } else {
+                    showAlert('danger', '❌ Gagal isolir: ' + (res.message || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error(e);
+                showAlert('danger', '❌ Terjadi kesalahan saat isolir');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }
+        }
+
+        async function restoreManual() {
+            const btn = document.getElementById('btnRestore');
+            const original = btn.innerHTML;
+            const reason = prompt('Alasan Restore (opsional):', 'Restore manual dari Admin');
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Memproses...';
+                const resp = await fetch(`/admin/billing/invoices/${INVOICE_ID}/restore`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason: reason || 'Restore manual dari Admin' })
+                });
+                const res = await resp.json();
+                if (res.success) {
+                    showAlert('success', '✅ Layanan berhasil direstore.');
+                } else {
+                    showAlert('danger', '❌ Gagal restore: ' + (res.message || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error(e);
+                showAlert('danger', '❌ Terjadi kesalahan saat restore');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }
+        }
     </script>
-     
-     <!-- Bootstrap Bundle with Popper -->
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
-     <!-- Bottom Navigation for Mobile -->
-     <nav class="bottom-nav d-md-none" style="position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, rgba(11,20,55,0.96), rgba(15,28,79,0.96)); border-top: 1px solid rgba(255,255,255,0.08); height: 70px; display: grid; grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr; z-index: 1000; backdrop-filter: blur(10px); padding: 8px 0;">
-         <a class="nav-item" href="/admin/billing/mobile/customers" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-             <i class="bi bi-people" style="font-size: 1.2rem;"></i>
-             <span style="font-size: 0.7rem; font-weight: 500;">Pelanggan</span>
-         </a>
-         <a class="nav-item active" href="/admin/billing/mobile/invoices" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-             <i class="bi bi-receipt" style="font-size: 1.2rem;"></i>
-             <span style="font-size: 0.7rem; font-weight: 500;">Tagihan</span>
-         </a>
-         <a class="nav-item home-button" href="/admin/billing/mobile" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; width: 56px; height: 56px; margin: -8px auto 0 auto; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transform: translateY(-4px); border: 2px solid rgba(255,255,255,0.2); position: relative; overflow: hidden;">
-             <i class="bi bi-house" style="font-size: 1.2rem;"></i>
-             <span style="font-size: 0.7rem; font-weight: 500;">Home</span>
-         </a>
-         <a class="nav-item" href="/admin/billing/mobile/payments" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-             <i class="bi bi-credit-card" style="font-size: 1.2rem;"></i>
-             <span style="font-size: 0.7rem; font-weight: 500;">Bayar</span>
-         </a>
-         <a class="nav-item" href="/admin/billing/mobile/map" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: white; text-decoration: none; transition: all 0.3s ease;">
-             <i class="bi bi-geo-alt" style="font-size: 1.2rem;"></i>
-             <span style="font-size: 0.7rem; font-weight: 500;">Map</span>
-         </a>
-     </nav>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
-     <style>
-         /* Bottom Navigation Styles */
-         .bottom-nav {
-             position: fixed;
-             bottom: 0;
-             left: 0;
-             right: 0;
-             background: linear-gradient(180deg, rgba(11,20,55,0.96), rgba(15,28,79,0.96));
-             border-top: 1px solid rgba(255,255,255,0.08);
-             height: 70px;
-             display: grid;
-             grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr;
-             z-index: 1000;
-             backdrop-filter: blur(10px);
-             padding: 8px 0;
-         }
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'invoices' }) %>
+</body>
 
-         .nav-item {
-             display: flex;
-             flex-direction: column;
-             align-items: center;
-             justify-content: center;
-             gap: 4px;
-             color: white;
-             text-decoration: none;
-             transition: all 0.3s ease;
-         }
-
-         .nav-item:hover {
-             color: #667eea;
-             transform: translateY(-2px);
-         }
-
-         .nav-item.active {
-             color: #667eea;
-         }
-
-         /* Special styling for Home button (center button) */
-         .nav-item.home-button {
-             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-             border-radius: 50%;
-             width: 56px;
-             height: 56px;
-             margin: -8px auto 0 auto;
-             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4), 0 0 0 0 rgba(102, 126, 234, 0.4);
-             transform: translateY(-4px);
-             border: 2px solid rgba(255,255,255,0.2);
-             position: relative;
-             overflow: hidden;
-             animation: float-home 3s ease-in-out infinite;
-         }
-
-         .nav-item.home-button:hover {
-             transform: translateY(-6px);
-             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6), 0 0 0 0 rgba(102, 126, 234, 0.6);
-         }
-
-         .nav-item.home-button:active {
-             transform: translateY(-2px);
-         }
-
-         @keyframes float-home {
-             0%, 100% { transform: translateY(-4px); }
-             50% { transform: translateY(-8px); }
-         }
-
-         /* Add padding to body for mobile */
-         body {
-             padding-bottom: 80px;
-         }
-
-         @media (min-width: 768px) {
-             .bottom-nav {
-                 display: none;
-             }
-             body {
-                 padding-bottom: 0;
-             }
-         }
-     </style>
- </body>
- </html> 
+</html>

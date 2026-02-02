@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,396 +14,490 @@
             font-size: 0.75rem;
             padding: 0.25rem 0.5rem;
         }
+
         .invoice-type-monthly {
             background-color: #e3f2fd;
             color: #1976d2;
         }
+
         .invoice-type-voucher {
             background-color: #f3e5f5;
             color: #7b1fa2;
         }
+
         .invoice-type-manual {
             background-color: #fff3e0;
             color: #f57c00;
         }
+
         .filter-tabs .nav-link {
             border: none;
             background: none;
             color: #6c757d;
         }
+
         .filter-tabs .nav-link.active {
             color: #0d6efd;
             border-bottom: 2px solid #0d6efd;
         }
+
         .stats-card {
             transition: transform 0.2s;
         }
+
         .stats-card:hover {
             transform: translateY(-2px);
         }
     </style>
 </head>
+
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
             <%- include('../../partials/billing-sidebar') %>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
-                <h3 class="mb-4">Invoice</h3>
+                <!-- Main content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                    <h3 class="mb-4">Invoice</h3>
 
-                <!-- Tab Navigation -->
-                <ul class="nav nav-tabs mb-4">
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'invoices' ? 'active' : '' %>" href="/admin/billing/invoices">
-                            <i class="bi bi-receipt"></i> Buat Invoice
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'auto-invoice' ? 'active' : '' %>" href="/admin/billing/auto-invoice">
-                            <i class="bi bi-calendar-check"></i> Auto Invoice
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'invoices-by-type' ? 'active' : '' %>" href="/admin/billing/invoices-by-type">
-                            <i class="bi bi-list-ul"></i> Invoice per Tipe
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= typeof page !== 'undefined' && page === 'invoice-list' ? 'active' : '' %>" href="/admin/billing/invoice-list">
-                            <i class="bi bi-receipt"></i> Semua Invoice
-                        </a>
-                    </li>
-                </ul>
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs mb-4">
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'invoices' ? 'active' : '' %>"
+                                href="/admin/billing/invoices">
+                                <i class="bi bi-receipt"></i> Buat Invoice
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'auto-invoice' ? 'active' : '' %>"
+                                href="/admin/billing/auto-invoice">
+                                <i class="bi bi-calendar-check"></i> Auto Invoice
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'invoices-by-type' ? 'active' : '' %>"
+                                href="/admin/billing/invoices-by-type">
+                                <i class="bi bi-list-ul"></i> Invoice per Tipe
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= typeof page !== 'undefined' && page === 'invoice-list' ? 'active' : '' %>"
+                                href="/admin/billing/invoice-list">
+                                <i class="bi bi-receipt"></i> Semua Invoice
+                            </a>
+                        </li>
+                    </ul>
 
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">
-                        <i class="bx bx-receipt"></i> Invoice by Type
-                    </h1>
-                    <div>
-                        <a href="/admin/billing/dashboard" class="btn btn-outline-primary">
-                            <i class="bx bx-arrow-back"></i> Kembali ke Dashboard
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Filter Tabs -->
-                <ul class="nav nav-tabs filter-tabs mb-4" id="invoiceTypeTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly" type="button" role="tab">
-                            <i class="bx bx-calendar"></i> Bulanan (<%= monthlyStats.total_invoices || 0 %>)
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="voucher-tab" data-bs-toggle="tab" data-bs-target="#voucher" type="button" role="tab">
-                            <i class="bx bx-ticket"></i> Voucher (<%= voucherStats.total_invoices || 0 %>)
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">
-                            <i class="bx bx-edit"></i> Manual (<%= manualStats.total_invoices || 0 %>)
-                        </button>
-                    </li>
-                </ul>
-
-                <!-- Tab Content -->
-                <div class="tab-content" id="invoiceTypeTabContent">
-                    <!-- Monthly Invoices -->
-                    <div class="tab-pane fade show active" id="monthly" role="tabpanel">
-                        <div class="row mb-4">
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-primary"><%= monthlyStats.total_invoices || 0 %></h4>
-                                        <p class="text-muted mb-0">Total Tagihan</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-success"><%= monthlyStats.paid_invoices || 0 %></h4>
-                                        <p class="text-muted mb-0">Lunas</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-danger"><%= monthlyStats.unpaid_invoices || 0 %></h4>
-                                        <p class="text-muted mb-0">Belum Lunas</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-info">Rp <%= (monthlyStats.total_revenue || 0).toLocaleString('id-ID') %></h4>
-                                        <p class="text-muted mb-0">Pendapatan</p>
-                                    </div>
-                                </div>
-                            </div>
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">
+                            <i class="bx bx-receipt"></i> Invoice by Type
+                        </h1>
+                        <div>
+                            <a href="/admin/billing/dashboard" class="btn btn-outline-primary">
+                                <i class="bx bx-arrow-back"></i> Kembali ke Dashboard
+                            </a>
                         </div>
+                    </div>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Tagihan Bulanan</h5>
+                    <!-- Filter Tabs -->
+                    <ul class="nav nav-tabs filter-tabs mb-4" id="invoiceTypeTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="monthly-tab" data-bs-toggle="tab"
+                                data-bs-target="#monthly" type="button" role="tab">
+                                <i class="bx bx-calendar"></i> Bulanan (<%= monthlyStats.total_invoices || 0 %>)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="voucher-tab" data-bs-toggle="tab" data-bs-target="#voucher"
+                                type="button" role="tab">
+                                <i class="bx bx-ticket"></i> Voucher (<%= voucherStats.total_invoices || 0 %>)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual"
+                                type="button" role="tab">
+                                <i class="bx bx-edit"></i> Manual (<%= manualStats.total_invoices || 0 %>)
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="invoiceTypeTabContent">
+                        <!-- Monthly Invoices -->
+                        <div class="tab-pane fade show active" id="monthly" role="tabpanel">
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-primary">
+                                                <%= monthlyStats.total_invoices || 0 %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Total Tagihan</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-success">
+                                                <%= monthlyStats.paid_invoices || 0 %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Lunas</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-danger">
+                                                <%= monthlyStats.unpaid_invoices || 0 %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Belum Lunas</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-info">Rp <%= (monthlyStats.total_revenue ||
+                                                    0).toLocaleString('id-ID') %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Pendapatan</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Invoice #</th>
-                                                <th>Pelanggan</th>
-                                                <th>Paket</th>
-                                                <th>Jumlah</th>
-                                                <th>Status</th>
-                                                <th>Jatuh Tempo</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% if (monthlyInvoices && monthlyInvoices.length > 0) { %>
-                                                <% monthlyInvoices.forEach(function(invoice) { %>
-                                                    <tr>
-                                                        <td>
-                                                            <span class="badge invoice-type-badge invoice-type-monthly">BULANAN</span>
-                                                            <br>
-                                                            <small class="text-muted"><%= invoice.invoice_number %></small>
-                                                        </td>
-                                                        <td>
-                                                            <strong><%= invoice.customer_name %></strong><br>
-                                                            <small class="text-muted"><%= invoice.customer_phone %></small>
-                                                        </td>
-                                                        <td><%= invoice.package_name %></td>
-                                                        <td>Rp <%= invoice.amount.toLocaleString('id-ID') %></td>
-                                                        <td>
-                                                            <% if (invoice.status === 'paid') { %>
-                                                                <span class="badge bg-success">Lunas</span>
-                                                            <% } else { %>
-                                                                <span class="badge bg-warning">Belum Lunas</span>
-                                                            <% } %>
-                                                        </td>
-                                                        <td><%= new Date(invoice.due_date).toLocaleDateString('id-ID') %></td>
-                                                        <td>
-                                                            <a href="/admin/billing/invoices/<%= invoice.id %>" class="btn btn-sm btn-outline-primary">
-                                                                <i class="bx bx-show"></i> Lihat
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                <% }); %>
-                                            <% } else { %>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Tagihan Bulanan</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
                                                 <tr>
-                                                    <td colspan="7" class="text-center text-muted">Tidak ada tagihan bulanan</td>
+                                                    <th>Invoice #</th>
+                                                    <th>Pelanggan</th>
+                                                    <th>Paket</th>
+                                                    <th>Jumlah</th>
+                                                    <th>Status</th>
+                                                    <th>Jatuh Tempo</th>
+                                                    <th>Aksi</th>
                                                 </tr>
-                                            <% } %>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Voucher Invoices -->
-                    <div class="tab-pane fade" id="voucher" role="tabpanel">
-                        <div class="row mb-4">
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-primary"><%= voucherStats.total_invoices || 0 %></h4>
-                                        <p class="text-muted mb-0">Total Voucher</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-success"><%= voucherStats.paid_invoices || 0 %></h4>
-                                        <p class="text-muted mb-0">Lunas</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-danger"><%= voucherStats.unpaid_invoices || 0 %></h4>
-                                        <p class="text-muted mb-0">Belum Lunas</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-info">Rp <%= (voucherStats.total_revenue || 0).toLocaleString('id-ID') %></h4>
-                                        <p class="text-muted mb-0">Pendapatan</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Tagihan Voucher</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Invoice #</th>
-                                                <th>Pelanggan</th>
-                                                <th>Paket Voucher</th>
-                                                <th>Jumlah</th>
-                                                <th>Status</th>
-                                                <th>Jatuh Tempo</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% if (voucherInvoices && voucherInvoices.length > 0) { %>
-                                                <% voucherInvoices.forEach(function(invoice) { %>
-                                                    <tr>
-                                                        <td>
-                                                            <span class="badge invoice-type-badge invoice-type-voucher">VOUCHER</span>
-                                                            <br>
-                                                            <small class="text-muted"><%= invoice.invoice_number %></small>
-                                                        </td>
-                                                        <td>
-                                                            <strong><%= invoice.customer_name %></strong><br>
-                                                            <small class="text-muted"><%= invoice.customer_phone %></small>
-                                                        </td>
-                                                        <td><%= invoice.package_name %></td>
-                                                        <td>Rp <%= invoice.amount.toLocaleString('id-ID') %></td>
-                                                        <td>
-                                                            <% if (invoice.status === 'paid') { %>
-                                                                <span class="badge bg-success">Lunas</span>
+                                            </thead>
+                                            <tbody>
+                                                <% if (monthlyInvoices && monthlyInvoices.length> 0) { %>
+                                                    <% monthlyInvoices.forEach(function(invoice) { %>
+                                                        <tr>
+                                                            <td>
+                                                                <span
+                                                                    class="badge invoice-type-badge invoice-type-monthly">BULANAN</span>
+                                                                <br>
+                                                                <small class="text-muted">
+                                                                    <%= invoice.invoice_number %>
+                                                                </small>
+                                                            </td>
+                                                            <td>
+                                                                <strong>
+                                                                    <%= invoice.customer_name %>
+                                                                </strong><br>
+                                                                <small class="text-muted">
+                                                                    <%= invoice.customer_phone %>
+                                                                </small>
+                                                            </td>
+                                                            <td>
+                                                                <%= invoice.package_name %>
+                                                            </td>
+                                                            <td>Rp <%= invoice.amount.toLocaleString('id-ID') %>
+                                                            </td>
+                                                            <td>
+                                                                <% if (invoice.status==='paid' ) { %>
+                                                                    <span class="badge bg-success">Lunas</span>
+                                                                    <% } else { %>
+                                                                        <span class="badge bg-warning">Belum
+                                                                            Lunas</span>
+                                                                        <% } %>
+                                                            </td>
+                                                            <td>
+                                                                <%= new
+                                                                    Date(invoice.due_date).toLocaleDateString('id-ID')
+                                                                    %>
+                                                            </td>
+                                                            <td>
+                                                                <a href="/admin/billing/invoices/<%= invoice.id %>"
+                                                                    class="btn btn-sm btn-outline-primary">
+                                                                    <i class="bx bx-show"></i> Lihat
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
                                                             <% } else { %>
-                                                                <span class="badge bg-warning">Belum Lunas</span>
-                                                            <% } %>
-                                                        </td>
-                                                        <td><%= new Date(invoice.due_date).toLocaleDateString('id-ID') %></td>
-                                                        <td>
-                                                            <a href="/admin/billing/invoices/<%= invoice.id %>" class="btn btn-sm btn-outline-primary">
-                                                                <i class="bx bx-show"></i> Lihat
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                <% }); %>
-                                            <% } else { %>
+                                                                <tr>
+                                                                    <td colspan="7" class="text-center text-muted">Tidak
+                                                                        ada tagihan bulanan</td>
+                                                                </tr>
+                                                                <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Voucher Invoices -->
+                        <div class="tab-pane fade" id="voucher" role="tabpanel">
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-primary">
+                                                <%= voucherStats.total_invoices || 0 %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Total Voucher</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-success">
+                                                <%= voucherStats.paid_invoices || 0 %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Lunas</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-danger">
+                                                <%= voucherStats.unpaid_invoices || 0 %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Belum Lunas</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-info">Rp <%= (voucherStats.total_revenue ||
+                                                    0).toLocaleString('id-ID') %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Pendapatan</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Tagihan Voucher</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
                                                 <tr>
-                                                    <td colspan="7" class="text-center text-muted">Tidak ada tagihan voucher</td>
+                                                    <th>Invoice #</th>
+                                                    <th>Pelanggan</th>
+                                                    <th>Paket Voucher</th>
+                                                    <th>Jumlah</th>
+                                                    <th>Status</th>
+                                                    <th>Jatuh Tempo</th>
+                                                    <th>Aksi</th>
                                                 </tr>
-                                            <% } %>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Manual Invoices -->
-                    <div class="tab-pane fade" id="manual" role="tabpanel">
-                        <div class="row mb-4">
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-primary"><%= manualStats.total_invoices || 0 %></h4>
-                                        <p class="text-muted mb-0">Total Manual</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-success"><%= manualStats.paid_invoices || 0 %></h4>
-                                        <p class="text-muted mb-0">Lunas</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-danger"><%= manualStats.unpaid_invoices || 0 %></h4>
-                                        <p class="text-muted mb-0">Belum Lunas</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <div class="card-body text-center">
-                                        <h4 class="text-info">Rp <%= (manualStats.total_revenue || 0).toLocaleString('id-ID') %></h4>
-                                        <p class="text-muted mb-0">Pendapatan</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Tagihan Manual</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Invoice #</th>
-                                                <th>Pelanggan</th>
-                                                <th>Paket</th>
-                                                <th>Jumlah</th>
-                                                <th>Status</th>
-                                                <th>Jatuh Tempo</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% if (manualInvoices && manualInvoices.length > 0) { %>
-                                                <% manualInvoices.forEach(function(invoice) { %>
-                                                    <tr>
-                                                        <td>
-                                                            <span class="badge invoice-type-badge invoice-type-manual">MANUAL</span>
-                                                            <br>
-                                                            <small class="text-muted"><%= invoice.invoice_number %></small>
-                                                        </td>
-                                                        <td>
-                                                            <strong><%= invoice.customer_name %></strong><br>
-                                                            <small class="text-muted"><%= invoice.customer_phone %></small>
-                                                        </td>
-                                                        <td><%= invoice.package_name %></td>
-                                                        <td>Rp <%= invoice.amount.toLocaleString('id-ID') %></td>
-                                                        <td>
-                                                            <% if (invoice.status === 'paid') { %>
-                                                                <span class="badge bg-success">Lunas</span>
+                                            </thead>
+                                            <tbody>
+                                                <% if (voucherInvoices && voucherInvoices.length> 0) { %>
+                                                    <% voucherInvoices.forEach(function(invoice) { %>
+                                                        <tr>
+                                                            <td>
+                                                                <span
+                                                                    class="badge invoice-type-badge invoice-type-voucher">VOUCHER</span>
+                                                                <br>
+                                                                <small class="text-muted">
+                                                                    <%= invoice.invoice_number %>
+                                                                </small>
+                                                            </td>
+                                                            <td>
+                                                                <strong>
+                                                                    <%= invoice.customer_name %>
+                                                                </strong><br>
+                                                                <small class="text-muted">
+                                                                    <%= invoice.customer_phone %>
+                                                                </small>
+                                                            </td>
+                                                            <td>
+                                                                <%= invoice.package_name %>
+                                                            </td>
+                                                            <td>Rp <%= invoice.amount.toLocaleString('id-ID') %>
+                                                            </td>
+                                                            <td>
+                                                                <% if (invoice.status==='paid' ) { %>
+                                                                    <span class="badge bg-success">Lunas</span>
+                                                                    <% } else { %>
+                                                                        <span class="badge bg-warning">Belum
+                                                                            Lunas</span>
+                                                                        <% } %>
+                                                            </td>
+                                                            <td>
+                                                                <%= new
+                                                                    Date(invoice.due_date).toLocaleDateString('id-ID')
+                                                                    %>
+                                                            </td>
+                                                            <td>
+                                                                <a href="/admin/billing/invoices/<%= invoice.id %>"
+                                                                    class="btn btn-sm btn-outline-primary">
+                                                                    <i class="bx bx-show"></i> Lihat
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
                                                             <% } else { %>
-                                                                <span class="badge bg-warning">Belum Lunas</span>
-                                                            <% } %>
-                                                        </td>
-                                                        <td><%= new Date(invoice.due_date).toLocaleDateString('id-ID') %></td>
-                                                        <td>
-                                                            <a href="/admin/billing/invoices/<%= invoice.id %>" class="btn btn-sm btn-outline-primary">
-                                                                <i class="bx bx-show"></i> Lihat
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                <% }); %>
-                                            <% } else { %>
+                                                                <tr>
+                                                                    <td colspan="7" class="text-center text-muted">Tidak
+                                                                        ada tagihan voucher</td>
+                                                                </tr>
+                                                                <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manual Invoices -->
+                        <div class="tab-pane fade" id="manual" role="tabpanel">
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-primary">
+                                                <%= manualStats.total_invoices || 0 %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Total Manual</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-success">
+                                                <%= manualStats.paid_invoices || 0 %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Lunas</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-danger">
+                                                <%= manualStats.unpaid_invoices || 0 %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Belum Lunas</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <div class="card-body text-center">
+                                            <h4 class="text-info">Rp <%= (manualStats.total_revenue ||
+                                                    0).toLocaleString('id-ID') %>
+                                            </h4>
+                                            <p class="text-muted mb-0">Pendapatan</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Tagihan Manual</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
                                                 <tr>
-                                                    <td colspan="7" class="text-center text-muted">Tidak ada tagihan manual</td>
+                                                    <th>Invoice #</th>
+                                                    <th>Pelanggan</th>
+                                                    <th>Paket</th>
+                                                    <th>Jumlah</th>
+                                                    <th>Status</th>
+                                                    <th>Jatuh Tempo</th>
+                                                    <th>Aksi</th>
                                                 </tr>
-                                            <% } %>
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                <% if (manualInvoices && manualInvoices.length> 0) { %>
+                                                    <% manualInvoices.forEach(function(invoice) { %>
+                                                        <tr>
+                                                            <td>
+                                                                <span
+                                                                    class="badge invoice-type-badge invoice-type-manual">MANUAL</span>
+                                                                <br>
+                                                                <small class="text-muted">
+                                                                    <%= invoice.invoice_number %>
+                                                                </small>
+                                                            </td>
+                                                            <td>
+                                                                <strong>
+                                                                    <%= invoice.customer_name %>
+                                                                </strong><br>
+                                                                <small class="text-muted">
+                                                                    <%= invoice.customer_phone %>
+                                                                </small>
+                                                            </td>
+                                                            <td>
+                                                                <%= invoice.package_name %>
+                                                            </td>
+                                                            <td>Rp <%= invoice.amount.toLocaleString('id-ID') %>
+                                                            </td>
+                                                            <td>
+                                                                <% if (invoice.status==='paid' ) { %>
+                                                                    <span class="badge bg-success">Lunas</span>
+                                                                    <% } else { %>
+                                                                        <span class="badge bg-warning">Belum
+                                                                            Lunas</span>
+                                                                        <% } %>
+                                                            </td>
+                                                            <td>
+                                                                <%= new
+                                                                    Date(invoice.due_date).toLocaleDateString('id-ID')
+                                                                    %>
+                                                            </td>
+                                                            <td>
+                                                                <a href="/admin/billing/invoices/<%= invoice.id %>"
+                                                                    class="btn btn-sm btn-outline-primary">
+                                                                    <i class="bx bx-show"></i> Lihat
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
+                                                            <% } else { %>
+                                                                <tr>
+                                                                    <td colspan="7" class="text-center text-muted">Tidak
+                                                                        ada tagihan manual</td>
+                                                                </tr>
+                                                                <% } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Mobile Bottom Navbar -->
+    <%- include('../../partials/admin-mobile-navbar', { currentPage: 'invoices' }) %>
 </body>
+
 </html>
