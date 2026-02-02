@@ -1,138 +1,123 @@
 <!-- Admin Mobile Bottom Navigation -->
-<nav class="bottom-nav d-md-none">
+<nav class="admin-bottom-nav d-md-none">
     <!-- Pelanggan -->
-    <a class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'customers' ? 'active' : '' %>"
+    <a class="bot-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'customers' ? 'active' : '' %>"
         href="/admin/billing/customers">
         <i class="bi bi-people" style="font-size: 1.2rem;"></i>
         <span style="font-size: 0.7rem; font-weight: 500;">Pelanggan</span>
     </a>
 
     <!-- Tagihan -->
-    <a class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'invoices' ? 'active' : '' %>"
+    <a class="bot-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'invoices' ? 'active' : '' %>"
         href="/admin/billing/invoices">
         <i class="bi bi-receipt" style="font-size: 1.2rem;"></i>
         <span style="font-size: 0.7rem; font-weight: 500;">Tagihan</span>
     </a>
 
-    <!-- Home (Center) -->
-    <a class="nav-item home-button <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>"
+    <!-- Home -->
+    <a class="bot-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>"
         href="/admin/billing/dashboard">
         <i class="bi bi-house" style="font-size: 1.2rem;"></i>
         <span style="font-size: 0.7rem; font-weight: 500;">Home</span>
     </a>
 
     <!-- Bayar -->
-    <a class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'payments' ? 'active' : '' %>"
+    <a class="bot-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'payments' ? 'active' : '' %>"
         href="/admin/billing/payments">
         <i class="bi bi-credit-card" style="font-size: 1.2rem;"></i>
         <span style="font-size: 0.7rem; font-weight: 500;">Bayar</span>
     </a>
 
     <!-- Map -->
-    <a class="nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'mapping' ? 'active' : '' %>"
+    <a class="bot-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'mapping' ? 'active' : '' %>"
         href="/admin/billing/mapping-new">
         <i class="bi bi-geo-alt" style="font-size: 1.2rem;"></i>
         <span style="font-size: 0.7rem; font-weight: 500;">Map</span>
     </a>
+
+    <!-- Setting -->
+    <a class="bot-nav-item <%= typeof currentPage !== 'undefined' && currentPage === 'settings' ? 'active' : '' %>"
+        href="/admin/billing/payment-settings">
+        <i class="bi bi-gear" style="font-size: 1.2rem;"></i>
+        <span style="font-size: 0.7rem; font-weight: 500;">Setting</span>
+    </a>
 </nav>
 
 <style>
-    /* Bottom Navigation Styles */
-    .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(180deg, rgba(11, 20, 55, 0.96), rgba(15, 28, 79, 0.96));
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        height: 70px;
-        display: grid;
-        grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr;
-        z-index: 1000;
-        backdrop-filter: blur(10px);
-        padding: 8px 0;
+    /* Bottom Navigation Styles - Fixed to avoid Bootstrap conflicts */
+    .admin-bottom-nav {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        background: linear-gradient(180deg, rgba(11, 20, 55, 0.96), rgba(15, 28, 79, 0.96)) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+        height: 70px !important;
+        display: grid !important;
+        grid-template-columns: repeat(6, 1fr) !important;
+        z-index: 1035 !important;
+        backdrop-filter: blur(10px) !important;
+        padding: 8px 4px !important;
+        margin: 0 !important;
+        overflow: hidden !important;
     }
 
-    .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        color: white;
-        text-decoration: none;
-        transition: all 0.3s ease;
+    .bot-nav-item {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 2px !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        text-decoration: none !important;
+        transition: all 0.2s ease !important;
+        min-width: 0 !important;
+        /* Crucial for grid item compression */
+        text-align: center !important;
     }
 
-    .nav-item:hover {
-        color: #667eea;
-        transform: translateY(-2px);
+    .bot-nav-item:hover {
+        color: #667eea !important;
+        transform: translateY(-2px) !important;
     }
 
-    .nav-item.active {
-        color: #667eea;
+    .bot-nav-item.active {
+        color: #667eea !important;
+        font-weight: bold !important;
     }
 
-    /* Special styling for Home button (center button) */
-    .nav-item.home-button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 50%;
-        width: 56px;
-        height: 56px;
-        margin: -8px auto 0 auto;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4), 0 0 0 0 rgba(102, 126, 234, 0.4);
-        transform: translateY(-4px);
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        position: relative;
-        overflow: hidden;
-        animation: float-home 3s ease-in-out infinite;
+    .bot-nav-item i {
+        font-size: 1.1rem !important;
+        line-height: 1 !important;
     }
 
-    .nav-item.home-button:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6), 0 0 0 0 rgba(102, 126, 234, 0.6);
-    }
-
-    .nav-item.home-button:active {
-        transform: translateY(-2px);
-    }
-
-    .nav-item.home-button i,
-    .nav-item.home-button span {
-        color: white !important;
-    }
-
-    @keyframes float-home {
-
-        0%,
-        100% {
-            transform: translateY(-4px);
-        }
-
-        50% {
-            transform: translateY(-8px);
-        }
+    .bot-nav-item span {
+        font-size: 0.65rem !important;
+        font-weight: 500 !important;
+        display: block !important;
+        width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
     }
 
     /* Add padding to body for mobile */
     @media (max-width: 768px) {
         body {
-            padding-bottom: 80px;
-        }
-
-        /* Hide sidebar on mobile if needed */
-        .sidebar {
-            transform: translateX(-100%);
-        }
-
-        .sidebar.show {
-            transform: translateX(0);
+            padding-bottom: 80px !important;
         }
     }
 
     @media (min-width: 768px) {
-        .bottom-nav {
-            display: none;
+        .admin-bottom-nav {
+            display: none !important;
         }
+    }
+
+    /* Hide bottom nav when modal is open to prevent covering modal buttons */
+    body.modal-open .admin-bottom-nav {
+        display: none !important;
     }
 </style>

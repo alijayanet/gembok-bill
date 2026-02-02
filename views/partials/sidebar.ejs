@@ -1,48 +1,78 @@
+<!-- Mobile Top Navbar (Only visible on mobile) -->
+<nav class="navbar navbar-expand-md navbar-dark d-md-none mobile-navbar">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center">
+      <button class="btn btn-link text-white p-0 me-3" type="button" id="sidebarToggle">
+        <i class="bi bi-list" style="font-size: 1.5rem; color: #333;"></i>
+      </button>
+      <span class="navbar-brand mb-0 text-dark">Admin Panel</span>
+    </div>
+  </div>
+</nav>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay d-md-none" id="sidebarOverlay"></div>
+
 <!-- Sidebar Admin -->
-<div class="d-flex flex-column flex-shrink-0 p-3 bg-light" style="width: 250px; min-height: 100vh;">
+<div class="d-flex flex-column flex-shrink-0 p-3 bg-light sidebar" id="adminSidebar"
+  style="width: 250px; min-height: 100vh;">
+  <!-- Close button for mobile -->
+  <div class="d-md-none text-end p-2">
+    <button class="btn btn-link text-dark p-0" id="sidebarClose">
+      <i class="bi bi-x" style="font-size: 1.5rem;"></i>
+    </button>
+  </div>
+
   <a href="/admin/dashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
     <span class="fs-4">Admin Panel</span>
   </a>
   <hr>
-  
+
   <!-- Version Info -->
   <div class="version-info text-center mb-3">
     <small class="text-muted">
-      <span id="versionDisplay"><%= typeof versionInfo !== 'undefined' ? 'v' + versionInfo.version : 'v1.0.0' %></span> | Build: <span id="buildDisplay"><%= typeof versionInfo !== 'undefined' ? versionInfo.buildNumber : '001' %></span>
+      <span id="versionDisplay">
+        <%= typeof versionInfo !=='undefined' ? 'v' + versionInfo.version : 'v1.0.0' %>
+      </span> | Build: <span id="buildDisplay">
+        <%= typeof versionInfo !=='undefined' ? versionInfo.buildNumber : '001' %>
+      </span>
     </small>
   </div>
-  
+
   <ul class="nav nav-pills flex-column mb-auto">
     <li class="nav-item">
-      <a href="/admin/dashboard" class="nav-link <%= page === 'dashboard' ? 'active' : 'link-dark' %>">
+      <a href="/admin/dashboard"
+        class="nav-link <%= typeof page !== 'undefined' && page === 'dashboard' ? 'active' : 'link-dark' %>">
         <i class="bi bi-speedometer2"></i> Dashboard
       </a>
     </li>
     <li>
-      <a href="/admin/genieacs" class="nav-link <%= page === 'genieacs' ? 'active' : 'link-dark' %>">
+      <a href="/admin/genieacs"
+        class="nav-link <%= typeof page !== 'undefined' && page === 'genieacs' ? 'active' : 'link-dark' %>">
         <i class="bi bi-hdd-network"></i> GenieACS
       </a>
     </li>
     <li>
-      <a href="/admin/mikrotik" class="nav-link <%= page === 'mikrotik' ? 'active' : 'link-dark' %>">
+      <a href="/admin/mikrotik"
+        class="nav-link <%= typeof page !== 'undefined' && page === 'mikrotik' ? 'active' : 'link-dark' %>">
         <i class="bi bi-router"></i> Mikrotik
       </a>
     </li>
     <li>
-      
-    </li>
-    <li>
-      <a href="/admin/hotspot" class="nav-link <%= page === 'hotspot' ? 'active' : 'link-dark' %>">
+      <a href="/admin/hotspot"
+        class="nav-link <%= typeof page !== 'undefined' && page === 'hotspot' ? 'active' : 'link-dark' %>">
         <i class="bi bi-wifi"></i> Hotspot
       </a>
     </li>
     <li>
-      <a href="/admin/hotspot/voucher" class="nav-link <%= page === 'voucher' ? 'active' : 'link-dark' %>">
+      <a href="/admin/hotspot/voucher"
+        class="nav-link <%= typeof page !== 'undefined' && page === 'voucher' ? 'active' : 'link-dark' %>">
         <i class="bi bi-ticket-perforated"></i> Voucher Hotspot
       </a>
     </li>
     <li>
-      <a href="/admin/settings" class="nav-link <%= page === 'setting' ? 'active' : 'link-dark' %>">
+      <a href="/admin/settings"
+        class="nav-link <%= typeof page !== 'undefined' && page === 'setting' ? 'active' : 'link-dark' %>">
         <i class="bi bi-gear"></i> Setting
       </a>
     </li>
@@ -54,14 +84,116 @@
   </ul>
   <hr>
   <div class="dropdown">
-    <a href="#" class="d-flex align-items-center link-dark text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+    <a href="#" class="d-flex align-items-center link-dark text-decoration-none dropdown-toggle" id="dropdownUser"
+      data-bs-toggle="dropdown" aria-expanded="false">
       <img src="/public/img/admin.png" alt="" width="32" height="32" class="rounded-circle me-2">
       <strong>Admin</strong>
     </a>
     <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser">
       <li><a class="dropdown-item" href="/admin/settings">Settings</a></li>
-      <li><hr class="dropdown-divider"></li>
+      <li>
+        <hr class="dropdown-divider">
+      </li>
       <li><a class="dropdown-item" href="/admin/logout">Sign out</a></li>
     </ul>
   </div>
 </div>
+
+<style>
+  /* Mobile Styling */
+  @media (max-width: 767.98px) {
+    .mobile-navbar {
+      background: #f8f9fa;
+      /* Match bg-light */
+      border-bottom: 1px solid #dee2e6;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1001;
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1040;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #adminSidebar {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 280px !important;
+      height: 100vh;
+      z-index: 1050;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
+      overflow-y: auto;
+      border-right: 1px solid #dee2e6;
+    }
+
+    #adminSidebar.show {
+      transform: translateX(0);
+    }
+
+    /* Adjust body/main content when this sidebar is used */
+    body {
+      padding-top: 56px;
+      /* Height of mobile navbar */
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const sidebar = document.getElementById('adminSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', function () {
+        sidebar.classList.add('show');
+        overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      });
+    }
+
+    function closeSidebar() {
+      sidebar.classList.remove('show');
+      overlay.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    if (sidebarClose) {
+      sidebarClose.addEventListener('click', closeSidebar);
+    }
+
+    if (overlay) {
+      overlay.addEventListener('click', closeSidebar);
+    }
+
+    // Close sidebar when clicking on Nav Links on mobile
+    const navLinks = sidebar.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+      link.addEventListener('click', function () {
+        if (window.innerWidth < 768) {
+          closeSidebar();
+        }
+      });
+    });
+  });
+</script>
