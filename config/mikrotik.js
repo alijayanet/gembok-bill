@@ -217,8 +217,10 @@ async function getOfflinePPPoEUsers() {
         const pppSecrets = await conn.write('/ppp/secret/print');
 
         // Dapatkan koneksi aktif
-        const activeConnections = await getActivePPPoEConnections();
-        const activeUsers = activeConnections.map(conn => conn.name);
+        const activeResult = await getActivePPPoEConnections();
+        const activeUsers = (activeResult && activeResult.success && Array.isArray(activeResult.data))
+            ? activeResult.data.map(conn => conn.name)
+            : [];
 
         // Filter user yang offline
         const offlineUsers = pppSecrets.filter(secret => !activeUsers.includes(secret.name));
