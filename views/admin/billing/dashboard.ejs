@@ -492,7 +492,7 @@
             });
         }
 
-        // Auto refresh stats setiap 30 detik dengan toast feedback
+        // Auto refresh stats setiap 30 detik
         setInterval(function () {
             fetch('/admin/billing/api/stats')
                 .then(response => response.json())
@@ -502,13 +502,9 @@
                     document.querySelector('[title="Total Revenue"]').nextElementSibling.textContent = 'Rp ' + (data.total_revenue || 0).toLocaleString('id-ID');
                     document.querySelector('[title="Unpaid Invoices"]').nextElementSibling.textContent = 'Rp ' + (data.total_unpaid || 0).toLocaleString('id-ID');
                     document.querySelector('[title="Total Invoices"]').nextElementSibling.textContent = data.total_invoices || 0;
-
-                    // Show success toast jika ada perubahan
-                    showToast('success', 'Data Diperbarui', 'Statistik billing berhasil diperbarui');
                 })
                 .catch(error => {
                     console.error('Error updating stats:', error);
-                    showToast('error', 'Error', 'Gagal memperbarui statistik');
                 });
         }, 30000);
 
