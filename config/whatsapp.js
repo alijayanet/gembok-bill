@@ -841,21 +841,38 @@ async function getDeviceByNumber(number) {
                 // Debug: Tampilkan parameter pencarian
                 console.log(`🔍 [DEBUG] Mencari pelanggan dengan parameter:`);
                 console.log(`   cleanNumber: ${cleanNumber}`);
-                console.log(`   searchPhone: ${searchPhone}`);
-                console.log(`   '0' + cleanNumber.substring(2): ${'0' + cleanNumber.substring(2)}`);
-                console.log(`   cleanNumber.substring(2): ${cleanNumber.substring(2)}`);
+                
+                // Query yang lebih fleksibel untuk menangani nomor yang tidak standar di database
+                // Mencoba membersihkan field phone di database dari karakter non-digit sebelum membandingkan
+                const query = `
+                    SELECT id, username, pppoe_username, phone 
+                    FROM customers 
+                    WHERE 
+                        replace(replace(replace(phone, '-', ''), ' ', ''), '+', '') = ? 
+                        OR replace(replace(replace(phone, '-', ''), ' ', ''), '+', '') = ?
+                        OR replace(replace(replace(phone, '-', ''), ' ', ''), '+', '') = ?
+                        OR replace(replace(replace(phone, '-', ''), ' ', ''), '+', '') = ?
+                        OR phone LIKE '%' || ?
+                `;
 
                 database.get(
-                    'SELECT id, username, pppoe_username FROM customers WHERE phone = ? OR phone = ? OR phone = ? OR phone = ?',
-                    [cleanNumber, searchPhone, '0' + cleanNumber.substring(2), cleanNumber.substring(2)],
+                    query,
+                    [
+                        cleanNumber, 
+                        searchPhone, 
+                        '0' + cleanNumber.substring(2), 
+                        cleanNumber.substring(2),
+                        cleanNumber.substring(3) // Wildcard match untuk 8-9 digit terakhir sebagai fallback
+                    ],
                     (err, row) => {
                         if (err) {
                             console.error(`❌ [ERROR] Database error: ${err.message}`);
                             reject(err);
                         } else {
-                            console.log(`📋 [DEBUG] Hasil pencarian: ${row ? 'Ditemukan' : 'Tidak ditemukan'}`);
                             if (row) {
-                                console.log(`   Pelanggan: ${row.username}`);
+                                console.log(`📋 [DEBUG] Ditemukan pelanggan: ${row.username} (${row.phone})`);
+                            } else {
+                                console.log(`📋 [DEBUG] Pelanggan tidak ditemukan dengan nomor: ${cleanNumber}`);
                             }
                             resolve(row);
                         }
@@ -4458,6 +4475,11 @@ async function handleIncomingMessage(sock, message) {
             return;
         }
 
+        // Skip status updates (broadcast)
+        if (remoteJid === 'status@broadcast') {
+            return;
+        }
+
         // Skip jika pesan dari grup dan bukan dari admin
         if (remoteJid.includes('@g.us')) {
             logger.debug('Message from group received', { groupJid: remoteJid });
@@ -4492,46 +4514,58 @@ async function handleIncomingMessage(sock, message) {
 
         // Ekstrak nomor pengirim dengan penanganan error
         let senderNumber;
+        let senderLid = null;
         try {
-            senderNumber = remoteJid.split('@')[0];
+            // Ambil bagian sebelum @
+            let rawNumber = remoteJid.split('@')[0];
+
+            // WhatsApp LID (Linked Identity) handling - Improved based on reference
+            if (remoteJid.endsWith('@lid')) {
+                senderLid = remoteJid;
+                logger.debug(`WhatsApp LID detected`, { lid: senderLid });
+
+                // PRIORITY 1: Check remoteJidAlt (Baileys often puts the real number here)
+                if (message.key?.remoteJidAlt && message.key.remoteJidAlt.endsWith('@s.whatsapp.net')) {
+                    rawNumber = message.key.remoteJidAlt.split('@')[0];
+                    logger.info(`✅ Got real number from remoteJidAlt: ${rawNumber}`);
+                } 
+                // PRIORITY 2: Check participant (for group messages or some specific cases)
+                else if (message.key?.participant && message.key.participant.endsWith('@s.whatsapp.net')) {
+                    rawNumber = message.key.participant.split('@')[0];
+                    logger.info(`✅ Got real number from participant: ${rawNumber}`);
+                }
+                // PRIORITY 3: Fallback to database resolution
+                else {
+                    try {
+                        const BillingManager = require('./billing');
+                        const billing = new BillingManager();
+                        const customer = await billing.getCustomerByWhatsAppLid(senderLid);
+                        if (customer) {
+                            rawNumber = customer.phone;
+                            logger.info(`✅ Resolved LID ${senderLid} from database to phone: ${rawNumber}`);
+                        } else {
+                            logger.warn(`⚠️ LID ${senderLid} not found in database and no alternate JID available`);
+                        }
+                    } catch (err) {
+                        logger.warn(`⚠️ Could not resolve LID ${senderLid}:`, err.message);
+                    }
+                }
+            }
+            
+            // Hapus karakter non-digit untuk keamanan
+            senderNumber = rawNumber.replace(/\D/g, '');
+
+            // Normalisasi: 08xxx -> 628xxx
+            if (senderNumber.startsWith('0')) {
+                senderNumber = '62' + senderNumber.slice(1);
+            }
         } catch (error) {
             logger.error('Error extracting sender number', { remoteJid, error: error.message });
             return;
         }
 
-        logger.info(`Message received`, { sender: senderNumber, messageLength: messageText.length });
+        logger.info(`Message received`, { sender: senderNumber, rawJid: remoteJid, messageLength: messageText.length });
         logger.debug(`Message content`, { sender: senderNumber, message: messageText });
-
-        // Extract WhatsApp LID if present (for @lid format)
-        let senderLid = null;
-        if (remoteJid.includes('@lid')) {
-            senderLid = remoteJid; // Format: 85280887435270@lid
-            logger.debug(`WhatsApp LID detected`, { lid: senderLid });
-
-            // PRIORITY 1: Try to get real number from remoteJidAlt (fastest, most reliable)
-            if (message.key?.remoteJidAlt) {
-                const actualJid = message.key.remoteJidAlt;
-                senderNumber = actualJid.replace('@s.whatsapp.net', '');
-                logger.info(`✅ Got real number from remoteJidAlt: ${senderNumber}`);
-            } else {
-                // FALLBACK: Try to resolve from database
-                try {
-                    const BillingManager = require('./billing');
-                    const billing = new BillingManager();
-                    const customer = await billing.getCustomerByWhatsAppLid(senderLid);
-                    if (customer) {
-                        senderNumber = customer.phone;
-                        // Normalize
-                        if (senderNumber.startsWith('0')) senderNumber = '62' + senderNumber.slice(1);
-                        logger.info(`✅ Resolved LID ${senderLid} from database to phone: ${senderNumber}`);
-                    } else {
-                        logger.warn(`⚠️ LID ${senderLid} not found in database and no remoteJidAlt available`);
-                    }
-                } catch (err) {
-                    logger.warn(`⚠️ Could not resolve LID ${senderLid}:`, err.message);
-                }
-            }
-        }
 
         // Cek apakah pengirim adalah admin
         const isAdmin = isAdminNumber(senderNumber);
