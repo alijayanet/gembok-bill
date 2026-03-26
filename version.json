@@ -3,9 +3,9 @@
   "version_name": "WhatsApp Agent + Mapping",
   "version_date": "2026-03-25",
   "version_notes": "Added technician role, trouble report, PPPoE WhatsApp commands, PPN feature, and Network Mapping",
-  "build_number": "20250129",
+  "build_number": "20260325",
   "changelog": [
-    "v2.1.4 - WhatsApp Agent + Mapping (2026-01-29)",
+    "v2.1.5 - WhatsApp Agent + Mapping (2026-01-29)",
     "- Added agent system with WhatsApp integration",
     "- Added network mapping feature",
     "- Added collector profile with transaction statistics",
@@ -17,4 +17,3 @@
     "url": "https://github.com/gembok-billing/gembok-bill/releases"
   }
 }
-
