@@ -15,8 +15,32 @@ function getPriceColor(price) {
     return 'danger';
 }
 
+// Helper function to ensure default package exists
+async function ensureDefaultPackage() {
+    return new Promise((resolve, reject) => {
+        billingManager.db.get('SELECT id FROM packages WHERE id = 1', (err, row) => {
+            if (err) return reject(err);
+            if (row) return resolve(1);
+
+            billingManager.db.run(
+                'INSERT INTO packages (id, name, speed, price, description, pppoe_profile) VALUES (1, "Paket Voucher", "Unlimited", 0, "Paket default untuk voucher publik", "default")',
+                (err) => {
+                    if (err) {
+                        // If it fails because ID 1 already exists (race condition), it's fine
+                        if (err.message.includes('UNIQUE constraint failed')) resolve(1);
+                        else reject(err);
+                    } else {
+                        resolve(1);
+                    }
+                }
+            );
+        });
+    });
+}
+
 // Helper function untuk mendapatkan customer_id voucher publik
 async function getVoucherCustomerId() {
+    await ensureDefaultPackage();
     return new Promise((resolve, reject) => {
         billingManager.db.get('SELECT id FROM customers WHERE username = ?', ['voucher_public'], (err, row) => {
             if (err) {
@@ -28,13 +52,13 @@ async function getVoucherCustomerId() {
                 billingManager.db.run(`
                     INSERT INTO customers (id, username, name, phone, email, address, package_id, status, join_date, 
                                           pppoe_username, pppoe_profile, auto_suspension, billing_day, 
-                                          latitude, longitude, created_by_technician_id, static_ip, mac_address, assigned_ip)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                          latitude, longitude, static_ip, mac_address, assigned_ip)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `, [
                     1021, // ID yang aman, jauh dari range billing (1000+)
                     'voucher_public', 'Voucher Publik', '0000000000', 'voucher@public.com', 'Sistem Voucher Publik',
                     1, 'active', new Date().toISOString(), 'voucher_public', 'voucher', 0, 1,
-                    0, 0, null, null, null, null
+                    0, 0, null, null, null
                 ], function (err) {
                     if (err) reject(err);
                     else resolve(this.lastID || 1021);
