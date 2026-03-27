@@ -17,7 +17,7 @@
     "check-database-structure": "node scripts/check-database-structure.js",
     "test-admin-pages": "node scripts/test-admin-pages.js",
     "fix-sqlite": "npm install sqlite3 --build-from-source",
-    "postinstall": "npm rebuild sqlite3 --build-from-source"
+    "postinstall": "npm rebuild --build-from-source"
   },
   "dependencies": {
     "@hapi/boom": "^10.0.1",
