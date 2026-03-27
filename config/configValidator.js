@@ -70,10 +70,11 @@ class ConfigValidator {
      * Test koneksi ke GenieACS
      */
     async testGenieACSConnection() {
+        const genieacsUrl = getSetting('genieacs_url', 'http://localhost:7557');
+        const genieacsUsername = getSetting('genieacs_username', 'acs');
+        const genieacsPassword = getSetting('genieacs_password', '');
+
         try {
-            const genieacsUrl = getSetting('genieacs_url', 'http://localhost:7557');
-            const genieacsUsername = getSetting('genieacs_username', 'acs');
-            const genieacsPassword = getSetting('genieacs_password', '');
 
             // Validasi URL format
             if (!this.isValidURL(genieacsUrl)) {
@@ -146,11 +147,12 @@ class ConfigValidator {
      * Test koneksi ke Mikrotik
      */
     async testMikrotikConnection() {
+        const mikrotikHost = getSetting('mikrotik_host', '192.168.1.1');
+        const mikrotikPort = getSetting('mikrotik_port', '8728');
+        const mikrotikUser = getSetting('mikrotik_user', 'admin');
+        const mikrotikPassword = getSetting('mikrotik_password', '');
+
         try {
-            const mikrotikHost = getSetting('mikrotik_host', '192.168.1.1');
-            const mikrotikPort = getSetting('mikrotik_port', '8728');
-            const mikrotikUser = getSetting('mikrotik_user', 'admin');
-            const mikrotikPassword = getSetting('mikrotik_password', '');
 
             // Validasi IP address
             if (!this.isValidIPAddress(mikrotikHost)) {
@@ -183,11 +185,11 @@ class ConfigValidator {
             // Karena tidak ada library Mikrotik yang tersedia, kita test dengan ping atau TCP connection
             const { getMikrotikConnection } = require('./mikrotik');
             
-            // Coba koneksi dengan timeout sangat pendek untuk login
+            // Coba koneksi dengan timeout 10 detik untuk login (lebih stabil di server)
             const connection = await Promise.race([
                 getMikrotikConnection(),
                 new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Connection timeout')), 3000)
+                    setTimeout(() => reject(new Error('Connection timeout')), 10000)
                 )
             ]);
 
@@ -211,13 +213,17 @@ class ConfigValidator {
 
             if (error.message.includes('timeout')) {
                 errorMessage = 'Mikrotik tidak merespons';
-                errorDetails = `Timeout - server mungkin tidak aktif atau tidak dapat dijangkau pada ${mikrotikHost}:${mikrotikPort}`;
+                errorDetails = `Timeout (10s) - Router mungkin sibuk atau tidak dapat dijangkau pada ${mikrotikHost}:${mikrotikPort}`;
             } else if (error.message.includes('ECONNREFUSED')) {
                 errorMessage = 'Koneksi ke Mikrotik ditolak';
-                errorDetails = `Port ${mikrotikPort} mungkin salah atau service tidak berjalan`;
+                errorDetails = `Port ${mikrotikPort} ditolak oleh router. Pastikan service API aktif di Mikrotik.`;
             } else if (error.code === 'ENOTFOUND') {
                 errorMessage = 'Host Mikrotik tidak ditemukan';
                 errorDetails = `Alamat IP ${mikrotikHost} tidak dapat dijangkau. Periksa koneksi jaringan.`;
+            } else {
+                // Menampilkan error asli dari library (misal: "invalid username or password")
+                errorMessage = 'Gagal Autentikasi / Error API';
+                errorDetails = error.message;
             }
 
             return {

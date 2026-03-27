@@ -10,6 +10,22 @@ const cacheManager = require('./cacheManager');
 let sock = null;
 let mikrotikConnection = null;
 let monitorInterval = null;
+let connectionPromise = null; // Singleton promise untuk antrian login
+
+// Fungsi untuk mengecek apakah koneksi masih hidup
+async function isConnectionAlive(conn) {
+    try {
+        if (!conn) return false;
+        // Test sederhana dengan perintah ringan (timeout cepat)
+        const check = await Promise.race([
+            conn.write('/system/identity/print'),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Health check timeout')), 2000))
+        ]);
+        return !!check;
+    } catch (e) {
+        return false;
+    }
+}
 
 // Fungsi untuk set instance sock
 function setSock(sockInstance) {
@@ -30,6 +46,8 @@ async function connectToMikrotik() {
             return null;
         }
 
+        logger.info(`📡 [MIKROTIK] Menghubungi router di ${host}:${port}...`);
+
         // Buat koneksi ke Mikrotik
         const conn = new RouterOSAPI({
             host,
@@ -37,29 +55,52 @@ async function connectToMikrotik() {
             user,
             password,
             keepalive: true,
-            timeout: 5000 // 5 second timeout
+            timeout: 10000 // 10 second command timeout
         });
 
-        // Connect ke Mikrotik
-        await conn.connect();
-        logger.info(`Connected to Mikrotik at ${host}:${port}`);
+        // Event handlers untuk monitoring koneksi
+        conn.on('error', (err) => {
+            logger.error(`⚠️ [MIKROTIK] Connection Error: ${err.message}`);
+            if (mikrotikConnection === conn) mikrotikConnection = null;
+        });
 
-        // Set global connection
-        mikrotikConnection = conn;
+        // Connect ke Mikrotik dengan timeout 10 detik
+        await Promise.race([
+            conn.connect(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Initial handshake timeout')), 10000))
+        ]);
 
+        logger.info(`✅ [MIKROTIK] Terkoneksi sukses ke ${host}:${port}`);
         return conn;
     } catch (error) {
-        logger.error(`Error connecting to Mikrotik: ${error.message}`);
+        logger.error(`❌ [MIKROTIK] Gagal koneksi ke ${getSetting('mikrotik_host', 'router')}: ${error.message}`);
         return null;
     }
 }
 
 // Fungsi untuk mendapatkan koneksi Mikrotik
 async function getMikrotikConnection() {
-    if (!mikrotikConnection) {
-        return await connectToMikrotik();
+    // 1. Jika sudah ada koneksi yang BERHASIL dan masih hidup, gunakan itu
+    if (mikrotikConnection && await isConnectionAlive(mikrotikConnection)) {
+        return mikrotikConnection;
     }
-    return mikrotikConnection;
+
+    // 2. Jika sedang ada proses login yang sedang berjalan, TUNGGU proses tersebut
+    if (connectionPromise) {
+        logger.info('⏳ [MIKROTIK] Menunggu proses login yang sedang berjalan...');
+        return await connectionPromise;
+    }
+
+    // 3. Jika tidak ada yang hidup dan tidak ada yang sedang login, mulai login baru
+    connectionPromise = connectToMikrotik();
+    
+    try {
+        mikrotikConnection = await connectionPromise;
+        return mikrotikConnection;
+    } finally {
+        // Reset promise agar proses selanjutnya bisa memulai login baru jika yang ini gagal
+        connectionPromise = null;
+    }
 }
 
 // Fungsi untuk koneksi ke database RADIUS (MySQL)
