@@ -146,7 +146,7 @@
           <div class="mb-3">
             <label for="newSsid" class="form-label small text-muted">Ganti Nama WiFi (SSID)</label>
             <div class="d-flex gap-2">
-              <input type="text" class="form-control inpx" id="newSsid" placeholder="Nama WiFi baru" maxlength="32">
+              <input type="text" class="form-control inpx" id="newSsid" placeholder="Nama WiFi baru" maxlength="32" value="<%= customer && customer.ssid && customer.ssid !== '-' ? customer.ssid : '' %>">
               <button class="btn btn-chip btn-ssid" id="changeSsidBtn"><i class="bi bi-check-lg"></i> SSID</button>
             </div>
             <small class="text-muted d-block mt-1">SSID 3-32 karakter. WiFi 5GHz otomatis "NamaWiFi-5G".</small>

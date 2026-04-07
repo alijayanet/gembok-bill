@@ -845,7 +845,7 @@
                         <i class="bi bi-wifi me-2"></i>Ganti Nama WiFi (SSID)
                       </h6>
                       <div class="input-group input-group-responsive">
-                        <input type="text" class="form-control" id="newSsid" placeholder="Nama WiFi baru" maxlength="32">
+                        <input type="text" class="form-control" id="newSsid" placeholder="Nama WiFi baru" maxlength="32" value="<%= customer && customer.ssid && customer.ssid !== '-' ? customer.ssid : '' %>">
                         <button class="btn btn-action btn-ssid" type="button" id="changeSsidBtn">
                           <i class="bi bi-check-lg me-1"></i>Ganti SSID
                         </button>
