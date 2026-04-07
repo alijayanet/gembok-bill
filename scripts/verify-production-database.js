@@ -35,7 +35,7 @@ const requiredColumns = {
     customers: [
         'id', 'name', 'username', 'phone', 'pppoe_username', 'email', 'address',
         'latitude', 'longitude', 'package_id', 'odp_id', 'pppoe_profile',
-        'status', 'auto_suspension', 'billing_day', 'whatsapp_lid'
+        'status', 'auto_suspension', 'billing_day', 'whatsapp_lid', 'password'
     ],
     packages: [
         'id', 'name', 'price', 'tax_rate', 'description', 'speed',

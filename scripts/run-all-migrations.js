@@ -78,36 +78,53 @@ function runPendingMigrations() {
       // Read migration file
       const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
 
-      // Execute migration
-      db.exec(migrationSQL, (err) => {
-        if (err) {
-          if (err.message.includes('duplicate column name') ||
-            err.message.includes('Cannot add a UNIQUE column') ||
-            err.message.includes('no such column') ||
-            err.message.includes('no such table')) {
-            console.log(`⚠️  Warning (non-critical): ${err.message}`);
-            console.log('   Continuing with next migration...');
-          } else {
+      const rawStatements = migrationSQL
+        .split(/;\s*\r?\n/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      function isNonCriticalErrorMessage(message) {
+        return (
+          message.includes('duplicate column name') ||
+          message.includes('Cannot add a UNIQUE column') ||
+          message.includes('no such column') ||
+          message.includes('no such table')
+        );
+      }
+
+      function runStatement(statementIndex) {
+        if (statementIndex >= rawStatements.length) {
+          console.log(`✅ Migration ${migrationFile} executed successfully.`);
+
+          db.run('INSERT OR IGNORE INTO migrations (name) VALUES (?)', [migrationFile], (err) => {
+            if (err) {
+              console.error(`❌ Error recording migration ${migrationFile}:`, err.message);
+              db.close();
+              process.exit(1);
+            }
+
+            runMigration(index + 1);
+          });
+          return;
+        }
+
+        const sql = rawStatements[statementIndex];
+        db.exec(sql, (err) => {
+          if (err) {
+            if (isNonCriticalErrorMessage(err.message)) {
+              console.log(`⚠️  Warning (non-critical): ${err.message}`);
+              return runStatement(statementIndex + 1);
+            }
             console.error(`❌ Error executing migration ${migrationFile}:`, err.message);
             db.close();
             process.exit(1);
           }
-        } else {
-          console.log(`✅ Migration ${migrationFile} executed successfully.`);
-        }
-
-        // Record that this migration was executed
-        db.run('INSERT OR IGNORE INTO migrations (name) VALUES (?)', [migrationFile], (err) => {
-          if (err) {
-            console.error(`❌ Error recording migration ${migrationFile}:`, err.message);
-            db.close();
-            process.exit(1);
-          }
-
-          // Continue with next migration
-          runMigration(index + 1);
+          runStatement(statementIndex + 1);
         });
-      });
+      }
+
+      runStatement(0);
+
     }
   });
 }

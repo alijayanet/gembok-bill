@@ -467,10 +467,10 @@ async function newServerSetup() {
         for (const customer of customers) {
             const customerId = await new Promise((resolve, reject) => {
                 db.run(`
-                    INSERT OR IGNORE INTO customers (username, name, phone, email, address, status, join_date) 
-                    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                    INSERT OR IGNORE INTO customers (username, name, phone, password, email, address, status, join_date) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 `, [
-                    customer.username, customer.name, customer.phone, customer.email, customer.address, 'active'
+                    customer.username, customer.name, customer.phone, '123456', customer.email, customer.address, 'active'
                 ], function (err) {
                     if (err) {
                         console.error(`❌ Failed to create customer ${customer.username}:`, err.message);
