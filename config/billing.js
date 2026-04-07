@@ -809,17 +809,20 @@ class BillingManager {
             // Use provided username, fallback to auto-generate if not provided
             const finalUsername = username || this.generateUsername(phone);
             const autoPPPoEUsername = pppoe_username || this.generatePPPoEUsername(phone);
+            const portalPassword = (customerData.password !== undefined && customerData.password !== null && String(customerData.password).trim() !== '')
+                ? String(customerData.password).trim()
+                : '123456';
 
             // Normalisasi billing_day (1-28)
             const normBillingDay = Math.min(Math.max(parseInt(billing_day ?? 15, 10) || 15, 1), 28);
 
-            const sql = `INSERT INTO customers (username, name, phone, pppoe_username, email, address, package_id, odp_id, pppoe_profile, status, auto_suspension, billing_day, static_ip, assigned_ip, mac_address, latitude, longitude, cable_type, cable_length, port_number, cable_status, cable_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const sql = `INSERT INTO customers (username, name, phone, password, pppoe_username, email, address, package_id, odp_id, pppoe_profile, status, auto_suspension, billing_day, static_ip, assigned_ip, mac_address, latitude, longitude, cable_type, cable_length, port_number, cable_status, cable_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
             // Default coordinates untuk Jakarta jika tidak ada koordinat
             const finalLatitude = latitude !== undefined ? parseFloat(latitude) : -6.2088;
             const finalLongitude = longitude !== undefined ? parseFloat(longitude) : 106.8456;
 
-            db.run(sql, [finalUsername, name, phone, autoPPPoEUsername, email, address, package_id, customerData.odp_id || null, pppoe_profile, status || 'active', auto_suspension !== undefined ? auto_suspension : 1, normBillingDay, static_ip || null, assigned_ip || null, mac_address || null, finalLatitude, finalLongitude, cable_type || null, cable_length || null, port_number || null, cable_status || 'connected', cable_notes || null], async function (err) {
+            db.run(sql, [finalUsername, name, phone, portalPassword, autoPPPoEUsername, email, address, package_id, customerData.odp_id || null, pppoe_profile, status || 'active', auto_suspension !== undefined ? auto_suspension : 1, normBillingDay, static_ip || null, assigned_ip || null, mac_address || null, finalLatitude, finalLongitude, cable_type || null, cable_length || null, port_number || null, cable_status || 'connected', cable_notes || null], async function (err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -1077,6 +1080,37 @@ class BillingManager {
             } catch (e) {
                 reject(e);
             }
+        });
+    }
+
+    async setCustomerPortalPasswordById(customerId, password) {
+        return new Promise((resolve, reject) => {
+            const pass = String(password || '').trim();
+            if (!pass) return reject(new Error('Password tidak valid'));
+            const sql = `UPDATE customers SET password = ? WHERE id = ?`;
+            this.db.run(sql, [pass, customerId], function (err) {
+                if (err) return reject(err);
+                resolve({ id: customerId, changes: this.changes });
+            });
+        });
+    }
+
+    async setCustomerPortalPasswordByPhone(phone, password) {
+        return new Promise((resolve, reject) => {
+            const pass = String(password || '').trim();
+            if (!pass) return reject(new Error('Password tidak valid'));
+            const digitsOnly = (phone || '').toString().replace(/\D/g, '');
+            const intl = digitsOnly.startsWith('62')
+                ? digitsOnly
+                : (digitsOnly.startsWith('0') ? ('62' + digitsOnly.slice(1)) : digitsOnly);
+            const local08 = digitsOnly.startsWith('62')
+                ? ('0' + digitsOnly.slice(2))
+                : (digitsOnly.startsWith('0') ? digitsOnly : ('0' + digitsOnly));
+            const sql = `UPDATE customers SET password = ? WHERE phone = ? OR phone = ? OR phone = ?`;
+            this.db.run(sql, [pass, intl, local08, digitsOnly], function (err) {
+                if (err) return reject(err);
+                resolve({ phone: intl, changes: this.changes });
+            });
         });
     }
 
