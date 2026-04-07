@@ -60,6 +60,12 @@
                                         <%= customer && customer.phone ? customer.phone : '-' %>
                                     </div>
                                     <div class="mb-3">
+                                        <button type="button" class="btn btn-outline-warning btn-sm" id="resetPortalPasswordBtn" data-phone="<%= customer && customer.phone ? customer.phone : '' %>">
+                                            <i class="bx bx-key"></i> Reset Password Portal (123456)
+                                        </button>
+                                        <div id="resetPortalPasswordMsg" class="small mt-2" style="display:none;"></div>
+                                    </div>
+                                    <div class="mb-3">
                                         <strong>Email:</strong>
                                         <%= customer && customer.email ? customer.email : '-' %>
                                     </div>
@@ -371,6 +377,40 @@
     </div>
 
     <script>
+        (function () {
+            const btn = document.getElementById('resetPortalPasswordBtn');
+            const msg = document.getElementById('resetPortalPasswordMsg');
+            if (!btn || !msg) return;
+
+            btn.addEventListener('click', async function () {
+                const phone = btn.getAttribute('data-phone');
+                if (!phone) return;
+                if (!confirm('Reset password portal pelanggan ke 123456?')) return;
+
+                btn.disabled = true;
+                msg.style.display = 'block';
+                msg.className = 'small mt-2 text-muted';
+                msg.textContent = 'Memproses...';
+
+                try {
+                    const res = await fetch(`/admin/billing/customers/${encodeURIComponent(phone)}/reset-portal-password`, { method: 'POST' });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || !data.success) {
+                        msg.className = 'small mt-2 text-danger';
+                        msg.textContent = data.message || 'Gagal reset password';
+                        return;
+                    }
+                    msg.className = 'small mt-2 text-success';
+                    msg.textContent = data.message || 'Password berhasil direset';
+                } catch (e) {
+                    msg.className = 'small mt-2 text-danger';
+                    msg.textContent = 'Terjadi kesalahan saat reset password';
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        })();
+
         document.addEventListener('DOMContentLoaded', function () {
             // Initialize tooltips
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

@@ -724,6 +724,11 @@
                                                                                 onclick="editCustomer('<%= customer.phone %>')">
                                                                                 <i class="bx bx-edit"></i>
                                                                             </button>
+                                                                            <button class="btn btn-sm btn-warning"
+                                                                                onclick="resetPortalPassword('<%= customer.phone %>')"
+                                                                                title="Reset Password Portal (123456)">
+                                                                                <i class="bx bx-key"></i>
+                                                                            </button>
                                                                             <button class="btn btn-sm btn-danger"
                                                                                 onclick="deleteCustomer('<%= customer.phone %>')">
                                                                                 <i class="bx bx-trash"></i>
@@ -2389,6 +2394,23 @@
             window.location.href = `/admin/billing/customers/${phone}`;
         }
 
+        async function resetPortalPassword(phone) {
+            if (!confirm('Reset password portal pelanggan ke 123456?')) return;
+            try {
+                const response = await fetch(`/admin/billing/customers/${encodeURIComponent(phone)}/reset-portal-password`, {
+                    method: 'POST'
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || !result.success) {
+                    showToast('error', result.message || 'Gagal reset password portal');
+                    return;
+                }
+                showToast('success', result.message || 'Password portal berhasil direset ke 123456');
+            } catch (error) {
+                showToast('error', 'Terjadi kesalahan saat reset password portal');
+            }
+        }
+
         // Delete customer
         async function deleteCustomer(phone) {
             if (!confirm('Apakah Anda yakin ingin menghapus pelanggan ini?')) return;
@@ -3006,11 +3028,27 @@
         }
 
         // Toast notification function
-        function showToast(message, type) {
+        function showToast(a, b) {
+            let type = 'info';
+            let message = '';
+            if (b === undefined) {
+                message = String(a || '');
+            } else {
+                const first = String(a || '');
+                if (first === 'success' || first === 'error' || first === 'info' || first === 'warning') {
+                    type = first;
+                    message = String(b || '');
+                } else {
+                    message = first;
+                    type = String(b || 'info');
+                }
+            }
+            if (type === 'error') type = 'danger';
+
             const toastContainer = document.getElementById('toastContainer') || createToastContainer();
 
             const toastHtml = `
-                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'danger' ? 'danger' : type === 'warning' ? 'warning' : 'info'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="d-flex">
                         <div class="toast-body">
                             ${message}
