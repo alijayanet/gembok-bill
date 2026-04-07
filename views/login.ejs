@@ -181,9 +181,15 @@
       <div class="form-container">
         <form id="loginForm">
           <div class="form-floating">
-            <input type="text" class="form-control" id="phone" name="phone" placeholder="Nomor HP" required autofocus pattern="08[0-9]{8,13}">
+            <input type="text" class="form-control" id="phone" name="phone" placeholder="Nomor HP" required autofocus pattern="(08[0-9]{8,13}|\+?62[0-9]{8,13})">
             <label for="phone">
               <i class="bi bi-phone me-2"></i>Nomor HP
+            </label>
+          </div>
+          <div class="form-floating">
+            <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+            <label for="password">
+              <i class="bi bi-lock me-2"></i>Password
             </label>
           </div>
           <button type="submit" class="btn btn-primary btn-login w-100" id="loginBtn">
@@ -270,9 +276,15 @@
         e.preventDefault();
         
         const phone = $('#phone').val();
+        const password = $('#password').val();
         
-        if (!phone || !phone.match(/^08[0-9]{8,13}$/)) {
-            showToast('error', 'Error', 'Nomor HP harus valid (08xxxxxxxxxx)');
+        if (!phone || !phone.match(/^(08[0-9]{8,13}|\+?62[0-9]{8,13})$/)) {
+            showToast('error', 'Error', 'Nomor HP harus valid (08..., 62..., atau +62...)');
+            return;
+        }
+
+        if (!password) {
+            showToast('error', 'Error', 'Password harus diisi');
             return;
         }
         
@@ -289,7 +301,7 @@
         $.ajax({
             url: '/customer/login',
             method: 'POST',
-            data: { phone },
+            data: { phone, password },
             success: function(response) {
                 if (response.success) {
                     const target = response.redirect || '/customer/dashboard';
