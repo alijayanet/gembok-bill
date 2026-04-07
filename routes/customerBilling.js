@@ -527,6 +527,48 @@ router.get('/profile', ensureCustomerSession, getAppSettings, async (req, res) =
     }
 });
 
+router.post('/profile/password', ensureCustomerSession, async (req, res) => {
+    try {
+        const username = req.session.customer_username;
+        const phone = req.session.customer_phone || req.session.phone;
+        const currentPassword = String(req.body.current_password || '').trim();
+        const newPassword = String(req.body.new_password || '').trim();
+        const confirmPassword = String(req.body.confirm_password || '').trim();
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ success: false, message: 'Password lama dan password baru wajib diisi' });
+        }
+        if (newPassword.length < 6) {
+            return res.status(400).json({ success: false, message: 'Password baru minimal 6 karakter' });
+        }
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ success: false, message: 'Konfirmasi password tidak sama' });
+        }
+
+        let customer = null;
+        if (username && typeof username === 'string' && !username.startsWith('temp_')) {
+            customer = await billingManager.getCustomerByUsername(username);
+        }
+        if (!customer && phone) {
+            customer = await billingManager.getCustomerByPhone(phone);
+        }
+        if (!customer) {
+            return res.status(404).json({ success: false, message: 'Pelanggan tidak ditemukan' });
+        }
+
+        const expected = (customer.password && String(customer.password).trim()) ? String(customer.password).trim() : '123456';
+        if (currentPassword !== expected) {
+            return res.status(400).json({ success: false, message: 'Password lama salah' });
+        }
+
+        await billingManager.setCustomerPortalPasswordById(customer.id, newPassword);
+        return res.json({ success: true, message: 'Password berhasil diubah' });
+    } catch (error) {
+        logger.error('Error changing customer portal password:', error);
+        return res.status(500).json({ success: false, message: 'Terjadi kesalahan saat mengubah password' });
+    }
+});
+
 // API Routes untuk AJAX
 router.get('/api/invoices', async (req, res) => {
     try {

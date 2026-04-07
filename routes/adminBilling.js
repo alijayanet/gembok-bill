@@ -2854,6 +2854,21 @@ router.get('/customers', getAppSettings, async (req, res) => {
     }
 });
 
+router.post('/customers/:phone/reset-portal-password', async (req, res) => {
+    try {
+        const { phone } = req.params;
+        const customer = await billingManager.getCustomerByPhone(phone);
+        if (!customer) {
+            return res.status(404).json({ success: false, message: 'Pelanggan tidak ditemukan' });
+        }
+        await billingManager.setCustomerPortalPasswordById(customer.id, '123456');
+        return res.json({ success: true, message: 'Password portal berhasil direset ke 123456' });
+    } catch (error) {
+        logger.error('Error resetting customer portal password:', error);
+        return res.status(500).json({ success: false, message: 'Gagal mereset password portal' });
+    }
+});
+
 router.post('/customers', async (req, res) => {
     try {
         const { name, username, phone, pppoe_username, email, address, package_id, odp_id, pppoe_profile, auto_suspension, billing_day, create_pppoe_user, pppoe_password, static_ip, assigned_ip, mac_address, latitude, longitude, cable_type, cable_length, port_number, cable_status, cable_notes } = req.body;

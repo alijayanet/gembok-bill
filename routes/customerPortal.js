@@ -842,7 +842,7 @@ router.get('/', (req, res) => {
 // POST: Proses login - Optimized dengan AJAX support
 router.post('/login', async (req, res) => {
   try {
-    const { phone } = req.body;
+    const { phone, password } = req.body;
     const settings = getSettingsWithCache();
     
     // Fast validation: terima 08..., 62..., +62...
@@ -854,16 +854,40 @@ router.post('/login', async (req, res) => {
         return res.render('login', { settings, error: 'Nomor HP tidak valid.' });
       }
     }
+
+    const pass = String(password || '').trim();
+    if (!pass) {
+      if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+        return res.status(400).json({ success: false, message: 'Password harus diisi' });
+      } else {
+        return res.render('login', { settings, error: 'Password harus diisi.' });
+      }
+    }
     
     const normalizedPhone = normalizePhone(phone);
 
-    // Check customer validity
-    if (!await isValidCustomer(normalizedPhone)) {
+    const customer = await billingManager.getCustomerByPhone(normalizedPhone);
+    if (!customer) {
       if (req.xhr || req.headers.accept.indexOf('json') > -1) {
         return res.status(401).json({ success: false, message: 'Nomor HP tidak terdaftar.' });
       } else {
         return res.render('login', { settings, error: 'Nomor HP tidak valid atau belum terdaftar.' });
       }
+    }
+
+    const expectedPassword = (customer.password && String(customer.password).trim()) ? String(customer.password).trim() : '123456';
+    if (pass !== expectedPassword) {
+      if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+        return res.status(401).json({ success: false, message: 'Password salah.' });
+      } else {
+        return res.render('login', { settings, error: 'Password salah.' });
+      }
+    }
+
+    if (!customer.password || String(customer.password).trim() === '') {
+      try {
+        await billingManager.setCustomerPortalPasswordById(customer.id, '123456');
+      } catch (_) { }
     }
     
     // Aktifkan OTP jika setting bernilai true (boolean) atau 'true' (string)
@@ -874,49 +898,40 @@ router.post('/login', async (req, res) => {
       const max = Math.pow(10, otpLength) - 1;
       const otp = Math.floor(min + Math.random() * (max - min)).toString();
       const expiryMin = parseInt(settings.otp_expiry_minutes || '5', 10);
-      otpStore[normalizedPhone] = { otp, expires: Date.now() + (isNaN(expiryMin) ? 5 : expiryMin) * 60 * 1000 };
+      otpStore[normalizePhone(customer.phone)] = { otp, expires: Date.now() + (isNaN(expiryMin) ? 5 : expiryMin) * 60 * 1000 };
       
       // Kirim OTP ke WhatsApp pelanggan
       try {
-        const waJid = normalizedPhone + '@s.whatsapp.net';
+        const waJid = normalizePhone(customer.phone) + '@s.whatsapp.net';
         const msg = `🔐 *KODE OTP PORTAL PELANGGAN*\n\n` +
           `Kode OTP Anda adalah: *${otp}*\n\n` +
           `⏰ Kode ini berlaku selama ${(isNaN(expiryMin) ? 5 : expiryMin)} menit\n` +
           `🔒 Jangan bagikan kode ini kepada siapapun`;
         
         await sendMessage(waJid, msg);
-        console.log(`OTP berhasil dikirim ke ${normalizedPhone}: ${otp}`);
+        console.log(`OTP berhasil dikirim ke ${normalizePhone(customer.phone)}: ${otp}`);
       } catch (error) {
-        console.error(`Gagal mengirim OTP ke ${normalizedPhone}:`, error);
+        console.error(`Gagal mengirim OTP ke ${normalizePhone(customer.phone)}:`, error);
       }
       
       if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-        return res.json({ success: true, message: 'OTP berhasil dikirim', redirect: `/customer/otp?phone=${normalizedPhone}` });
+        return res.json({ success: true, message: 'OTP berhasil dikirim', redirect: `/customer/otp?phone=${encodeURIComponent(normalizePhone(customer.phone))}` });
       } else {
-        return res.render('otp', { phone: normalizedPhone, error: null, otp_length: otpLength, settings });
+        return res.render('otp', { phone: normalizePhone(customer.phone), error: null, otp_length: otpLength, settings });
       }
     } else {
-      req.session.phone = normalizedPhone;
+      const sessionPhone = normalizePhone(customer.phone);
+      req.session.phone = sessionPhone;
       
       // Set customer_username untuk konsistensi dengan billing
       try {
-        const billingManager = require('../config/billing');
-        const customer = await billingManager.getCustomerByPhone(normalizedPhone);
-        if (customer) {
-          req.session.customer_username = customer.username;
-          req.session.customer_phone = normalizedPhone;
-          console.log(`✅ [LOGIN] Set session customer_username: ${customer.username} for phone: ${normalizedPhone}`);
-        } else {
-          // Customer belum ada di billing, set temporary username
-          req.session.customer_username = `temp_${normalizedPhone}`;
-          req.session.customer_phone = normalizedPhone;
-          console.log(`⚠️ [LOGIN] No billing customer found for phone: ${normalizedPhone}, set temp username`);
-        }
+        req.session.customer_username = customer.username;
+        req.session.customer_phone = sessionPhone;
+        console.log(`✅ [LOGIN] Set session customer_username: ${customer.username} for phone: ${sessionPhone}`);
       } catch (error) {
-        console.error(`❌ [LOGIN] Error getting customer from billing:`, error);
-        // Fallback ke temporary username
-        req.session.customer_username = `temp_${normalizedPhone}`;
-        req.session.customer_phone = normalizedPhone;
+        console.error(`❌ [LOGIN] Error setting session:`, error);
+        req.session.customer_username = `temp_${sessionPhone}`;
+        req.session.customer_phone = sessionPhone;
       }
       
       if (req.xhr || req.headers.accept.indexOf('json') > -1) {
