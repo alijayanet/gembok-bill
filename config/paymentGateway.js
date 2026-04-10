@@ -37,6 +37,14 @@ class PaymentGatewayManager {
                 console.error('Failed to initialize Tripay gateway:', error);
             }
         }
+
+        if (this.settings.payment_gateway && this.settings.payment_gateway.duitku && this.settings.payment_gateway.duitku.enabled) {
+            try {
+                this.gateways.duitku = new DuitkuGateway(this.settings.payment_gateway.duitku);
+            } catch (error) {
+                console.error('Failed to initialize Duitku gateway:', error);
+            }
+        }
         
         this.activeGateway = this.settings.payment_gateway ? this.settings.payment_gateway.active : null;
     }
@@ -88,6 +96,14 @@ class PaymentGatewayManager {
                 this.gateways.tripay = new TripayGateway(this.settings.payment_gateway.tripay);
             } catch (error) {
                 console.error('Failed to initialize Tripay gateway on reload:', error);
+            }
+        }
+
+        if (this.settings.payment_gateway && this.settings.payment_gateway.duitku && this.settings.payment_gateway.duitku.enabled) {
+            try {
+                this.gateways.duitku = new DuitkuGateway(this.settings.payment_gateway.duitku);
+            } catch (error) {
+                console.error('Failed to initialize Duitku gateway on reload:', error);
             }
         }
 
@@ -146,6 +162,8 @@ class PaymentGatewayManager {
             let result;
             if (selectedGateway === 'tripay' && method && method !== 'all') {
                 console.log(`[PAYMENT_GATEWAY] Using Tripay with specific method: ${method}`);
+                result = await this.gateways[selectedGateway].createPaymentWithMethod(invoice, method, paymentType);
+            } else if (selectedGateway === 'duitku' && method && method !== 'all') {
                 result = await this.gateways[selectedGateway].createPaymentWithMethod(invoice, method, paymentType);
             } else {
                 console.log(`[PAYMENT_GATEWAY] Using default gateway method for ${selectedGateway}`);
@@ -232,6 +250,14 @@ class PaymentGatewayManager {
                     initialized: !!this.gateways.tripay
                 };
             }
+
+            if (this.settings.payment_gateway.duitku) {
+                status.duitku = {
+                    enabled: this.settings.payment_gateway.duitku.enabled,
+                    active: 'duitku' === this.activeGateway,
+                    initialized: !!this.gateways.duitku
+                };
+            }
         }
         
         return status;
@@ -281,6 +307,26 @@ class PaymentGatewayManager {
                         { gateway: 'tripay', method: 'SHOPEEPAY', name: 'ShopeePay', icon: 'bi-bag', color: 'secondary' }
                     ];
                     methods.push(...defaultTripayMethods);
+                }
+            }
+
+            if (this.settings.payment_gateway.duitku && this.settings.payment_gateway.duitku.enabled && this.gateways.duitku) {
+                try {
+                    const duitkuMethods = await this.gateways.duitku.getAvailablePaymentMethods();
+                    methods.push(...duitkuMethods);
+                } catch (error) {
+                    console.error('Error getting Duitku payment methods:', error);
+                    const defaultDuitkuMethods = [
+                        { gateway: 'duitku', method: 'VC', name: 'Kartu Kredit', icon: 'bi-credit-card', color: 'primary' },
+                        { gateway: 'duitku', method: 'BC', name: 'BCA Virtual Account', icon: 'bi-bank', color: 'dark' },
+                        { gateway: 'duitku', method: 'M2', name: 'Mandiri Virtual Account', icon: 'bi-bank', color: 'dark' },
+                        { gateway: 'duitku', method: 'I1', name: 'BNI Virtual Account', icon: 'bi-bank', color: 'dark' },
+                        { gateway: 'duitku', method: 'BT', name: 'Permata Virtual Account', icon: 'bi-bank', color: 'dark' },
+                        { gateway: 'duitku', method: 'OV', name: 'OVO', icon: 'bi-phone', color: 'danger' },
+                        { gateway: 'duitku', method: 'SP', name: 'ShopeePay', icon: 'bi-bag', color: 'secondary' },
+                        { gateway: 'duitku', method: 'LA', name: 'LinkAja', icon: 'bi-wallet2', color: 'success' }
+                    ];
+                    methods.push(...defaultDuitkuMethods);
                 }
             }
         }
@@ -778,6 +824,178 @@ class TripayGateway {
             console.error(`[TRIPAY] Webhook error:`, error);
             throw error;
         }
+    }
+}
+
+class DuitkuGateway {
+    constructor(config) {
+        if (!config || !config.merchant_code || !config.api_key) {
+            throw new Error('Duitku configuration is incomplete. Missing merchant_code or api_key.');
+        }
+        this.config = config;
+        this.baseUrl = config.production
+            ? 'https://passport.duitku.com/webapi/api/merchant'
+            : 'https://sandbox.duitku.com/webapi/api/merchant';
+    }
+
+    async createPayment(invoice, paymentType = 'invoice') {
+        const method = this.config.method || 'VC';
+        return this.createPaymentWithMethod(invoice, method, paymentType);
+    }
+
+    async createPaymentWithMethod(invoice, method, paymentType = 'invoice') {
+        const hostSetting = getSetting('server_host', 'localhost');
+        const host = (hostSetting && String(hostSetting).trim()) || 'localhost';
+        const port = getSetting('server_port', '3003');
+        const defaultAppBase = `http://${host}${port ? `:${port}` : ''}`;
+        const rawBase = (this.config.base_url || defaultAppBase || '').toString().trim();
+        const baseNoSlash = rawBase.replace(/\/+$/, '');
+        if (!/^https?:\/\//i.test(baseNoSlash)) {
+            throw new Error(`Invalid base_url for Duitku callbacks: "${rawBase}". Please set a full URL starting with http:// or https:// in settings (payment_gateway.duitku.base_url) or set valid server_host/server_port.`);
+        }
+        const appBaseUrl = baseNoSlash;
+
+        const paymentAmount = parseInt(invoice.amount);
+        const merchantOrderId = `INV-${invoice.invoice_number}`;
+        const customerVaNameRaw = (invoice.customer_name || 'Customer').toString().trim();
+        const customerVaName = customerVaNameRaw.length > 20 ? customerVaNameRaw.substring(0, 20) : customerVaNameRaw;
+
+        const signature = crypto
+            .createHash('md5')
+            .update(`${this.config.merchant_code}${merchantOrderId}${paymentAmount}${this.config.api_key}`)
+            .digest('hex');
+
+        const payload = {
+            merchantCode: this.config.merchant_code,
+            paymentAmount,
+            paymentMethod: method || 'VC',
+            merchantOrderId,
+            productDetails: `Pembayaran ${invoice.package_name || 'Internet Package'}`,
+            email: invoice.customer_email || 'customer@example.com',
+            phoneNumber: invoice.customer_phone || '',
+            additionalParam: '',
+            merchantUserInfo: '',
+            customerVaName,
+            callbackUrl: paymentType === 'voucher' ? `${appBaseUrl}/voucher/payment-webhook` : `${appBaseUrl}/payment/webhook/duitku`,
+            returnUrl: paymentType === 'voucher' ? `${appBaseUrl}/voucher/finish` : `${appBaseUrl}/payment/finish`,
+            signature,
+            expiryPeriod: Number.isFinite(parseInt(this.config.expiry_period)) ? parseInt(this.config.expiry_period) : 60,
+            itemDetails: [{
+                name: invoice.package_name || 'Internet Package',
+                price: paymentAmount,
+                quantity: 1
+            }]
+        };
+
+        const fetchFn = typeof fetch === 'function' ? fetch : (await import('node-fetch')).default;
+        const response = await fetchFn(`${this.baseUrl}/v2/inquiry`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result || !result.paymentUrl) {
+            const msg = (result && (result.statusMessage || result.message)) ? (result.statusMessage || result.message) : 'Failed to create Duitku payment';
+            throw new Error(msg);
+        }
+
+        return {
+            payment_url: result.paymentUrl,
+            token: result.reference,
+            order_id: merchantOrderId
+        };
+    }
+
+    async getAvailablePaymentMethods() {
+        const amount = 10000;
+        const now = new Date();
+        const pad2 = (n) => String(n).padStart(2, '0');
+        const datetime = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())} ${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+
+        const signature = crypto
+            .createHash('sha256')
+            .update(`${this.config.merchant_code}${datetime}${this.config.api_key}`)
+            .digest('hex');
+
+        const payload = {
+            merchantcode: this.config.merchant_code,
+            amount,
+            datetime,
+            signature
+        };
+
+        const fetchFn = typeof fetch === 'function' ? fetch : (await import('node-fetch')).default;
+        const response = await fetchFn(`${this.baseUrl}/paymentmethod/getpaymentmethod`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result || !Array.isArray(result.paymentFee)) {
+            throw new Error('Failed to get Duitku payment methods');
+        }
+
+        const methods = [];
+        result.paymentFee.forEach((m) => {
+            if (!m || !m.paymentMethod) return;
+            let icon = 'bi-credit-card';
+            let color = 'primary';
+            const code = String(m.paymentMethod).toUpperCase();
+            if (code === 'QR') { icon = 'bi-qr-code'; color = 'info'; }
+            else if (code === 'OV') { icon = 'bi-phone'; color = 'danger'; }
+            else if (code === 'SP' || code === 'SA') { icon = 'bi-bag'; color = 'secondary'; }
+            else if (code.endsWith('1') || code.endsWith('2') || code === 'BC' || code === 'BT' || code === 'VA' || code === 'AG') { icon = 'bi-bank'; color = 'dark'; }
+            else if (code === 'LA' || code === 'LF') { icon = 'bi-wallet2'; color = 'success'; }
+
+            methods.push({
+                gateway: 'duitku',
+                method: code,
+                name: m.paymentName || code,
+                icon,
+                color
+            });
+        });
+
+        return methods;
+    }
+
+    async handleWebhook(payload, _headers = {}) {
+        const merchantCode = payload.merchantCode;
+        const amount = payload.amount;
+        const merchantOrderId = payload.merchantOrderId;
+        const signature = payload.signature;
+
+        if (!merchantCode || !amount || !merchantOrderId || !signature) {
+            throw new Error('Bad Parameter');
+        }
+
+        const calc = crypto
+            .createHash('md5')
+            .update(`${merchantCode}${amount}${merchantOrderId}${this.config.api_key}`)
+            .digest('hex');
+
+        if (signature !== calc) {
+            throw new Error('Bad Signature');
+        }
+
+        let status = 'pending';
+        const resultCode = String(payload.resultCode || '').trim();
+        if (resultCode === '00') status = 'success';
+        else if (resultCode === '01' || resultCode === '02') status = 'failed';
+
+        return {
+            order_id: merchantOrderId,
+            status,
+            amount: parseInt(amount),
+            payment_type: payload.paymentCode,
+            reference: payload.reference
+        };
     }
 }
 
