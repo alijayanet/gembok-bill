@@ -1,10 +1,13 @@
 {
-  "version": "2.1.6",
-  "version_name": "Customer Portal Password",
-  "version_date": "2026-04-08",
-  "version_notes": "Customer portal now supports password login, self-service password change, and admin reset to default 123456",
-  "build_number": "20260408",
+  "version": "2.1.7",
+  "version_name": "Duitku Payment Gateway",
+  "version_date": "2026-04-10",
+  "version_notes": "Added Duitku payment gateway alongside Midtrans, Xendit, and Tripay. Customer payments now follow admin active gateway.",
+  "build_number": "20260410",
   "changelog": [
+    "v2.1.7 - Duitku Payment Gateway (2026-04-10)",
+    "- Added Duitku gateway (create payment + webhook) with admin configuration UI",
+    "- Customer payments now follow admin active gateway and show methods for that gateway",
     "v2.1.6 - Customer Portal Password (2026-04-08)",
     "- Customer portal login now requires phone + password (default 123456)",
     "- Customer can change portal password from profile page",
