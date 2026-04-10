@@ -125,32 +125,44 @@
         <main class="col-md-10 main-content ms-sm-auto">
             <button class="hamburger d-block d-md-none mb-3" id="hamburgerBtn" aria-label="Menu"><i class="bi bi-list"></i></button>
 
-            <h3 class="mb-4">Mikrotik Management</h3>
+            <% const routerQuery = selectedRouterId ? ('?routerId=' + selectedRouterId) : ''; %>
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h3 class="mb-0">Mikrotik Management</h3>
+                <% if (routers && routers.length) { %>
+                    <div style="min-width: 260px;">
+                        <select class="form-select" id="routerSelect">
+                            <% routers.forEach(function(r) { %>
+                                <option value="<%= r.id %>" <%= selectedRouterId === r.id ? 'selected' : '' %>><%= r.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                <% } %>
+            </div>
 
             <!-- Tab Navigation -->
             <ul class="nav nav-tabs mb-4">
                 <li class="nav-item">
-                    <a class="nav-link <%= page === 'mikrotik' ? 'active' : '' %>" href="/admin/mikrotik">
+                    <a class="nav-link <%= page === 'mikrotik' ? 'active' : '' %>" href="/admin/mikrotik<%= routerQuery %>">
                         <i class="bi bi-router"></i> User PPPoE
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <%= page === 'mikrotik-profiles' ? 'active' : '' %>" href="/admin/mikrotik/profiles">
+                    <a class="nav-link <%= page === 'mikrotik-profiles' ? 'active' : '' %>" href="/admin/mikrotik/profiles<%= routerQuery %>">
                         <i class="bi bi-person-badge"></i> Profile PPPoE
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <%= page === 'hotspot-profiles' ? 'active' : '' %>" href="/admin/mikrotik/hotspot-profiles">
+                    <a class="nav-link <%= page === 'hotspot-profiles' ? 'active' : '' %>" href="/admin/mikrotik/hotspot-profiles<%= routerQuery %>">
                         <i class="bi bi-wifi"></i> Profile Hotspot
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <%= page === 'hotspot' ? 'active' : '' %>" href="/admin/hotspot">
+                    <a class="nav-link <%= page === 'hotspot' ? 'active' : '' %>" href="/admin/hotspot<%= routerQuery %>">
                         <i class="bi bi-people"></i> User Hotspot
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <%= page === 'voucher' ? 'active' : '' %>" href="/admin/hotspot/voucher">
+                    <a class="nav-link <%= page === 'voucher' ? 'active' : '' %>" href="/admin/hotspot/voucher<%= routerQuery %>">
                         <i class="bi bi-ticket-perforated"></i> Voucher Hotspot
                     </a>
                 </li>
@@ -462,6 +474,28 @@
 
 <script>
 $(function() {
+    const selectedRouterId = "<%= selectedRouterId || '' %>";
+
+    function addRouterIdToUrl(url) {
+        if (!selectedRouterId) return url;
+        const u = new URL(url, window.location.origin);
+        u.searchParams.set('routerId', selectedRouterId);
+        return u.pathname + u.search;
+    }
+
+    function appendRouterIdToPostBody(body) {
+        if (!selectedRouterId) return body;
+        return Object.assign({}, body, { routerId: selectedRouterId });
+    }
+
+    $('#routerSelect').on('change', function() {
+        const routerId = $(this).val();
+        const url = new URL(window.location.href);
+        if (routerId) url.searchParams.set('routerId', routerId);
+        else url.searchParams.delete('routerId');
+        window.location.href = url.toString();
+    });
+
     let profiles = [];
     let dataTable;
 
@@ -567,7 +601,7 @@ $(function() {
     function loadProfiles() {
         $('#btnRefresh').prop('disabled', true).html('<i class="bi bi-arrow-clockwise spin"></i> Loading...');
         
-        $.get('/admin/mikrotik/hotspot-profiles/api', function(res) {
+        $.get(addRouterIdToUrl('/admin/mikrotik/hotspot-profiles/api'), function(res) {
             if (res.success) {
                 profiles = res.profiles || [];
                 updateStatistics();
@@ -721,7 +755,7 @@ $(function() {
 
         const url = formData.id ? '/admin/mikrotik/hotspot-profiles/edit' : '/admin/mikrotik/hotspot-profiles/add';
         
-        $.post(url, formData, function(res) {
+        $.post(addRouterIdToUrl(url), appendRouterIdToPostBody(formData), function(res) {
             if (res.success) {
                 alert('Profile berhasil disimpan!');
                 $('#profileModal').modal('hide');
@@ -733,7 +767,7 @@ $(function() {
     }
 
     function deleteProfile(id) {
-        $.post('/admin/mikrotik/hotspot-profiles/delete', { id }, function(res) {
+        $.post(addRouterIdToUrl('/admin/mikrotik/hotspot-profiles/delete'), appendRouterIdToPostBody({ id }), function(res) {
             if (res.success) {
                 alert('Profile berhasil dihapus!');
                 loadProfiles();
@@ -748,7 +782,7 @@ $(function() {
         $('#detailLoading').show();
         $('#detailModalBody').html('');
 
-        $.get(`/admin/mikrotik/hotspot-profiles/detail/${id}`, function(res) {
+        $.get(addRouterIdToUrl(`/admin/mikrotik/hotspot-profiles/detail/${id}`), function(res) {
             $('#detailLoading').hide();
             if (res.success) {
                 const profile = res.profile;

@@ -124,32 +124,44 @@
         <!-- Include Responsive Admin Sidebar -->
         <%- include('partials/admin-responsive-sidebar', { page: 'voucher', settings: settings }) %>
         <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4 main-content">
-        <h3 class="mb-4">Mikrotik Management</h3>
+        <% const routerQuery = selectedRouterId ? ('?routerId=' + selectedRouterId) : ''; %>
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h3 class="mb-0">Mikrotik Management</h3>
+            <% if (routers && routers.length) { %>
+                <div style="min-width: 260px;">
+                    <select class="form-select" id="routerSelect">
+                        <% routers.forEach(function(r) { %>
+                            <option value="<%= r.id %>" <%= selectedRouterId === r.id ? 'selected' : '' %>><%= r.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+            <% } %>
+        </div>
 
         <!-- Tab Navigation -->
         <ul class="nav nav-tabs mb-4">
             <li class="nav-item">
-                <a class="nav-link <%= page === 'mikrotik' ? 'active' : '' %>" href="/admin/mikrotik">
+                <a class="nav-link <%= page === 'mikrotik' ? 'active' : '' %>" href="/admin/mikrotik<%= routerQuery %>">
                     <i class="bi bi-router"></i> User PPPoE
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <%= page === 'mikrotik-profiles' ? 'active' : '' %>" href="/admin/mikrotik/profiles">
+                <a class="nav-link <%= page === 'mikrotik-profiles' ? 'active' : '' %>" href="/admin/mikrotik/profiles<%= routerQuery %>">
                     <i class="bi bi-person-badge"></i> Profile PPPoE
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <%= page === 'hotspot-profiles' ? 'active' : '' %>" href="/admin/mikrotik/hotspot-profiles">
+                <a class="nav-link <%= page === 'hotspot-profiles' ? 'active' : '' %>" href="/admin/mikrotik/hotspot-profiles<%= routerQuery %>">
                     <i class="bi bi-wifi"></i> Profile Hotspot
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <%= page === 'hotspot' ? 'active' : '' %>" href="/admin/hotspot">
+                <a class="nav-link <%= page === 'hotspot' ? 'active' : '' %>" href="/admin/hotspot<%= routerQuery %>">
                     <i class="bi bi-people"></i> User Hotspot
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <%= page === 'voucher' ? 'active' : '' %>" href="/admin/hotspot/voucher">
+                <a class="nav-link <%= page === 'voucher' ? 'active' : '' %>" href="/admin/hotspot/voucher<%= routerQuery %>">
                     <i class="bi bi-ticket-perforated"></i> Voucher Hotspot
                 </a>
             </li>
@@ -180,6 +192,7 @@
                     </div>
                     <div class="card-body">
                         <form id="generateVoucherForm" action="/admin/hotspot/generate-voucher" method="POST">
+                            <input type="hidden" name="routerId" value="<%= selectedRouterId || '' %>">
                             <div class="mb-3">
                                 <label for="voucherCount" class="form-label"><i class="bi bi-123 me-1"></i>Jumlah Voucher</label>
                                 <input type="number" class="form-control" id="voucherCount" name="count" min="1" max="100" value="15" required>
@@ -690,6 +703,7 @@
                                                     </button>
                                                     <form action="/admin/hotspot/delete-voucher" method="POST" class="d-inline" onsubmit="return confirm('Yakin hapus voucher <%= voucher.username %>?')">
                                                         <input type="hidden" name="username" value="<%= voucher.username %>">
+                                                        <input type="hidden" name="routerId" value="<%= selectedRouterId || '' %>">
                                                         <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i></button>
                                                     </form>
                                                 </div>
@@ -720,6 +734,31 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+    const selectedRouterId = "<%= selectedRouterId || '' %>";
+
+    function addRouterIdToUrl(url) {
+        if (!selectedRouterId) return url;
+        const u = new URL(url, window.location.origin);
+        u.searchParams.set('routerId', selectedRouterId);
+        return u.pathname + u.search;
+    }
+
+    function appendRouterIdToPostBody(body) {
+        if (!selectedRouterId) return body;
+        return Object.assign({}, body, { routerId: selectedRouterId });
+    }
+
+    const routerSelect = document.getElementById('routerSelect');
+    if (routerSelect) {
+        routerSelect.addEventListener('change', function() {
+            const routerId = this.value;
+            const url = new URL(window.location.href);
+            if (routerId) url.searchParams.set('routerId', routerId);
+            else url.searchParams.delete('routerId');
+            window.location.href = url.toString();
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Load history voucher untuk print ulang
         loadReprintVoucherHistory();
@@ -929,12 +968,12 @@
             console.log('CharType:', data.charType);
             
             try {
-                const response = await fetch('/admin/hotspot/generate-voucher', {
+                const response = await fetch(addRouterIdToUrl('/admin/hotspot/generate-voucher'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(appendRouterIdToPostBody(data))
                 });
                 
                 const result = await response.json();
@@ -1790,16 +1829,16 @@
             }
 
             // Generate voucher manual via AJAX
-            fetch('/admin/hotspot/generate-manual-voucher', {
+            fetch(addRouterIdToUrl('/admin/hotspot/generate-manual-voucher'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
+                body: JSON.stringify(appendRouterIdToPostBody({
                     username: username,
                     password: password,
                     profile: profile
-                })
+                }))
             })
             .then(response => response.json())
             .then(data => {
@@ -1826,16 +1865,16 @@
             const isNumeric = document.getElementById('autoNumeric').checked;
 
             // Generate voucher otomatis via AJAX
-            fetch('/admin/hotspot/generate-auto-voucher', {
+            fetch(addRouterIdToUrl('/admin/hotspot/generate-auto-voucher'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
+                body: JSON.stringify(appendRouterIdToPostBody({
                     count: count,
                     profile: profile,
                     numericOnly: isNumeric
-                })
+                }))
             })
             .then(response => response.json())
             .then(data => {
@@ -1876,12 +1915,12 @@
             });
 
             // Simpan via AJAX
-            fetch('/admin/hotspot/save-voucher-online-settings-from-voucher', {
+            fetch(addRouterIdToUrl('/admin/hotspot/save-voucher-online-settings-from-voucher'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ settings: settings })
+                body: JSON.stringify(appendRouterIdToPostBody({ settings: settings }))
             })
             .then(response => response.json())
             .then(data => {

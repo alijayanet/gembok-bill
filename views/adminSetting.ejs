@@ -94,9 +94,11 @@
 
         .settings-content {
             flex-grow: 1;
+            min-width: 0;
             padding: 1.25rem 1.5rem;
             background: #fff;
             /* overflow-y: auto; removed */
+            overflow-x: auto;
             height: auto;
             /* Pastikan tinggi otomatis */
         }
@@ -262,6 +264,8 @@
                             <!-- Content Area -->
                             <div class="settings-content tab-content">
                                 <form id="settingsForm">
+                                    <input type="hidden" name="mikrotik_routers" id="mikrotik_routers_json" value="">
+                                    <input type="hidden" name="mikrotik_default_router_id" id="mikrotik_default_router_id" value="">
                                     <!-- Section: Umum -->
                                     <% if (activeSection==='umum' ) { %>
                                         <div class="tab-pane show active" id="content-umum">
@@ -352,6 +356,45 @@
                                                             <div class="form-section-title"><i class="bi bi-router"></i>
                                                                 Pengaturan
                                                                 Mikrotik
+                                                            </div>
+                                                            <div class="card p-3 bg-light border-0 mb-4">
+                                                                <div class="row g-2 align-items-center mb-2">
+                                                                    <div class="col-12 col-md">
+                                                                        <h6 class="mb-0 fw-bold">Multi Router Mikrotik</h6>
+                                                                    </div>
+                                                                    <div class="col-12 col-md-auto d-grid d-md-block">
+                                                                        <button type="button" class="btn btn-sm btn-primary" id="btnAddMikrotikRouter">
+                                                                            <i class="bi bi-plus-lg"></i> Tambah Router
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row g-3 align-items-end mb-3">
+                                                                    <div class="col-md-6">
+                                                                        <label class="form-label" for="mikrotikDefaultRouterSelect">Router Default</label>
+                                                                        <select class="form-select" id="mikrotikDefaultRouterSelect"></select>
+                                                                        <div class="form-text small">Jika routerId tidak dipilih di halaman admin/monitoring, sistem memakai router default.</div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="table-responsive">
+                                                                    <table class="table table-sm align-middle mb-0">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th style="width:90px;">Aktif</th>
+                                                                                <th style="min-width:140px;">Router ID</th>
+                                                                                <th style="min-width:160px;">Nama</th>
+                                                                                <th style="min-width:160px;">Host</th>
+                                                                                <th style="width:140px;">Port</th>
+                                                                                <th style="min-width:140px;">User</th>
+                                                                                <th style="min-width:160px;">Password</th>
+                                                                                <th style="width:80px;"></th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody id="mikrotikRoutersTbody"></tbody>
+                                                                    </table>
+                                                                </div>
+                                                                <div class="form-text small mt-2">
+                                                                    Jika <code>mikrotik_routers</code> terisi, sistem otomatis memakai mode multi-router. Setting lama (<code>mikrotik_host</code>, <code>mikrotik_port</code>, dll) tetap dipertahankan untuk kompatibilitas.
+                                                                </div>
                                                             </div>
                                                             <div id="fields-mikrotik"></div>
                                                             <div class="mt-4 pt-3 border-top">
@@ -659,6 +702,7 @@
 
             const categoryMap = {
                 'mikrotik_': 'mikrotik', 'main_interface': 'mikrotik', 'user_auth_mode': 'mikrotik',
+                'mikrotik_routers': 'hidden', 'mikrotik_default_router_id': 'hidden',
                 'genieacs_': 'genieacs', 'whatsapp_': 'whatsapp', 'rx_power_': 'notifikasi',
                 'rxpower_': 'notifikasi', 'offline_notification_': 'notifikasi',
                 'offline_device_threshold_hours': 'notifikasi', 'pppoe_notifications.': 'notifikasi',
@@ -732,6 +776,127 @@
                 return html + '</div>';
             }
 
+            function getUniqueRouterId(existingIds) {
+                let idx = existingIds.size + 1;
+                while (existingIds.has(`router_${idx}`)) idx++;
+                return `router_${idx}`;
+            }
+
+            function normalizeRouterForUI(r) {
+                const id = String(r?.id ?? '').trim();
+                const name = String(r?.name ?? id).trim();
+                const host = String(r?.host ?? '').trim();
+                const port = String(r?.port ?? '8728').trim() || '8728';
+                const user = String(r?.user ?? '').trim();
+                const password = String(r?.password ?? '').trim();
+                const enabled = (r?.enabled !== false);
+                return { id, name, host, port, user, password, enabled };
+            }
+
+            function readRoutersFromEditor() {
+                const rows = [];
+                $('#mikrotikRoutersTbody tr').each(function () {
+                    const $row = $(this);
+                    const enabled = $row.find('input[data-field="enabled"]').prop('checked') !== false;
+                    const id = String($row.find('input[data-field="id"]').val() ?? '').trim();
+                    const name = String($row.find('input[data-field="name"]').val() ?? '').trim();
+                    const host = String($row.find('input[data-field="host"]').val() ?? '').trim();
+                    const port = String($row.find('input[data-field="port"]').val() ?? '').trim();
+                    const user = String($row.find('input[data-field="user"]').val() ?? '').trim();
+                    const password = String($row.find('input[data-field="password"]').val() ?? '').trim();
+                    if (!id) return;
+                    rows.push({ id, name: name || id, host, port: port || '8728', user, password, enabled });
+                });
+                return rows;
+            }
+
+            function renderRoutersEditor(routers, defaultRouterId) {
+                const tbody = $('#mikrotikRoutersTbody');
+                const defaultSelect = $('#mikrotikDefaultRouterSelect');
+                if (!tbody.length || !defaultSelect.length) return;
+
+                tbody.empty();
+                const normalized = Array.isArray(routers) ? routers.map(normalizeRouterForUI) : [];
+                const ids = new Set(normalized.map(r => r.id).filter(Boolean));
+
+                if (normalized.length === 0) {
+                    const emptyId = getUniqueRouterId(ids);
+                    normalized.push({ id: emptyId, name: 'Router 1', host: '', port: '8728', user: '', password: '', enabled: true });
+                }
+
+                normalized.forEach((r) => {
+                    tbody.append(`
+                        <tr>
+                            <td>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" data-field="enabled" ${r.enabled ? 'checked' : ''}>
+                                </div>
+                            </td>
+                            <td><input type="text" class="form-control form-control-sm" data-field="id" value="${r.id}"></td>
+                            <td><input type="text" class="form-control form-control-sm" data-field="name" value="${r.name}"></td>
+                            <td><input type="text" class="form-control form-control-sm" data-field="host" value="${r.host}"></td>
+                            <td><input type="text" class="form-control form-control-sm" data-field="port" value="${r.port}" style="min-width: 120px;"></td>
+                            <td><input type="text" class="form-control form-control-sm" data-field="user" value="${r.user}"></td>
+                            <td><input type="password" class="form-control form-control-sm" data-field="password" value="${r.password}"></td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-action="remove-router" title="Hapus">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+
+                const currentRouters = readRoutersFromEditor();
+                defaultSelect.empty();
+                currentRouters.forEach(r => {
+                    defaultSelect.append(`<option value="${r.id}">${r.name} (${r.id})</option>`);
+                });
+
+                let resolvedDefault = String(defaultRouterId ?? '').trim();
+                if (!resolvedDefault || !currentRouters.some(r => r.id === resolvedDefault)) {
+                    resolvedDefault = currentRouters[0] ? currentRouters[0].id : '';
+                }
+                defaultSelect.val(resolvedDefault);
+                $('#mikrotik_default_router_id').val(resolvedDefault);
+                $('#mikrotik_routers_json').val(JSON.stringify(currentRouters));
+            }
+
+            function syncMikrotikEditorToHidden() {
+                const routers = readRoutersFromEditor();
+                const defaultSelect = $('#mikrotikDefaultRouterSelect');
+                let defaultId = String(defaultSelect.val() ?? '').trim();
+                if (!defaultId || !routers.some(r => r.id === defaultId)) {
+                    defaultId = routers[0] ? routers[0].id : '';
+                    defaultSelect.val(defaultId);
+                }
+                $('#mikrotik_default_router_id').val(defaultId);
+                $('#mikrotik_routers_json').val(JSON.stringify(routers));
+            }
+
+            function initMikrotikEditor(data) {
+                if (!$('#mikrotikRoutersTbody').length) return;
+
+                let routers = Array.isArray(data?.mikrotik_routers) ? data.mikrotik_routers : null;
+                let defaultRouterId = data?.mikrotik_default_router_id ?? '';
+
+                if (!routers || routers.length === 0) {
+                    const host = String(data?.mikrotik_host ?? '').trim();
+                    const port = String(data?.mikrotik_port ?? '8728').trim();
+                    const user = String(data?.mikrotik_user ?? '').trim();
+                    const password = String(data?.mikrotik_password ?? '').trim();
+                    if (host || user || password) {
+                        routers = [{ id: 'router_1', name: 'Router 1', host, port: port || '8728', user, password, enabled: true }];
+                        defaultRouterId = 'router_1';
+                    } else {
+                        routers = [];
+                        defaultRouterId = '';
+                    }
+                }
+
+                renderRoutersEditor(routers, defaultRouterId);
+            }
+
             function loadSettings() {
                 $('.tab-pane [id^="fields-"]').empty();
                 $.get('/admin/settings/data', function (data) {
@@ -743,6 +908,7 @@
                         if (fieldHtml) $(`#fields-${cat}`).append(fieldHtml);
                     });
                     if (data.logo_filename) $('#logoPreview').attr('src', `/img/${data.logo_filename}?v=${Date.now()}`);
+                    initMikrotikEditor(data);
                 }).fail(() => showNotification('danger', 'Gagal memuat pengaturan dari server'));
             }
 
@@ -773,6 +939,7 @@
                 btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
 
                 const formData = {};
+                syncMikrotikEditorToHidden();
                 $(this).find('input').each(function () {
                     if (!this.name) return;
                     if (this.type === 'checkbox') formData[this.name] = this.checked;
@@ -832,6 +999,25 @@
             $('#confirmRestartMikrotik').click(() => {
                 $('#restartMikrotikModal').modal('hide');
                 $.post('/admin/mikrotik/restart', res => showNotification(res.success ? 'success' : 'danger', res.message));
+            });
+
+            $('#btnAddMikrotikRouter').on('click', function () {
+                if (!$('#mikrotikRoutersTbody').length) return;
+                const existing = readRoutersFromEditor();
+                const ids = new Set(existing.map(r => r.id));
+                const id = getUniqueRouterId(ids);
+                const next = existing.concat([{ id, name: `Router ${existing.length + 1}`, host: '', port: '8728', user: '', password: '', enabled: true }]);
+                renderRoutersEditor(next, $('#mikrotikDefaultRouterSelect').val());
+            });
+
+            $(document).on('click', 'button[data-action="remove-router"]', function () {
+                const row = $(this).closest('tr');
+                row.remove();
+                syncMikrotikEditorToHidden();
+            });
+
+            $(document).on('input change', '#mikrotikRoutersTbody input, #mikrotikDefaultRouterSelect', function () {
+                syncMikrotikEditorToHidden();
             });
 
             // Telegram Test
