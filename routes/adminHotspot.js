@@ -1,14 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { addHotspotUser, getActiveHotspotUsers, getHotspotProfiles, deleteHotspotUser, generateHotspotVouchers, getHotspotServers, disconnectHotspotUser } = require('../config/mikrotik');
-const { getMikrotikConnection } = require('../config/mikrotik');
+const { listMikrotikRouters, addHotspotUser, getActiveHotspotUsers, getHotspotProfiles, deleteHotspotUser, generateHotspotVouchers, getHotspotServers, disconnectHotspotUser, getMikrotikConnection, updateHotspotUser } = require('../config/mikrotik');
 const fs = require('fs');
 const path = require('path');
 const { getSettingsWithCache } = require('../config/settingsManager')
 const { getVersionInfo, getVersionBadge } = require('../config/version-utils');
 
+function getRouterIdFromReq(req) {
+    return (req.query && (req.query.routerId || req.query.router_id)) || (req.body && (req.body.routerId || req.body.router_id)) || null;
+}
+
 // Helper function untuk mengambil setting voucher online
-async function getVoucherOnlineSettings() {
+async function getVoucherOnlineSettings(routerOptions = {}) {
     const sqlite3 = require('sqlite3').verbose();
     const db = new sqlite3.Database('./data/billing.db');
 
@@ -40,7 +43,7 @@ async function getVoucherOnlineSettings() {
                 if (err || row.count === 0) {
                     // Get first available profile from Mikrotik as default
                     const { getHotspotProfiles } = require('../config/mikrotik');
-                    getHotspotProfiles().then(profilesResult => {
+                    getHotspotProfiles(routerOptions).then(profilesResult => {
                         const defaultProfile = (profilesResult.success && profilesResult.data && profilesResult.data.length > 0) 
                             ? profilesResult.data[0].name 
                             : 'default';
@@ -180,7 +183,12 @@ async function getVoucherOnlineSettings() {
 // GET: Tampilkan form tambah user hotspot dan daftar user hotspot
 router.get('/', async (req, res) => {
     try {
-        const activeUsersResult = await getActiveHotspotUsers();
+        const routerId = getRouterIdFromReq(req);
+        const { routers, defaultRouterId } = listMikrotikRouters();
+        const selectedRouterId = routerId || defaultRouterId || null;
+        const routerOptions = { routerId: selectedRouterId };
+
+        const activeUsersResult = await getActiveHotspotUsers(routerOptions);
         let users = [];
         if (activeUsersResult.success && Array.isArray(activeUsersResult.data)) {
             users = activeUsersResult.data;
@@ -189,7 +197,7 @@ router.get('/', async (req, res) => {
         let profiles = [];
         let allUsers = [];
         try {
-            const profilesResult = await getHotspotProfiles();
+            const profilesResult = await getHotspotProfiles(routerOptions);
             if (profilesResult.success && Array.isArray(profilesResult.data)) {
                 profiles = profilesResult.data;
             } else {
@@ -202,7 +210,7 @@ router.get('/', async (req, res) => {
         }
         try {
             // Ambil semua user hotspot (bukan hanya yang aktif)
-            const conn = await getMikrotikConnection();
+            const conn = await getMikrotikConnection(routerOptions);
             allUsers = await conn.write('/ip/hotspot/user/print');
             // Mapping agar property selalu ada
             allUsers = allUsers.map(u => ({
@@ -219,7 +227,7 @@ router.get('/', async (req, res) => {
         const adminKontak = settings['admins.0'] || '-';
 
         // Ambil setting voucher online
-        const voucherOnlineSettings = await getVoucherOnlineSettings();
+        const voucherOnlineSettings = await getVoucherOnlineSettings(routerOptions);
 
         res.render('adminHotspot', {
             users,
@@ -231,17 +239,24 @@ router.get('/', async (req, res) => {
             company_header,
             adminKontak,
             settings,
+            routers,
+            selectedRouterId,
             page: 'hotspot',
             versionInfo: getVersionInfo(),
             versionBadge: getVersionBadge()
         });
     } catch (error) {
+        const routerId = getRouterIdFromReq(req);
+        const { routers, defaultRouterId } = listMikrotikRouters();
+        const selectedRouterId = routerId || defaultRouterId || null;
         res.render('adminHotspot', {
             users: [],
             profiles: [],
             allUsers: [],
             success: null,
             error: 'Gagal mengambil data user hotspot: ' + error.message,
+            routers,
+            selectedRouterId,
             page: 'hotspot'
         });
     }
@@ -251,10 +266,14 @@ router.get('/', async (req, res) => {
 router.post('/delete', async (req, res) => {
     const { username } = req.body;
     try {
-        await deleteHotspotUser(username);
-        res.redirect('/admin/hotspot?success=User+Hotspot+berhasil+dihapus');
+        const routerId = getRouterIdFromReq(req);
+        await deleteHotspotUser(username, { routerId });
+        const qs = routerId ? `&routerId=${encodeURIComponent(routerId)}` : '';
+        res.redirect('/admin/hotspot?success=User+Hotspot+berhasil+dihapus' + qs);
     } catch (error) {
-        res.redirect('/admin/hotspot?error=Gagal+hapus+user:+' + encodeURIComponent(error.message));
+        const routerId = getRouterIdFromReq(req);
+        const qs = routerId ? `&routerId=${encodeURIComponent(routerId)}` : '';
+        res.redirect('/admin/hotspot?error=Gagal+hapus+user:+' + encodeURIComponent(error.message) + qs);
     }
 });
 
@@ -262,11 +281,15 @@ router.post('/delete', async (req, res) => {
 router.post('/', async (req, res) => {
     const { username, password, profile } = req.body;
     try {
-        await addHotspotUser(username, password, profile);
+        const routerId = getRouterIdFromReq(req);
+        await addHotspotUser(username, password, profile, null, { routerId });
         // Redirect agar tidak double submit, tampilkan pesan sukses
-        res.redirect('/admin/hotspot?success=User+Hotspot+berhasil+ditambahkan');
+        const qs = routerId ? `&routerId=${encodeURIComponent(routerId)}` : '';
+        res.redirect('/admin/hotspot?success=User+Hotspot+berhasil+ditambahkan' + qs);
     } catch (error) {
-        res.redirect('/admin/hotspot?error=Gagal+menambah+user:+"'+encodeURIComponent(error.message)+'"');
+        const routerId = getRouterIdFromReq(req);
+        const qs = routerId ? `&routerId=${encodeURIComponent(routerId)}` : '';
+        res.redirect('/admin/hotspot?error=Gagal+menambah+user:+"'+encodeURIComponent(error.message)+'"' + qs);
     }
 });
 
@@ -274,10 +297,14 @@ router.post('/', async (req, res) => {
 router.post('/edit', async (req, res) => {
     const { username, password, profile } = req.body;
     try {
-        await require('../config/mikrotik').updateHotspotUser(username, password, profile);
-        res.redirect('/admin/hotspot?success=User+Hotspot+berhasil+diupdate');
+        const routerId = getRouterIdFromReq(req);
+        await updateHotspotUser(username, password, profile, { routerId });
+        const qs = routerId ? `&routerId=${encodeURIComponent(routerId)}` : '';
+        res.redirect('/admin/hotspot?success=User+Hotspot+berhasil+diupdate' + qs);
     } catch (error) {
-        res.redirect('/admin/hotspot?error=Gagal+update+user:+' + encodeURIComponent(error.message));
+        const routerId = getRouterIdFromReq(req);
+        const qs = routerId ? `&routerId=${encodeURIComponent(routerId)}` : '';
+        res.redirect('/admin/hotspot?error=Gagal+update+user:+' + encodeURIComponent(error.message) + qs);
     }
 });
 
@@ -305,11 +332,12 @@ router.post('/generate', async (req, res) => {
 
     // Generate user dan tambahkan ke Mikrotik
     const { addHotspotUser } = require('../config/mikrotik');
+    const routerId = getRouterIdFromReq(req);
     for (let i = 0; i < jumlah; i++) {
         const username = randomString(6) + randomString(2); // 8 karakter unik
         const password = randomString(panjangPassword);
         try {
-            await addHotspotUser(username, password, profile);
+            await addHotspotUser(username, password, profile, null, { routerId });
             generated.push({ username, password, profile });
         } catch (e) {
             // Lewati user gagal
@@ -334,8 +362,8 @@ router.post('/generate-vouchers', async (req, res) => {
         const count = parseInt(quantity) || 5;
         const prefix = 'wifi-'; // Default prefix
         const server = 'all'; // Default server
-        
-        const result = await generateHotspotVouchers(count, prefix, profile, server, '', '');
+        const routerId = getRouterIdFromReq(req);
+        const result = await generateHotspotVouchers(count, prefix, profile, server, '', '', charType, { routerId });
         
         if (result.success) {
             res.json({ success: true, vouchers: result.vouchers });
@@ -350,7 +378,8 @@ router.post('/generate-vouchers', async (req, res) => {
 // GET: Get active hotspot users count for statistics
 router.get('/active-users', async (req, res) => {
     try {
-        const result = await getActiveHotspotUsers();
+        const routerId = getRouterIdFromReq(req);
+        const result = await getActiveHotspotUsers({ routerId });
         if (result.success) {
             // Hitung jumlah user yang aktif dari data array
             const activeCount = Array.isArray(result.data) ? result.data.length : 0;
@@ -368,7 +397,8 @@ router.get('/active-users', async (req, res) => {
 // GET: Get active hotspot users detail for table
 router.get('/active-users-detail', async (req, res) => {
     try {
-        const result = await getActiveHotspotUsers();
+        const routerId = getRouterIdFromReq(req);
+        const result = await getActiveHotspotUsers({ routerId });
         if (result.success) {
             res.json({ success: true, activeUsers: result.data });
         } else {
@@ -388,7 +418,8 @@ router.post('/disconnect-user', async (req, res) => {
     }
     
     try {
-        const result = await disconnectHotspotUser(username);
+        const routerId = getRouterIdFromReq(req);
+        const result = await disconnectHotspotUser(username, { routerId });
         if (result.success) {
             res.json({ success: true, message: `User ${username} berhasil diputus` });
         } else {
@@ -403,7 +434,8 @@ router.post('/disconnect-user', async (req, res) => {
 // GET: Ambil data user hotspot aktif untuk AJAX
 router.get('/active-users', async (req, res) => {
     try {
-        const result = await getActiveHotspotUsers();
+        const routerId = getRouterIdFromReq(req);
+        const result = await getActiveHotspotUsers({ routerId });
         if (result.success) {
             // Log data untuk debugging
             console.log('Active users data:', JSON.stringify(result.data).substring(0, 200) + '...');
@@ -421,26 +453,31 @@ router.get('/active-users', async (req, res) => {
 // GET: Tampilkan halaman voucher hotspot
 router.get('/voucher', async (req, res) => {
     try {
+        const routerId = getRouterIdFromReq(req);
+        const { routers, defaultRouterId } = listMikrotikRouters();
+        const selectedRouterId = routerId || defaultRouterId || null;
+        const routerOptions = { routerId: selectedRouterId };
+
         // Ambil profile hotspot
-        const profilesResult = await getHotspotProfiles();
+        const profilesResult = await getHotspotProfiles(routerOptions);
         let profiles = [];
         if (profilesResult.success && Array.isArray(profilesResult.data)) {
             profiles = profilesResult.data;
         }
         
         // Ambil server hotspot
-        const serversResult = await getHotspotServers();
+        const serversResult = await getHotspotServers(routerOptions);
         let servers = [];
         if (serversResult.success && Array.isArray(serversResult.data)) {
             servers = serversResult.data;
         }
         
         // Ambil history voucher (dari user hotspot)
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(routerOptions);
         const allUsers = await conn.write('/ip/hotspot/user/print');
         
         // Ambil active users untuk menentukan status aktif
-        const activeUsersResult = await getActiveHotspotUsers();
+        const activeUsersResult = await getActiveHotspotUsers(routerOptions);
         const activeUsernames = activeUsersResult.success && Array.isArray(activeUsersResult.data) 
             ? activeUsersResult.data.map(user => user.user) 
             : [];
@@ -466,7 +503,7 @@ router.get('/voucher', async (req, res) => {
         const adminKontak = settings['footer_info'] || '-';
         
         // Ambil setting voucher online
-        const voucherOnlineSettings = await getVoucherOnlineSettings();
+        const voucherOnlineSettings = await getVoucherOnlineSettings(routerOptions);
         
         res.render('adminVoucher', {
             profiles,
@@ -478,12 +515,17 @@ router.get('/voucher', async (req, res) => {
             company_header,
             adminKontak,
             settings,
+            routers,
+            selectedRouterId,
             page: 'voucher',
             versionInfo: getVersionInfo(),
             versionBadge: getVersionBadge()
         });
     } catch (error) {
         console.error('Error rendering voucher page:', error);
+        const routerId = getRouterIdFromReq(req);
+        const { routers, defaultRouterId } = listMikrotikRouters();
+        const selectedRouterId = routerId || defaultRouterId || null;
         res.render('adminVoucher', {
             profiles: [],
             servers: [],
@@ -491,6 +533,8 @@ router.get('/voucher', async (req, res) => {
             voucherOnlineSettings: {},
             success: null,
             error: 'Gagal memuat halaman voucher: ' + error.message,
+            routers,
+            selectedRouterId,
             page: 'voucher',
             versionInfo: getVersionInfo(),
             versionBadge: getVersionBadge()
@@ -524,7 +568,8 @@ router.post('/generate-voucher', async (req, res) => {
         console.log('- CharType:', charType);
         
         // Gunakan fungsi generateHotspotVouchers yang sudah diimport di atas
-        const result = await generateHotspotVouchers(count, prefix, profile, server, validUntil, price, charType);
+        const routerId = getRouterIdFromReq(req);
+        const result = await generateHotspotVouchers(count, prefix, profile, server, validUntil, price, charType, { routerId });
         
         if (!result.success) {
             throw new Error(result.message || 'Gagal generate voucher');
@@ -587,15 +632,21 @@ router.get('/print-vouchers', async (req, res) => {
 router.post('/delete-voucher', async (req, res) => {
     const { username } = req.body;
     if (!username) {
-        return res.redirect('/admin/hotspot/voucher?error=Username+diperlukan');
+        const routerId = getRouterIdFromReq(req);
+        const qs = routerId ? `&routerId=${encodeURIComponent(routerId)}` : '';
+        return res.redirect('/admin/hotspot/voucher?error=Username+diperlukan' + qs);
     }
 
     try {
-        await deleteHotspotUser(username);
-        res.redirect('/admin/hotspot/voucher?success=Voucher+berhasil+dihapus');
+        const routerId = getRouterIdFromReq(req);
+        await deleteHotspotUser(username, { routerId });
+        const qs = routerId ? `&routerId=${encodeURIComponent(routerId)}` : '';
+        res.redirect('/admin/hotspot/voucher?success=Voucher+berhasil+dihapus' + qs);
     } catch (error) {
         console.error('Error deleting voucher:', error);
-        res.redirect('/admin/hotspot/voucher?error=' + encodeURIComponent('Gagal menghapus voucher: ' + error.message));
+        const routerId = getRouterIdFromReq(req);
+        const qs = routerId ? `&routerId=${encodeURIComponent(routerId)}` : '';
+        res.redirect('/admin/hotspot/voucher?error=' + encodeURIComponent('Gagal menghapus voucher: ' + error.message) + qs);
     }
 });
 
@@ -612,7 +663,8 @@ router.post('/generate-manual-voucher', async (req, res) => {
         }
 
         // Add user to Mikrotik
-        const result = await addHotspotUser(username, password, profile);
+        const routerId = getRouterIdFromReq(req);
+        const result = await addHotspotUser(username, password, profile, null, { routerId });
 
         if (result.success) {
             res.json({
@@ -666,6 +718,7 @@ router.post('/generate-auto-voucher', async (req, res) => {
         }
 
         // Generate vouchers
+        const routerId = getRouterIdFromReq(req);
         for (let i = 0; i < numVouchers; i++) {
             let username, password;
 
@@ -681,7 +734,7 @@ router.post('/generate-auto-voucher', async (req, res) => {
             }
 
             try {
-                const result = await addHotspotUser(username, password, profile);
+                const result = await addHotspotUser(username, password, profile, null, { routerId });
                 if (result.success) {
                     generatedVouchers.push({
                         username,
@@ -717,7 +770,8 @@ router.post('/reset-voucher-online-settings', async (req, res) => {
 
         // Get first available profile from Mikrotik
         const { getHotspotProfiles } = require('../config/mikrotik');
-        const profilesResult = await getHotspotProfiles();
+        const routerId = getRouterIdFromReq(req);
+        const profilesResult = await getHotspotProfiles({ routerId });
         const defaultProfile = (profilesResult.success && profilesResult.data && profilesResult.data.length > 0) 
             ? profilesResult.data[0].name 
             : 'default';

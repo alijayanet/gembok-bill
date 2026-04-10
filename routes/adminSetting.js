@@ -146,6 +146,49 @@ router.post('/save', (req, res) => {
             }
         }
 
+        if (typeof mergedSettings.mikrotik_routers === 'string') {
+            try {
+                const parsed = JSON.parse(mergedSettings.mikrotik_routers);
+                const routers = Array.isArray(parsed) ? parsed : [];
+                const normalized = [];
+                const ids = new Set();
+
+                for (const r of routers) {
+                    if (!r || typeof r !== 'object') continue;
+                    const id = String(r.id ?? '').trim();
+                    if (!id) continue;
+                    if (ids.has(id)) {
+                        return res.status(400).json({
+                            success: false,
+                            error: `Router ID duplikat: ${id}`
+                        });
+                    }
+                    ids.add(id);
+                    normalized.push({
+                        id,
+                        name: String(r.name ?? id).trim() || id,
+                        host: String(r.host ?? '').trim(),
+                        port: String(r.port ?? '8728').trim() || '8728',
+                        user: String(r.user ?? '').trim(),
+                        password: String(r.password ?? '').trim(),
+                        enabled: r.enabled !== false
+                    });
+                }
+
+                mergedSettings.mikrotik_routers = normalized;
+
+                const configuredDefault = String(mergedSettings.mikrotik_default_router_id ?? '').trim();
+                mergedSettings.mikrotik_default_router_id = (configuredDefault && ids.has(configuredDefault))
+                    ? configuredDefault
+                    : (normalized[0] ? normalized[0].id : '');
+            } catch (e) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Format mikrotik_routers tidak valid'
+                });
+            }
+        }
+
         // Pastikan user_auth_mode selalu ada
         if (!('user_auth_mode' in mergedSettings)) {
             mergedSettings.user_auth_mode = 'mikrotik';
