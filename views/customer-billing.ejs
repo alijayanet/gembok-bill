@@ -621,33 +621,76 @@
                   </div>
                 `;
               } else {
-                enabledGateways.forEach(gateway => {
-                  const gatewayName = gateway.charAt(0).toUpperCase() + gateway.slice(1);
-                  const isActive = gateways[gateway].active;
-                  
-                  html += `
-                    <button class="btn btn-outline-primary gateway-btn" 
-                            data-gateway="${gateway}"
-                            ${isActive ? 'data-active="true"' : ''}>
-                      <i class="bi bi-credit-card me-2"></i>
-                      Bayar dengan ${gatewayName}
-                      ${isActive ? '<span class="badge bg-success ms-2">Aktif</span>' : ''}
-                    </button>
-                  `;
-                });
+                const activeGateway = enabledGateways.find(g => gateways[g].active) || enabledGateways[0];
+                const gatewayName = activeGateway.charAt(0).toUpperCase() + activeGateway.slice(1);
+                html += `
+                  <div class="mb-2">
+                    <div class="small text-muted">Gateway sesuai pengaturan admin:</div>
+                    <div class="fw-semibold">${gatewayName}</div>
+                  </div>
+                  <div id="gateway-methods" class="d-grid gap-2"></div>
+                `;
               }
               
               $('#gateway-options').html(html);
               
-              // Handle gateway selection
-              $('.gateway-btn').on('click', function() {
-                const gateway = $(this).data('gateway');
+              if (enabledGateways.length > 0) {
+                const activeGateway = enabledGateways.find(g => gateways[g].active) || enabledGateways[0];
                 const invoiceId = $('#paymentModal').data('invoice-id');
-                
-                $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Memproses...');
-                
-                processPayment(invoiceId, gateway);
-              });
+
+                const $methods = $('#gateway-methods');
+                if ($methods.length === 0) return;
+
+                $methods.html(`
+                  <button class="btn btn-outline-primary" disabled>
+                    <span class="spinner-border spinner-border-sm me-2"></span>Memuat metode pembayaran...
+                  </button>
+                `);
+
+                $.get('/customer/billing/api/payment-methods')
+                  .done(function(methodResp) {
+                    const allMethods = methodResp && methodResp.success && Array.isArray(methodResp.methods) ? methodResp.methods : [];
+                    const methods = allMethods.filter(m => m && m.gateway === activeGateway);
+
+                    if (methods.length === 0) {
+                      $methods.html(`
+                        <button class="btn btn-primary pay-active-gateway-btn" data-gateway="${activeGateway}" data-method="all">
+                          <i class="bi bi-credit-card me-2"></i>Bayar dengan ${activeGateway.charAt(0).toUpperCase() + activeGateway.slice(1)}
+                        </button>
+                      `);
+                      return;
+                    }
+
+                    let methodsHtml = '';
+                    methods.forEach(m => {
+                      const icon = m.icon || 'bi-credit-card';
+                      const name = m.name || m.method || 'Metode';
+                      methodsHtml += `
+                        <button class="btn btn-outline-primary pay-active-gateway-btn" data-gateway="${activeGateway}" data-method="${m.method || 'all'}">
+                          <i class="bi ${icon} me-2"></i>${name}
+                        </button>
+                      `;
+                    });
+                    $methods.html(methodsHtml);
+                  })
+                  .fail(function() {
+                    $methods.html(`
+                      <button class="btn btn-primary pay-active-gateway-btn" data-gateway="${activeGateway}" data-method="all">
+                        <i class="bi bi-credit-card me-2"></i>Bayar dengan ${activeGateway.charAt(0).toUpperCase() + activeGateway.slice(1)}
+                      </button>
+                    `);
+                  })
+                  .always(function() {
+                    $('.pay-active-gateway-btn').on('click', function() {
+                      const gateway = $(this).data('gateway');
+                      const method = $(this).data('method') || 'all';
+                      const $btn = $(this);
+
+                      $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Memproses...');
+                      processPayment(invoiceId, gateway, method);
+                    });
+                  });
+              }
             }
           })
           .fail(function() {
@@ -660,10 +703,11 @@
           });
       }
 
-      function processPayment(invoiceId, gateway) {
-        $.post('/payment/create', {
+      function processPayment(invoiceId, gateway, method) {
+        $.post('/customer/billing/create-payment', {
           invoice_id: invoiceId,
-          gateway: gateway
+          gateway: gateway,
+          method: method || 'all'
         })
         .done(function(response) {
           if (response.success) {
@@ -682,20 +726,6 @@
         .fail(function(xhr) {
           const errorMsg = xhr.responseJSON?.message || 'Gagal membuat pembayaran';
           showToast('error', 'Error!', errorMsg);
-        })
-        .always(function() {
-          // Reset gateway buttons
-          $('.gateway-btn').prop('disabled', false).each(function() {
-            const gateway = $(this).data('gateway');
-            const gatewayName = gateway.charAt(0).toUpperCase() + gateway.slice(1);
-            const isActive = $(this).data('active');
-            
-            $(this).html(`
-              <i class="bi bi-credit-card me-2"></i>
-              Bayar dengan ${gatewayName}
-              ${isActive ? '<span class="badge bg-success ms-2">Aktif</span>' : ''}
-            `);
-          });
         });
       }
 
