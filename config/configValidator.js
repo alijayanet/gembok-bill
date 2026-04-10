@@ -153,8 +153,76 @@ class ConfigValidator {
         const mikrotikPassword = getSetting('mikrotik_password', '');
 
         try {
+            const { getMikrotikConnection } = require('./mikrotik');
+            const { listMikrotikRouters } = require('./mikrotik');
 
-            // Validasi IP address
+            const routerInfo = typeof listMikrotikRouters === 'function' ? listMikrotikRouters() : { routers: [], defaultRouterId: null };
+            const routers = Array.isArray(routerInfo.routers) ? routerInfo.routers : [];
+
+            if (routers.length > 0) {
+                const invalidRouters = [];
+                for (const r of routers) {
+                    const label = `${r.name || r.id} (${r.id})`;
+                    if (!r.host || !this.isValidIPAddress(r.host)) {
+                        invalidRouters.push({ id: r.id, label, reason: `Host tidak valid: ${r.host || '(kosong)'}` });
+                        continue;
+                    }
+                    if (!this.isValidPort(r.port)) {
+                        invalidRouters.push({ id: r.id, label, reason: `Port tidak valid: ${r.port || '(kosong)'}` });
+                        continue;
+                    }
+                    if (!r.user || !r.password) {
+                        invalidRouters.push({ id: r.id, label, reason: 'Username atau password belum dikonfigurasi' });
+                        continue;
+                    }
+                }
+
+                const routerIdToTest = routerInfo.defaultRouterId || (routers[0] ? routers[0].id : null);
+                const routerToTest = routers.find(r => r.id === routerIdToTest) || null;
+
+                if (!routerIdToTest || !routerToTest) {
+                    return {
+                        success: false,
+                        error: 'Konfigurasi Mikrotik multi-router tidak valid',
+                        details: 'Tidak ada router default yang bisa dipakai untuk test koneksi'
+                    };
+                }
+
+                const routerLabel = `${routerToTest.name || routerToTest.id} (${routerToTest.id})`;
+                const routerInvalid = invalidRouters.find(r => r.id === routerToTest.id);
+                if (routerInvalid) {
+                    return {
+                        success: false,
+                        error: 'Konfigurasi router default Mikrotik tidak valid',
+                        details: `${routerLabel}: ${routerInvalid.reason}`
+                    };
+                }
+
+                const connection = await Promise.race([
+                    getMikrotikConnection({ routerId: routerIdToTest }),
+                    new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Connection timeout')), 10000)
+                    )
+                ]);
+
+                if (connection) {
+                    const invalidSummary = invalidRouters.length
+                        ? `; Router bermasalah: ${invalidRouters.map(r => r.label).join(', ')}`
+                        : '';
+                    return {
+                        success: true,
+                        message: 'Koneksi ke Mikrotik berhasil',
+                        details: `Router: ${routerLabel}${invalidSummary}`
+                    };
+                }
+
+                return {
+                    success: false,
+                    error: 'Koneksi ke Mikrotik gagal',
+                    details: `Tidak dapat membuat koneksi ke router default: ${routerLabel}`
+                };
+            }
+            
             if (!this.isValidIPAddress(mikrotikHost)) {
                 return {
                     success: false,
@@ -163,7 +231,6 @@ class ConfigValidator {
                 };
             }
 
-            // Validasi port
             if (!this.isValidPort(mikrotikPort)) {
                 return {
                     success: false,
@@ -172,7 +239,6 @@ class ConfigValidator {
                 };
             }
 
-            // Validasi credentials
             if (!mikrotikUser || !mikrotikPassword) {
                 return {
                     success: false,
@@ -181,10 +247,6 @@ class ConfigValidator {
                 };
             }
 
-            // Test koneksi menggunakan API Mikrotik (simulasi)
-            // Karena tidak ada library Mikrotik yang tersedia, kita test dengan ping atau TCP connection
-            const { getMikrotikConnection } = require('./mikrotik');
-            
             // Coba koneksi dengan timeout 10 detik untuk login (lebih stabil di server)
             const connection = await Promise.race([
                 getMikrotikConnection(),

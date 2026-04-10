@@ -8,9 +8,10 @@ const path = require('path');
 const cacheManager = require('./cacheManager');
 
 let sock = null;
-let mikrotikConnection = null;
+const ROUTER_KEY_LEGACY = '__legacy__';
+let mikrotikConnections = new Map();
 let monitorInterval = null;
-let connectionPromise = null; // Singleton promise untuk antrian login
+let connectionPromises = new Map(); // Promise per router untuk antrian login
 
 // Fungsi untuk mengecek apakah koneksi masih hidup
 async function isConnectionAlive(conn) {
@@ -32,21 +33,119 @@ function setSock(sockInstance) {
     sock = sockInstance;
 }
 
+function normalizeRouterId(v) {
+    const s = String(v ?? '').trim();
+    return s || null;
+}
+
+function normalizeRoutersFromSettings(raw) {
+    if (!raw) return [];
+
+    const routers = [];
+
+    if (Array.isArray(raw)) {
+        raw.forEach((r, idx) => {
+            if (!r || typeof r !== 'object') return;
+            const id = normalizeRouterId(r.id) || `router_${idx + 1}`;
+            routers.push({
+                id,
+                name: String(r.name ?? id),
+                host: String(r.host ?? '').trim(),
+                port: String(r.port ?? '8728').trim(),
+                user: String(r.user ?? '').trim(),
+                password: String(r.password ?? '').trim(),
+                enabled: r.enabled !== false
+            });
+        });
+        return routers;
+    }
+
+    if (typeof raw === 'object') {
+        Object.entries(raw).forEach(([id, r]) => {
+            if (!r || typeof r !== 'object') return;
+            const normalizedId = normalizeRouterId(r.id) || normalizeRouterId(id);
+            if (!normalizedId) return;
+            routers.push({
+                id: normalizedId,
+                name: String(r.name ?? normalizedId),
+                host: String(r.host ?? '').trim(),
+                port: String(r.port ?? '8728').trim(),
+                user: String(r.user ?? '').trim(),
+                password: String(r.password ?? '').trim(),
+                enabled: r.enabled !== false
+            });
+        });
+        return routers;
+    }
+
+    return [];
+}
+
+function getMikrotikRoutersFromSettings() {
+    const raw =
+        getSetting('mikrotik_routers', null) ??
+        getSetting('mikrotik.routers', null);
+
+    const routers = normalizeRoutersFromSettings(raw);
+    return routers.filter(r => r && r.enabled !== false);
+}
+
+function getLegacyMikrotikRouterConfig() {
+    return {
+        host: String(getSetting('mikrotik_host', '192.168.8.1')).trim(),
+        port: String(getSetting('mikrotik_port', '8728')).trim(),
+        user: String(getSetting('mikrotik_user', 'admin')).trim(),
+        password: String(getSetting('mikrotik_password', 'admin')).trim()
+    };
+}
+
+function getDefaultMikrotikRouterId(routers) {
+    const configuredDefault =
+        normalizeRouterId(getSetting('mikrotik_default_router_id', null)) ??
+        normalizeRouterId(getSetting('mikrotik.default_router_id', null));
+
+    if (configuredDefault && routers.some(r => r.id === configuredDefault)) return configuredDefault;
+    return routers[0] ? routers[0].id : null;
+}
+
+function resolveMikrotikRouterSelection(requestedRouterId) {
+    const routers = getMikrotikRoutersFromSettings();
+    const requested = normalizeRouterId(requestedRouterId);
+
+    if (routers.length === 0) {
+        return { routerKey: ROUTER_KEY_LEGACY, routerId: null, router: null, routers, defaultRouterId: null };
+    }
+
+    const defaultRouterId = getDefaultMikrotikRouterId(routers);
+    const selectedRouterId = (requested && routers.some(r => r.id === requested)) ? requested : defaultRouterId;
+    const router = routers.find(r => r.id === selectedRouterId) || null;
+
+    return { routerKey: selectedRouterId, routerId: selectedRouterId, router, routers, defaultRouterId };
+}
+
+function listMikrotikRouters() {
+    const routers = getMikrotikRoutersFromSettings();
+    const defaultRouterId = getDefaultMikrotikRouterId(routers);
+    return { routers, defaultRouterId };
+}
+
 // Fungsi untuk koneksi ke Mikrotik
-async function connectToMikrotik() {
+async function connectToMikrotik(options = {}) {
     try {
-        // Dapatkan konfigurasi Mikrotik
-        const host = getSetting('mikrotik_host', '192.168.8.1');
-        const port = parseInt(getSetting('mikrotik_port', '8728'));
-        const user = getSetting('mikrotik_user', 'admin');
-        const password = getSetting('mikrotik_password', 'admin');
+        const selection = resolveMikrotikRouterSelection(options.routerId);
+        const host = selection.router ? selection.router.host : getLegacyMikrotikRouterConfig().host;
+        const port = parseInt(selection.router ? selection.router.port : getLegacyMikrotikRouterConfig().port);
+        const user = selection.router ? selection.router.user : getLegacyMikrotikRouterConfig().user;
+        const password = selection.router ? selection.router.password : getLegacyMikrotikRouterConfig().password;
+
+        const routerLabel = selection.router ? `${selection.router.name} (${selection.router.id})` : 'legacy';
 
         if (!host || !user || !password) {
             logger.error('Mikrotik configuration is incomplete');
             return null;
         }
 
-        logger.info(`📡 [MIKROTIK] Menghubungi router di ${host}:${port}...`);
+        logger.info(`📡 [MIKROTIK] Menghubungi router ${routerLabel} di ${host}:${port}...`);
 
         // Buat koneksi ke Mikrotik
         const conn = new RouterOSAPI({
@@ -61,7 +160,8 @@ async function connectToMikrotik() {
         // Event handlers untuk monitoring koneksi
         conn.on('error', (err) => {
             logger.error(`⚠️ [MIKROTIK] Connection Error: ${err.message}`);
-            if (mikrotikConnection === conn) mikrotikConnection = null;
+            const current = mikrotikConnections.get(selection.routerKey);
+            if (current === conn) mikrotikConnections.delete(selection.routerKey);
         });
 
         // Connect ke Mikrotik dengan timeout 10 detik
@@ -70,36 +170,43 @@ async function connectToMikrotik() {
             new Promise((_, reject) => setTimeout(() => reject(new Error('Initial handshake timeout')), 10000))
         ]);
 
-        logger.info(`✅ [MIKROTIK] Terkoneksi sukses ke ${host}:${port}`);
+        logger.info(`✅ [MIKROTIK] Terkoneksi sukses ke ${routerLabel} di ${host}:${port}`);
         return conn;
     } catch (error) {
-        logger.error(`❌ [MIKROTIK] Gagal koneksi ke ${getSetting('mikrotik_host', 'router')}: ${error.message}`);
+        logger.error(`❌ [MIKROTIK] Gagal koneksi: ${error.message}`);
         return null;
     }
 }
 
 // Fungsi untuk mendapatkan koneksi Mikrotik
-async function getMikrotikConnection() {
+async function getMikrotikConnection(options = {}) {
+    const selection = resolveMikrotikRouterSelection(options.routerId);
+    const routerKey = selection.routerKey;
+
     // 1. Jika sudah ada koneksi yang BERHASIL dan masih hidup, gunakan itu
-    if (mikrotikConnection && await isConnectionAlive(mikrotikConnection)) {
-        return mikrotikConnection;
+    const existing = mikrotikConnections.get(routerKey);
+    if (existing && await isConnectionAlive(existing)) {
+        return existing;
     }
 
     // 2. Jika sedang ada proses login yang sedang berjalan, TUNGGU proses tersebut
-    if (connectionPromise) {
+    const pending = connectionPromises.get(routerKey);
+    if (pending) {
         logger.info('⏳ [MIKROTIK] Menunggu proses login yang sedang berjalan...');
-        return await connectionPromise;
+        return await pending;
     }
 
     // 3. Jika tidak ada yang hidup dan tidak ada yang sedang login, mulai login baru
-    connectionPromise = connectToMikrotik();
-    
+    const promise = connectToMikrotik({ routerId: selection.routerId });
+    connectionPromises.set(routerKey, promise);
+
     try {
-        mikrotikConnection = await connectionPromise;
-        return mikrotikConnection;
+        const conn = await promise;
+        if (conn) mikrotikConnections.set(routerKey, conn);
+        return conn;
     } finally {
         // Reset promise agar proses selanjutnya bisa memulai login baru jika yang ini gagal
-        connectionPromise = null;
+        connectionPromises.delete(routerKey);
     }
 }
 
@@ -132,12 +239,12 @@ async function addPPPoEUserRadius({ username, password }) {
 }
 
 // Wrapper: Pilih mode autentikasi dari settings
-async function getPPPoEUsers() {
+async function getPPPoEUsers(options = {}) {
     const mode = getSetting('user_auth_mode', 'mikrotik');
     if (mode === 'radius') {
         return await getPPPoEUsersRadius();
     } else {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return [];
@@ -145,7 +252,7 @@ async function getPPPoEUsers() {
         // Ambil semua secret PPPoE
         const pppSecrets = await conn.write('/ppp/secret/print');
         // Ambil semua koneksi aktif
-        const activeResult = await getActivePPPoEConnections();
+        const activeResult = await getActivePPPoEConnections(options);
         const activeNames = (activeResult && activeResult.success && Array.isArray(activeResult.data)) ? activeResult.data.map(c => c.name) : [];
         // Gabungkan data
         return pppSecrets.map(secret => ({
@@ -159,9 +266,9 @@ async function getPPPoEUsers() {
 }
 
 // Fungsi untuk mendapatkan data user PPPoE berdasarkan username
-async function getPPPoEUserByUsername(username) {
+async function getPPPoEUserByUsername(username, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) throw new Error('Koneksi ke Mikrotik gagal');
 
         const response = await conn.write('/ppp/secret/print', ['?.name=' + username]);
@@ -176,9 +283,9 @@ async function getPPPoEUserByUsername(username) {
 }
 
 // Fungsi untuk edit user PPPoE (berdasarkan id)
-async function editPPPoEUser({ id, username, password, profile }) {
+async function editPPPoEUser({ id, username, password, profile }, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) throw new Error('Koneksi ke Mikrotik gagal');
         await conn.write('/ppp/secret/set', [
             '=.id=' + id,
@@ -194,9 +301,9 @@ async function editPPPoEUser({ id, username, password, profile }) {
 }
 
 // Fungsi untuk hapus user PPPoE (berdasarkan id)
-async function deletePPPoEUser(id) {
+async function deletePPPoEUser(id, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) throw new Error('Koneksi ke Mikrotik gagal');
         await conn.write('/ppp/secret/remove', ['=.id=' + id]);
         return { success: true };
@@ -207,7 +314,7 @@ async function deletePPPoEUser(id) {
 }
 
 // Fungsi untuk mendapatkan daftar koneksi PPPoE aktif
-async function getActivePPPoEConnections() {
+async function getActivePPPoEConnections(options = {}) {
     try {
         // Check cache first
         const cacheKey = 'mikrotik:pppoe:active';
@@ -218,7 +325,7 @@ async function getActivePPPoEConnections() {
             return cachedData;
         }
 
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal', data: [] };
@@ -246,9 +353,9 @@ async function getActivePPPoEConnections() {
 }
 
 // Fungsi untuk mendapatkan daftar user PPPoE offline
-async function getOfflinePPPoEUsers() {
+async function getOfflinePPPoEUsers(options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return [];
@@ -258,7 +365,7 @@ async function getOfflinePPPoEUsers() {
         const pppSecrets = await conn.write('/ppp/secret/print');
 
         // Dapatkan koneksi aktif
-        const activeResult = await getActivePPPoEConnections();
+        const activeResult = await getActivePPPoEConnections(options);
         const activeUsers = (activeResult && activeResult.success && Array.isArray(activeResult.data))
             ? activeResult.data.map(conn => conn.name)
             : [];
@@ -274,7 +381,7 @@ async function getOfflinePPPoEUsers() {
 }
 
 // Fungsi untuk mendapatkan informasi user PPPoE yang tidak aktif (untuk whatsapp.js)
-async function getInactivePPPoEUsers() {
+async function getInactivePPPoEUsers(options = {}) {
     try {
         // Check cache first
         const cacheKey = 'mikrotik:pppoe:inactive';
@@ -288,14 +395,14 @@ async function getInactivePPPoEUsers() {
         logger.debug('🔍 Fetching inactive PPPoE users from Mikrotik API...');
 
         // Dapatkan semua secret PPPoE
-        const pppSecrets = await getMikrotikConnection().then(conn => {
+        const pppSecrets = await getMikrotikConnection(options).then(conn => {
             if (!conn) return [];
             return conn.write('/ppp/secret/print');
         });
 
         // Dapatkan koneksi aktif
         let activeUsers = [];
-        const activeConnectionsResult = await getActivePPPoEConnections();
+        const activeConnectionsResult = await getActivePPPoEConnections(options);
         if (activeConnectionsResult && activeConnectionsResult.success && Array.isArray(activeConnectionsResult.data)) {
             activeUsers = activeConnectionsResult.data.map(conn => conn.name);
         }
@@ -547,12 +654,12 @@ async function addHotspotUserRadius(username, password, profile, comment = null)
 }
 
 // Wrapper: Pilih mode autentikasi dari settings
-async function getActiveHotspotUsers() {
+async function getActiveHotspotUsers(options = {}) {
     const mode = getSetting('user_auth_mode', 'mikrotik');
     if (mode === 'radius') {
         return await getActiveHotspotUsersRadius();
     } else {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal', data: [] };
@@ -570,13 +677,13 @@ async function getActiveHotspotUsers() {
 }
 
 // Fungsi untuk menambahkan user hotspot
-async function addHotspotUser(username, password, profile, comment = null) {
+async function addHotspotUser(username, password, profile, comment = null, options = {}) {
     const mode = getSetting('user_auth_mode', 'mikrotik');
     if (mode === 'radius') {
         return await addHotspotUserRadius(username, password, profile, comment);
     } else {
         try {
-            const conn = await getMikrotikConnection();
+            const conn = await getMikrotikConnection(options);
             if (!conn) {
                 logger.error('No Mikrotik connection available');
                 return { success: false, message: 'Koneksi ke Mikrotik gagal' };
@@ -605,9 +712,9 @@ async function addHotspotUser(username, password, profile, comment = null) {
 }
 
 // Fungsi untuk menghapus user hotspot
-async function deleteHotspotUser(username) {
+async function deleteHotspotUser(username, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal' };
@@ -631,9 +738,9 @@ async function deleteHotspotUser(username) {
 }
 
 // Fungsi untuk menambahkan secret PPPoE
-async function addPPPoESecret(username, password, profile, localAddress = '') {
+async function addPPPoESecret(username, password, profile, localAddress = '', options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal' };
@@ -658,9 +765,9 @@ async function addPPPoESecret(username, password, profile, localAddress = '') {
 }
 
 // Fungsi untuk menghapus secret PPPoE
-async function deletePPPoESecret(username) {
+async function deletePPPoESecret(username, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal' };
@@ -684,9 +791,9 @@ async function deletePPPoESecret(username) {
 }
 
 // Fungsi untuk mengubah profile PPPoE
-async function setPPPoEProfile(username, profile) {
+async function setPPPoEProfile(username, profile, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal' };
@@ -1190,9 +1297,9 @@ async function getSystemLogs(topics = '', count = '50') {
 }
 
 // Fungsi untuk mendapatkan daftar profile PPPoE
-async function getPPPoEProfiles() {
+async function getPPPoEProfiles(options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal', data: [] };
@@ -1211,9 +1318,9 @@ async function getPPPoEProfiles() {
 }
 
 // Fungsi untuk mendapatkan detail profile PPPoE
-async function getPPPoEProfileDetail(id) {
+async function getPPPoEProfileDetail(id, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal', data: null };
@@ -1236,9 +1343,9 @@ async function getPPPoEProfileDetail(id) {
 }
 
 // Fungsi untuk mendapatkan daftar profile hotspot
-async function getHotspotProfiles() {
+async function getHotspotProfiles(options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal', data: [] };
@@ -1257,9 +1364,9 @@ async function getHotspotProfiles() {
 }
 
 // Fungsi untuk mendapatkan detail profile hotspot
-async function getHotspotProfileDetail(id) {
+async function getHotspotProfileDetail(id, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal', data: null };
@@ -1281,9 +1388,9 @@ async function getHotspotProfileDetail(id) {
 }
 
 // Fungsi untuk mendapatkan daftar server hotspot
-async function getHotspotServers() {
+async function getHotspotServers(options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal', data: [] };
@@ -1312,9 +1419,9 @@ async function getHotspotServers() {
 }
 
 // Fungsi untuk memutus koneksi user hotspot aktif
-async function disconnectHotspotUser(username) {
+async function disconnectHotspotUser(username, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal' };
@@ -1343,9 +1450,9 @@ async function disconnectHotspotUser(username) {
 }
 
 // Fungsi untuk menambah profile hotspot
-async function addHotspotProfile(profileData) {
+async function addHotspotProfile(profileData, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal' };
@@ -1393,9 +1500,9 @@ async function addHotspotProfile(profileData) {
 }
 
 // Fungsi untuk edit profile hotspot
-async function editHotspotProfile(profileData) {
+async function editHotspotProfile(profileData, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal' };
@@ -1448,9 +1555,9 @@ async function editHotspotProfile(profileData) {
 }
 
 // Fungsi untuk hapus profile hotspot
-async function deleteHotspotProfile(id) {
+async function deleteHotspotProfile(id, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal' };
@@ -1494,9 +1601,9 @@ async function getFirewallRules(chain = '') {
 }
 
 // Fungsi untuk restart router
-async function restartRouter() {
+async function restartRouter(options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('No Mikrotik connection available');
             return { success: false, message: 'Koneksi ke Mikrotik gagal' };
@@ -1606,19 +1713,19 @@ async function getAllUsers() {
 
 // ...
 // Fungsi tambah user PPPoE (alias addPPPoESecret)
-async function addPPPoEUser({ username, password, profile }) {
+async function addPPPoEUser({ username, password, profile }, options = {}) {
     const mode = getSetting('user_auth_mode', 'mikrotik');
     if (mode === 'radius') {
         return await addPPPoEUserRadius({ username, password });
     } else {
-        return await addPPPoESecret(username, password, profile);
+        return await addPPPoESecret(username, password, profile, '', options);
     }
 }
 
 // Update user hotspot (password dan profile)
-async function updateHotspotUser(username, password, profile) {
+async function updateHotspotUser(username, password, profile, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) throw new Error('Koneksi ke Mikrotik gagal');
         // Cari .id user berdasarkan username
         const users = await conn.write('/ip/hotspot/user/print', [
@@ -1642,9 +1749,9 @@ async function updateHotspotUser(username, password, profile) {
 // Fungsi ini diganti dengan fungsi generateHotspotVouchers yang lebih lengkap di bawah
 
 // Fungsi untuk menambah profile PPPoE
-async function addPPPoEProfile(profileData) {
+async function addPPPoEProfile(profileData, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) throw new Error('Koneksi ke Mikrotik gagal');
 
         const params = [
@@ -1676,9 +1783,9 @@ async function addPPPoEProfile(profileData) {
 }
 
 // Fungsi untuk edit profile PPPoE
-async function editPPPoEProfile(profileData) {
+async function editPPPoEProfile(profileData, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) throw new Error('Koneksi ke Mikrotik gagal');
 
         const params = [
@@ -1711,9 +1818,9 @@ async function editPPPoEProfile(profileData) {
 }
 
 // Fungsi untuk hapus profile PPPoE
-async function deletePPPoEProfile(id) {
+async function deletePPPoEProfile(id, options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) throw new Error('Koneksi ke Mikrotik gagal');
 
         await conn.write('/ppp/profile/remove', ['=.id=' + id]);
@@ -1726,9 +1833,9 @@ async function deletePPPoEProfile(id) {
 }
 
 // Fungsi untuk generate hotspot vouchers
-async function generateHotspotVouchers(count, prefix, profile, server, validUntil, price, charType = 'alphanumeric') {
+async function generateHotspotVouchers(count, prefix, profile, server, validUntil, price, charType = 'alphanumeric', options = {}) {
     try {
-        const conn = await getMikrotikConnection();
+        const conn = await getMikrotikConnection(options);
         if (!conn) {
             logger.error('Tidak dapat terhubung ke Mikrotik');
             return { success: false, message: 'Tidak dapat terhubung ke Mikrotik', vouchers: [] };
@@ -1945,20 +2052,20 @@ let lastMikrotikConfig = {};
 
 function getCurrentMikrotikConfig() {
     return {
-        host: getSetting('mikrotik_host', '192.168.8.1'),
-        port: getSetting('mikrotik_port', '8728'),
-        user: getSetting('mikrotik_user', 'admin'),
-        password: getSetting('mikrotik_password', 'admin')
+        legacy: getLegacyMikrotikRouterConfig(),
+        routers: getMikrotikRoutersFromSettings(),
+        default_router_id:
+            normalizeRouterId(getSetting('mikrotik_default_router_id', null)) ??
+            normalizeRouterId(getSetting('mikrotik.default_router_id', null))
     };
 }
 
 function mikrotikConfigChanged(newConfig, oldConfig) {
-    return (
-        newConfig.host !== oldConfig.host ||
-        newConfig.port !== oldConfig.port ||
-        newConfig.user !== oldConfig.user ||
-        newConfig.password !== oldConfig.password
-    );
+    try {
+        return JSON.stringify(newConfig) !== JSON.stringify(oldConfig);
+    } catch {
+        return true;
+    }
 }
 
 // Inisialisasi config awal
@@ -1969,7 +2076,13 @@ fs.watchFile(settingsPath, { interval: 2000 }, (curr, prev) => {
         const newConfig = getCurrentMikrotikConfig();
         if (mikrotikConfigChanged(newConfig, lastMikrotikConfig)) {
             logger.info('Konfigurasi Mikrotik di settings.json berubah, reset koneksi Mikrotik...');
-            mikrotikConnection = null;
+            for (const conn of mikrotikConnections.values()) {
+                try {
+                    if (conn && typeof conn.close === 'function') conn.close();
+                } catch { }
+            }
+            mikrotikConnections = new Map();
+            connectionPromises = new Map();
             lastMikrotikConfig = newConfig;
         }
     } catch (e) {
@@ -1979,6 +2092,7 @@ fs.watchFile(settingsPath, { interval: 2000 }, (curr, prev) => {
 
 module.exports = {
     setSock,
+    listMikrotikRouters,
     getInterfaceTraffic,
     getPPPoEUsers,
     addPPPoEUser,

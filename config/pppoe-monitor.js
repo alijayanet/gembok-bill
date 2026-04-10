@@ -1,7 +1,7 @@
 // pppoe-monitor.js - Enhanced PPPoE monitoring with notification control
 const logger = require('./logger');
 const pppoeNotifications = require('./pppoe-notifications');
-const { getActivePPPoEConnections } = require('./mikrotik');
+const { getActivePPPoEConnections, listMikrotikRouters } = require('./mikrotik');
 
 let monitorInterval = null;
 let lastActivePPPoE = [];
@@ -29,21 +29,51 @@ function withTimeout(promise, timeoutMs, timeoutMessage = 'Operation timed out')
 async function getCurrentPPPoEData() {
     try {
         console.log('[PPPoE-MONITOR] Mengambil data PPPoE aktif dari Mikrotik...');
-        
-        // Gunakan fungsi yang sudah ada untuk mendapatkan koneksi PPPoE aktif
-        const result = await withTimeout(getActivePPPoEConnections(), 10000, 'Timeout saat mengambil data PPPoE dari Mikrotik');
-        
-        if (result && result.success && Array.isArray(result.data)) {
-            console.log(`[PPPoE-MONITOR] Ditemukan ${result.data.length} koneksi PPPoE aktif`);
-            return result.data;
-        } else {
+
+        const routerInfo = typeof listMikrotikRouters === 'function' ? listMikrotikRouters() : { routers: [], defaultRouterId: null };
+        const routers = Array.isArray(routerInfo.routers) ? routerInfo.routers : [];
+
+        if (routers.length === 0) {
+            const result = await withTimeout(getActivePPPoEConnections(), 10000, 'Timeout saat mengambil data PPPoE dari Mikrotik');
+
+            if (result && result.success && Array.isArray(result.data)) {
+                console.log(`[PPPoE-MONITOR] Ditemukan ${result.data.length} koneksi PPPoE aktif`);
+                return result.data;
+            }
             console.warn('[PPPoE-MONITOR] Gagal mendapatkan data PPPoE aktif dari Mikrotik');
             return [];
         }
+
+        const perRouter = await Promise.all(routers.map(async (r) => {
+            if (!r || r.enabled === false) return [];
+            const routerId = r.id;
+
+            const result = await withTimeout(
+                getActivePPPoEConnections({ routerId }),
+                10000,
+                `Timeout saat mengambil data PPPoE dari Mikrotik (routerId=${routerId})`
+            );
+
+            if (result && result.success && Array.isArray(result.data)) {
+                return result.data.map(conn => ({ ...conn, routerId, routerName: r.name || routerId }));
+            }
+
+            return [];
+        }));
+
+        const merged = perRouter.flat();
+        console.log(`[PPPoE-MONITOR] Ditemukan ${merged.length} koneksi PPPoE aktif (multi-router)`);
+        return merged;
     } catch (error) {
         console.error('[PPPoE-MONITOR] Error saat mengambil data PPPoE dari Mikrotik:', error.message);
         return [];
     }
+}
+
+function getConnectionKey(conn) {
+    if (!conn || !conn.name) return null;
+    if (conn.routerId) return `${conn.routerId}::${conn.name}`;
+    return conn.name;
 }
 
 // Fungsi untuk membandingkan data PPPoE
@@ -63,24 +93,23 @@ async function comparePPPoEData(previousData, currentData) {
         // Buat map dari data sebelumnya untuk pencarian cepat
         const previousMap = new Map();
         previousData.forEach(conn => {
-            if (conn.name) {
-                previousMap.set(conn.name, conn);
-            }
+            const key = getConnectionKey(conn);
+            if (key) previousMap.set(key, conn);
         });
         
         // Buat map dari data saat ini
         const currentMap = new Map();
         currentData.forEach(conn => {
-            if (conn.name) {
-                currentMap.set(conn.name, conn);
-            }
+            const key = getConnectionKey(conn);
+            if (key) currentMap.set(key, conn);
         });
         
         const changes = [];
         
         // Cari koneksi baru (ada di current tapi tidak di previous)
         currentData.forEach(conn => {
-            if (conn.name && !previousMap.has(conn.name)) {
+            const key = getConnectionKey(conn);
+            if (key && !previousMap.has(key)) {
                 changes.push({
                     type: 'login',
                     connection: conn
@@ -90,7 +119,8 @@ async function comparePPPoEData(previousData, currentData) {
         
         // Cari koneksi yang logout (ada di previous tapi tidak di current)
         previousData.forEach(conn => {
-            if (conn.name && !currentMap.has(conn.name)) {
+            const key = getConnectionKey(conn);
+            if (key && !currentMap.has(key)) {
                 changes.push({
                     type: 'logout',
                     connection: conn

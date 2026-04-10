@@ -522,6 +522,9 @@ async function sendLoginNotification(connection) {
         
         // Buat pesan notifikasi
         let message = `🔔 *PPPoE LOGIN NOTIFICATION*\n\n`;
+        if (connection.routerName || connection.routerId) {
+            message += `🧭 *Router:* ${connection.routerName || connection.routerId}\n`;
+        }
         message += `👤 *User:* ${connection.name}\n`;
         message += `📍 *IP Address:* ${connection.address || 'N/A'}\n`;
         message += `📈 *Uptime:* ${connection.uptime || 'N/A'}\n`;
@@ -584,6 +587,9 @@ async function sendLogoutNotification(connection) {
         
         // Buat pesan notifikasi
         let message = `🚪 *PPPoE LOGOUT NOTIFICATION*\n\n`;
+        if (connection.routerName || connection.routerId) {
+            message += `🧭 *Router:* ${connection.routerName || connection.routerId}\n`;
+        }
         message += `👤 *User:* ${connection.name}\n`;
         if (connection.comment) {
             message += `📝 *Comment:* ${connection.comment}\n`;
