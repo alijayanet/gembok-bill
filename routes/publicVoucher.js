@@ -936,6 +936,8 @@ async function handleVoucherWebhook(body, headers) {
         let gateway = 'tripay'; // Default ke tripay
         if (body.transaction_status) {
             gateway = 'midtrans';
+        } else if (body.merchantCode && body.merchantOrderId && body.resultCode !== undefined) {
+            gateway = 'duitku';
         } else if (body.status === 'PAID' || body.status === 'EXPIRED' || body.status === 'FAILED') {
             gateway = 'tripay';
         } else if (body.status === 'settled' || body.status === 'expired' || body.status === 'failed') {
@@ -954,15 +956,19 @@ async function handleVoucherWebhook(body, headers) {
 
             // Fallback: proses manual untuk voucher payment
             webhookResult = {
-                order_id: body.order_id || body.merchant_ref,
-                status: body.status || body.transaction_status,
-                amount: body.amount || body.gross_amount,
-                payment_type: body.payment_type || body.payment_method
+                order_id: body.order_id || body.merchant_ref || body.external_id || body.merchantOrderId,
+                status: body.status || body.transaction_status || body.resultCode,
+                amount: body.amount || body.gross_amount || body.paymentAmount,
+                payment_type: body.payment_type || body.payment_method || body.paymentCode
             };
 
             // Normalize status
             if (webhookResult.status === 'PAID' || webhookResult.status === 'settlement' || webhookResult.status === 'capture') {
                 webhookResult.status = 'success';
+            } else if (webhookResult.status === '00') {
+                webhookResult.status = 'success';
+            } else if (webhookResult.status === '01' || webhookResult.status === '02') {
+                webhookResult.status = 'failed';
             }
         }
 

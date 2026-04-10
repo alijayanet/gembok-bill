@@ -96,6 +96,28 @@ router.post('/webhook/xendit', async (req, res) => {
     }
 });
 
+router.post('/webhook/duitku', async (req, res) => {
+    try {
+        const orderId = req.body.merchantOrderId || '';
+        const isVoucherPayment = String(orderId).includes('VCR-') || String(orderId).includes('VOUCHER-');
+
+        if (isVoucherPayment) {
+            const { handleVoucherWebhook } = require('./publicVoucher');
+            const result = await handleVoucherWebhook(req.body, req.headers);
+            return res.status(200).json(result);
+        }
+
+        const result = await billingManager.handlePaymentWebhook({ body: req.body, headers: req.headers }, 'duitku');
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('❌ Duitku webhook error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 router.post('/webhook/tripay', async (req, res) => {
     try {
         console.log('🔍 Universal webhook received:', JSON.stringify(req.body, null, 2));

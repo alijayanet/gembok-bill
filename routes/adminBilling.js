@@ -1412,7 +1412,7 @@ router.get('/export/financial-report.xlsx', async (req, res) => {
 router.post('/payment-settings/active-gateway', async (req, res) => {
     try {
         const { activeGateway } = req.body || {};
-        if (!activeGateway || !['midtrans', 'xendit', 'tripay'].includes(activeGateway)) {
+        if (!activeGateway || !['midtrans', 'xendit', 'tripay', 'duitku'].includes(activeGateway)) {
             return res.status(400).json({ success: false, message: 'activeGateway tidak valid' });
         }
         const all = getSettingsWithCache();
@@ -1432,7 +1432,7 @@ router.post('/payment-settings/active-gateway', async (req, res) => {
 router.post('/payment-settings/:gateway', async (req, res) => {
     try {
         const gateway = String(req.params.gateway || '').toLowerCase();
-        if (!['midtrans', 'xendit', 'tripay'].includes(gateway)) {
+        if (!['midtrans', 'xendit', 'tripay', 'duitku'].includes(gateway)) {
             return res.status(400).json({ success: false, message: 'Gateway tidak dikenali' });
         }
 
@@ -1485,6 +1485,20 @@ router.post('/payment-settings/:gateway', async (req, res) => {
                 base_url: req.body.base_url !== undefined ? String(req.body.base_url || '').trim() : (pg.tripay?.base_url || pg.base_url || '')
                 // Method is now selected by customer, removed from admin settings
             };
+        } else if (gateway === 'duitku') {
+            if (req.body.base_url !== undefined && !isValidOptionalHttpUrl(req.body.base_url)) {
+                return res.status(400).json({ success: false, message: 'Duitku base_url harus diawali http:// atau https://' });
+            }
+            pg.duitku = {
+                ...(pg.duitku || {}),
+                enabled: toBool(req.body.enabled, pg.duitku?.enabled ?? false),
+                production: toBool(req.body.production, pg.duitku?.production ?? false),
+                merchant_code: req.body.merchant_code !== undefined ? req.body.merchant_code : (pg.duitku?.merchant_code || ''),
+                api_key: req.body.api_key !== undefined ? req.body.api_key : (pg.duitku?.api_key || ''),
+                method: req.body.method !== undefined ? String(req.body.method || '').trim() : (pg.duitku?.method || ''),
+                expiry_period: req.body.expiry_period !== undefined ? String(req.body.expiry_period || '').trim() : (pg.duitku?.expiry_period || ''),
+                base_url: req.body.base_url !== undefined ? String(req.body.base_url || '').trim() : (pg.duitku?.base_url || '')
+            };
         }
 
         all.payment_gateway = pg;
@@ -1518,8 +1532,13 @@ router.get('/payment-settings', getAppSettings, async (req, res) => {
     try {
         const settings = getSettingsWithCache();
         const pg = settings.payment_gateway || {};
+        pg.midtrans = pg.midtrans || { enabled: false, production: false, server_key: '', client_key: '', merchant_id: '', base_url: '' };
+        pg.xendit = pg.xendit || { enabled: false, production: false, api_key: '', callback_token: '', base_url: '' };
+        pg.tripay = pg.tripay || { enabled: false, production: false, api_key: '', private_key: '', merchant_code: '', base_url: '' };
+        pg.duitku = pg.duitku || { enabled: false, production: false, merchant_code: '', api_key: '', method: '', expiry_period: '', base_url: '' };
         const mid = pg.midtrans || {};
         const xe = pg.xendit || {};
+        const dk = pg.duitku || {};
         const saved = req.query.saved === '1';
 
         // Get current gateway status
@@ -1533,6 +1552,7 @@ router.get('/payment-settings', getAppSettings, async (req, res) => {
             pg,
             mid,
             xe,
+            dk,
             gatewayStatus,
             saved
         });
